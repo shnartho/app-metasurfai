@@ -1,0 +1,76 @@
+const path = require('path');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+module.exports = {
+    entry: './src/index.js',
+    output: {
+        path: path.resolve(__dirname, 'dist'),
+        filename: 'index_bundle.js',
+    },
+    devServer: {
+        port: 9000,
+        static: {
+            directory: path.resolve(__dirname, 'dist'),
+        },
+        historyApiFallback: true,
+        proxy: [
+            {
+                context: ['/api'],
+                target: 'https://metasurfai-public-api.fly.dev',
+                changeOrigin: true,
+                pathRewrite: { '^/api': '' },
+                secure: false,
+            },
+        ],
+    },
+    module: {
+        rules: [
+            {
+                test: /\.(js|jsx)$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ['@babel/preset-env', '@babel/preset-react'],
+                    },
+                },
+            },
+            {
+                test: /\.svg$/,
+                use: ['@svgr/webpack'],
+            },
+            {
+                test: /\.(png|jpg|gif)$/i,
+                type: 'asset/resource',
+                generator: {
+                    filename: 'images/[name][ext][query]',
+                },
+            },
+            {
+                test: /\.(woff|woff2|eot|ttf|otf)$/i,
+                type: 'asset/resource',
+                generator: {
+                    filename: 'fonts/[name][ext][query]',
+                },
+            },
+            {
+                test: /\.css$/i,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    'css-loader',
+                    'postcss-loader',
+                ],
+            },
+        ],
+    },
+    plugins: [
+        new MiniCssExtractPlugin({
+            filename: 'styles.css',
+        }),
+        new HtmlWebpackPlugin({
+            template: './src/index.html',
+            filename: 'index.html',
+        }),
+    ],
+};
