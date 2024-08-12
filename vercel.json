@@ -2,25 +2,13 @@
     "version": 2,
     "builds": [
       {
-        "src": "src/index.js",
-        "use": "@vercel/node"
+        "src": "package.json",
+        "use": "@vercel/static-build",
+        "config": { "distDir": "dist" }
       }
     ],
     "routes": [
-      {
-        "src": "/(.*)",
-        "dest": "/src/index.js"
-      }
-    ],
-    "static": {
-      "public": "public"
-    },
-    "cleanUrls": true,
-    "rewrites": [
-      {
-        "source": "/static/(.*)",
-        "destination": "/public/Static/$1"
-      }
+      { "handle": "filesystem" },
+      { "src": "/.*", "dest": "/index.html" }
     ]
   }
-  
