@@ -7,6 +7,6 @@ module.exports = {
       extend: {},
   },
   plugins: [
-      // Add any plugins you are using here
+    require('daisyui'),
   ],
 };
