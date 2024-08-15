@@ -8,7 +8,7 @@ import LinkedinIcon from '../../public/linkedin.svg';
 
 const MetaFooter = () => {
     return (
-        <footer className="bg-zinc-950 bg-opacity-85 w-full">
+        <footer className="bg-zinc-950 bg-opacity-85 w-full mt-auto">
             <div className="grid justify-between sm:flex sm:justify-between md:flex md:grid-cols-1">
                 <div className="space-y-4 mb-8">
                     <a href="/" className="text-2xl font-semibold flex items-center space-x-3">
@@ -77,3 +77,5 @@ const MetaFooter = () => {
 };
 
 export default MetaFooter;
+
+
