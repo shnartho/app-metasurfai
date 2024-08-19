@@ -4,11 +4,21 @@ import React from 'react';
 const LoginForm = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+    };
+
+    const handleMouseDown = () => {
+        setShowPassword(true);
+    };
+
+    const handleMouseUp = () => {
+        setShowPassword(false);
+    };
 
         // Create user object
         const userData = {
@@ -16,30 +26,30 @@ const LoginForm = () => {
             password: password
         };
 
-        try {
-            // Send POST request to your API endpoint
-            const response = await fetch('', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(userData)
-            });
+    //     try {
+    //         // Send POST request to your API endpoint
+    //         const response = await fetch('', {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json'
+    //             },
+    //             body: JSON.stringify(userData)
+    //         });
 
-            // Handle response
-            if (response.ok) {
-                setSuccess(true);
-                setError(null);
-            } else {
-                const data = await response.json();
-                setError(data.message);
-                setSuccess(false);
-            }
-        } catch (error) {
-            setError('Something went wrong. Please try again later.');
-            setSuccess(false);
-        }
-    };
+    //         // Handle response
+    //         if (response.ok) {
+    //             setSuccess(true);
+    //             setError(null);
+    //         } else {
+    //             const data = await response.json();
+    //             setError(data.message);
+    //             setSuccess(false);
+    //         }
+    //     } catch (error) {
+    //         setError('Something went wrong. Please try again later.');
+    //         setSuccess(false);
+    //     }
+    // };
 
     return (
         <div className="flex justify-center items-center h-screen">
@@ -52,19 +62,27 @@ const LoginForm = () => {
                         <label className="block text-gray-700">Email:</label>
                         <input
                             type="email"
-                            className="form-input mt-1 block w-full border border-black text-black"
+                            className="form-input mt-1 block w-full border border-black text-black bg-white"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
-                    <div className="mb-4">
+                    <div className="mb-4 relative">
                         <label className="block text-gray-700">Password:</label>
                         <input
-                            type="password"
-                            className="form-input mt-1 block w-full border border-black text-black"
+                            type={showPassword ? "text" : "password"}
+                            className="form-input mt-1 block w-full border border-black text-black bg-white"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
+                        <span
+                            className="flex items-center cursor-pointer"
+                            onMouseDown={handleMouseDown}
+                            onMouseUp={handleMouseUp}
+                            onMouseLeave={handleMouseUp}
+                        >
+                            <img src="/show-password.png" alt="Show Password" className="h-5 w-5" />
+                        </span>
                     </div>
                     <button type="submit" className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Login</button>
                 </form>

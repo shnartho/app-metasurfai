@@ -1,14 +1,23 @@
 import NavBar from "./components/NavBar";
 import Footer from "./components/Footer";
 import AdHandler from "./components/ads/AdHandling";
+import Profile from "./components/profile/Profile";
 import React from 'react';
+import { Routes, Route } from 'react-router-dom';
 
-export function App() {
-    return (
-        <main className="">
+const App = () => {
+  return (
+      <div className="flex flex-col min-h-screen">
         <NavBar />
-        <AdHandler />
+        <main className="flex-grow">
+          <Routes>
+          <Route path="/" element={<AdHandler />} />
+          <Route path="/profile" element={<Profile />} />
+          </Routes>
+        </main>
         <Footer />
-      </main>
-    );
-}
+      </div>
+  );
+};
+
+export default App;
