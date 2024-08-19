@@ -24,7 +24,7 @@ const MetaFooter = () => {
                                 <a href="#" className="text-white">MetaSurfAi</a>
                             </li>
                             <li>
-                                <a href="#" className="text-white">Filler</a>
+                                <a href="#" className="text-white">Our Services</a>
                             </li>
                         </ul>
                     </div>
@@ -54,25 +54,25 @@ const MetaFooter = () => {
             </div>
             <hr className="border-t my-4 border-white" />
             <div className="w-11/12 sm:flex sm:items-center sm:justify-between">
-                <p className="mb-1 text-sm text-white">
-                    © MetaSurfAi™ {new Date().getFullYear()}
-                </p>
-                <div className="mt-4 flex space-x-8 sm:mt-0 sm:justify-center">
-                    <a href="#" className="text-white hover:text-gray-300">
-                        <Img src={DiscordIcon} width={18} height={18} alt="Discord" />
-                    </a>
-                    <a href="#" className="text-white hover:text-gray-300">
-                        <Img src={LinkedinIcon} width={18} height={18} alt="Linkedin" />
-                    </a>
-                    <a href="#" className="text-white hover:text-gray-300">
-                        <Img src={TwitterIcon} width={18} height={18} alt="Twitter" />
-                    </a>
-                    <a href="#" className="text-white hover:text-gray-300">
-                        <Img src={GithubIcon} width={18} height={18} alt="Github" />
-                    </a>
-                </div>
+            <p className="mb-1 text-sm text-white">
+                © MetaSurfAi™ {new Date().getFullYear()}
+            </p>
+            <div className="mt-4 flex space-x-4 sm:mt-0 sm:justify-end sm:flex-1">
+                <a href="#" className="text-white hover:text-gray-300">
+                    <DiscordIcon className="fill-current text-white" />
+                </a>
+                <a href="#" className="text-white hover:text-gray-300">
+                    <LinkedinIcon className="fill-current text-white" />
+                </a>
+                <a href="#" className="text-white hover:text-gray-300">
+                    <TwitterIcon className="fill-current text-white" />
+                </a>
+                <a href="#" className="text-white hover:text-gray-300">
+                    <GithubIcon className="fill-current text-white" />
+                </a>
             </div>
-        </footer>
+        </div>
+    </footer>
     );
 };
 

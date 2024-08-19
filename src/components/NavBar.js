@@ -4,7 +4,7 @@ import ReactModal from 'react-modal';
 import menu from "../../public/icon-menu.png";
 import logo from "../../public/Logo.png";
 import LoginForm from './Login/Login';
-import SignUpForm from './Signup/SignUp';
+import SignUpForm from './Signup/Signup';
 import { useNavigate } from "react-router-dom";
 
 function NavBar(){
@@ -72,10 +72,10 @@ function NavBar(){
                         </li>
                         <li><a>Settings</a></li>
                         <li>
-                            <button onClick={() => toggleAuth('signup')} className='text-black py-2 px-4 transition-all duration-300 rounded-2xl w-full text-left'>Signup</button>
+                            <button onClick={() => toggleAuth('signup')} className='py-2 px-4 transition-all duration-300 rounded-2xl w-full text-left'>Signup</button>
                         </li>
                         <li>
-                            <button onClick={() => toggleAuth('login')} className='text-black py-2 px-4 transition-all duration-300 rounded-2xl w-full text-left'>Login</button>
+                            <button onClick={() => toggleAuth('login')} className='py-2 px-4 transition-all duration-300 rounded-2xl w-full text-left'>Login</button>
                         </li>
                     </ul>
                 </div>
