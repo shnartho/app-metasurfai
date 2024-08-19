@@ -2,6 +2,7 @@ const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const webpack = require('webpack');
 
 module.exports = {
     entry: './src/index.js',
@@ -24,6 +25,7 @@ module.exports = {
                 secure: false,
             },
         ],
+        hot: true,
     },
     module: {
         rules: [
@@ -56,7 +58,7 @@ module.exports = {
                 },
             },
             {
-                test: /\.css$/i,
+                test: /\.css$/,
                 use: [
                     MiniCssExtractPlugin.loader,
                     'css-loader',
@@ -78,6 +80,7 @@ module.exports = {
                 { from: 'public', to: '' }, // Copy all files from public to dist/public
             ],
         }),
+        new webpack.HotModuleReplacementPlugin(),
     ],
     performance: {
         maxAssetSize: 1024 * 1024, // Increase asset size limit to 1 MiB
