@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import React from 'react';
 import ReactModal from 'react-modal';
-import menu from "../../public/icon-menu.png";
 import logo from "../../public/Logo.png";
 import LoginForm from './Login/Login';
 import SignUpForm from './Signup/Signup';
