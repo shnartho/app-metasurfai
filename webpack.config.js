@@ -2,7 +2,6 @@ const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const webpack = require('webpack');
 
 module.exports = {
     entry: './src/index.js',
@@ -16,15 +15,6 @@ module.exports = {
             directory: path.resolve(__dirname, 'dist'),
         },
         historyApiFallback: true,
-        proxy: [
-            {
-                context: ['/api'],
-                target: 'https://metasurfai-public-api.fly.dev',
-                changeOrigin: true,
-                pathRewrite: { '^/api': '' },
-                secure: false,
-            },
-        ],
         hot: true,
     },
     module: {
@@ -80,7 +70,6 @@ module.exports = {
                 { from: 'public', to: '' }, // Copy all files from public to dist/public
             ],
         }),
-        new webpack.HotModuleReplacementPlugin(),
     ],
     performance: {
         maxAssetSize: 1024 * 1024, // Increase asset size limit to 1 MiB
