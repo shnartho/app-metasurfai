@@ -1,7 +1,7 @@
 import NavBar from "./components/NavBar";
 import Footer from "./components/Footer";
 import AdHandler from "./components/ads/AdHandling";
-import Profile from "./components/profile/Profile";
+import Profile from "./components/profile/profile";
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 
