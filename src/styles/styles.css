@@ -5,3 +5,23 @@
 body {
     background-color: rgb(95, 92, 92);
 }
+
+@media (max-width: 900px) {
+  .searchbar {
+      display: none; /* Hide search bar on smaller screens */
+  }
+
+  .connect-button-container {
+      display: none; /* Hide connect button on smaller screens */
+  }
+
+  .dropdown-menu {
+      display: none;
+  }
+}
+
+@media (min-width: 901px) {
+  .mobile-menu {
+      display: none; 
+  }
+}

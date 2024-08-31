@@ -6,6 +6,7 @@ import LoginForm from './Login/Login';
 import SignUpForm from './Signup/Signup';
 import { useNavigate } from "react-router-dom";
 
+
 function NavBar(){
 
     const navigate = useNavigate();
@@ -15,7 +16,7 @@ function NavBar(){
     const [activeForm, setActiveForm] = useState(null);
     const [profileImage, setProfileImage] = useState(logo); // Default to local logo
 
-    const toggleisMenu = () => {
+    const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
     }
 
@@ -45,40 +46,61 @@ function NavBar(){
                 </a>
             </div>
 
- {/* Search bar */}
- <div className="flex items-center flex-grow">
+                {/* Search bar */}
+                <div className="flex items-center flex-grow lg:flex searchbar">
                     <input type="text" placeholder="Search" className="bg-transparent outline-double outline-fuchsia-900 px-3 py-1 rounded-3xl" />
                 </div>
 
-            <div className='space-x-4 hidden lg:flex items-center px-10'>
+            <div className='space-x-4 hidden lg:flex items-center px-10  connect-button-container'>
                 <a href={Connect.Path}>
-                    <button className='bg-fuchsia-600 text-white py-2 px-4 transition-all duration-300 rounded-2xl  w-24 h-10 hover:bg-grey font-sans'>{Connect.link}</button>
+                    <button className='bg-fuchsia-600 text-white py-2 px-4 transition-all duration-300 rounded-2xl  w-24 h-10 hover:bg-grey font-sans connect-button'>{Connect.link}</button>
                 </a>
             </div>
-            <div className="flex-none"> 
+            <div className="flex-none dropdown-menu"> 
                 <div className="dropdown dropdown-end">
                     <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
                         <div className="w-10 rounded-full">
                             <img alt="User Avatar" src={profileImage} />
                         </div>
                     </div>
-                    <ul tabIndex={0} className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
+                    <ul tabIndex={0} className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow flex flex-col gap-2">
                         <li>
                         <a className="justify-between" onClick={() => navigate('profile')}>
-                                Profile
-                                <span className="badge">New</span>
-                            </a>
+                                Profile</a>
                         </li>
                         <li><a>Settings</a></li>
                         <li>
-                            <button onClick={() => toggleAuth('signup')} className='py-2 px-4 transition-all duration-300 rounded-2xl w-full text-left'>Signup</button>
+                            <a onClick={() => toggleAuth('signup')} className='py-2 px-4 transition-all duration-300 rounded-2xl w-full text-left'>Signup</a>
                         </li>
                         <li>
-                            <button onClick={() => toggleAuth('login')} className='py-2 px-4 transition-all duration-300 rounded-2xl w-full text-left'>Login</button>
+                            <a onClick={() => toggleAuth('login')} className='py-2 px-4 transition-all duration-300 rounded-2xl w-full text-left'>Login</a>
                         </li>
                     </ul>
                 </div>
             </div>
+                       {/* Mobile menu */}
+                       <div className="mobile-menu relative">
+                <button className="btn-sm btn-active btn-neutral" onClick={toggleMenu}>Menu</button>
+                {isMenuOpen && (
+                    <div className="fixed inset-0 bg-gray-800 z-50 flex justify-center items-center">
+                        <div className="bg-gray w-full h-full p-4 relative">
+                            <button className="absolute top-4 right-4 text-gray-400 text-3xl" onClick={toggleMenu}>
+                                &times;
+                            </button>
+                            <ul className="py-1 mt-8">
+                                <li><a className="block px-4 py-2 text-lg text-gray-400" >Connect</a></li>
+                                <li><a className="block px-4 py-2 text-lg text-gray-400"   
+                                onClick={() => { navigate('profile'); toggleMenu();}}>Profile</a></li>
+                                <li><a className="block px-4 py-2 text-lg text-gray-400"
+                                onClick={() => { toggleAuth('signup'); toggleMenu();}}>Login</a></li>
+                                <li><a className="block px-4 py-2 text-lg text-gray-400"
+                                onClick={() => { toggleAuth('login'); toggleMenu();}}>Signup</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                )}
+            </div>
+
             {/* Render authentication modal */}
             {isAuthOpen && (
                 <ReactModal
