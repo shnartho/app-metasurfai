@@ -27,4 +27,3 @@ The following API endpoints are used to fetch data for the MetaSurfAI APP websit
 
 - Get ads: `https://metasurfai-public-api.fly.dev/v1`
 - Login with username and password: `https://metasurfai-public-api.fly.dev/v1/login`
-- Check profile data of a user: `https://metasurfai-public-api.fly.dev/v1/profile?username=nayem`
