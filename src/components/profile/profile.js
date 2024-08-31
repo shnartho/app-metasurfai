@@ -3,16 +3,16 @@ import React, { useEffect, useState } from 'react';
 function Profile() {
     const [profileData, setProfileData] = useState(null);
 
-    useEffect(() => {
-        fetch('api/v1/profile?username=nayem')
-            .then(response => response.json())
-            .then(data => setProfileData(data))
-            .catch(error => console.error('Error fetching profile data:', error));
-    }, []);
+    // useEffect(() => {
+    //     fetch('#')
+    //         .then(response => response.json())
+    //         .then(data => setProfileData(data))
+    //         .catch(error => console.error('Error fetching profile data:', error));
+    // }, []);
 
-    if (!profileData) {
-        return <div>Loading...</div>;
-    }
+    // if (!profileData) {
+    //     return <div>Loading...</div>;
+    // }
 
     return (
         <div className="flex justify-center items-center min-h-screen">
