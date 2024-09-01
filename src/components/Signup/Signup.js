@@ -56,39 +56,39 @@ const SignUpForm = () => {
 
     return (
         <div className="flex justify-center items-center h-screen">
-            <div className="bg-white text-black p-8 rounded-lg shadow-lg">
-                <h2 className="text-2xl mb-4">Sign Up</h2>
+          <div className="bg-black bg-opacity-10 text-gray-100 p-8 rounded-lg shadow-lg backdrop-blur-md border-2 border-opacity-20 border-pink-600">                
+            <h2 className="text-2xl mb-4">Sign Up</h2>
                 {error && <p className="text-red-500 mb-4">{error}</p>}
                 {success && <p className="text-green-500 mb-4">Sign up successful!</p>}
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
-                        <label className="block text-gray-700">Name:</label>
+                        <label className="block text-gray-100">Name:</label>
                         <input
                             type="text"
-                            className="form-input mt-1 block w-full border border-black text-black bg-white"
+                            className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                         />
                     </div>
                     <div className="mb-4">
-                        <label className="block text-gray-700">Email:</label>
+                        <label className="block text-gray-100">Email:</label>
                         <input
                             type="email"
-                            className="form-input mt-1 block w-full border border-black text-black bg-white"
+                            className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-700">Password:</label>
+                    <div className="mb-4 relative">
+                        <label className="block text-gray-100">Password:</label>
                         <input
                             type={showPassword ? "text" : "password"}
-                            className="form-input mt-1 block w-full border border-black text-black bg-white"
+                            className="form-input mt-1 block w-full pl-2 pr-10 border border-black text-black bg-white"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
                         <span
-                            className="flex items-center cursor-pointer"
+                            className="absolute inset-y-0 right-0 pr-3 pt-6 flex items-center cursor-pointer"
                             onMouseDown={handleMouseDown}
                             onMouseUp={handleMouseUp}
                             onMouseLeave={handleMouseUp}
@@ -96,7 +96,8 @@ const SignUpForm = () => {
                             <img src="/show-password.png" alt="Show Password" className="h-5 w-5" />
                         </span>
                     </div>
-                    <button type="submit" className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Sign Up</button>
+                    <button type="submit" className="bg-blue-500 w-full text-white py-2 px-4 rounded hover:bg-blue-600">Sign Up</button>
+                    <span className="text-gray-100 text-sm mt-2 block text-center">Already have an account? <a href="#" className="text-blue-500 hover:underline">Login</a></span>
                 </form>
             </div>
         </div>
