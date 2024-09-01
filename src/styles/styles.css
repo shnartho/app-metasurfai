@@ -5,3 +5,57 @@
 body {
     background-color: rgb(95, 92, 92);
 }
+
+@media (max-width: 900px) {
+  .searchbar {
+      display: none; /* Hide search bar on smaller screens */
+  }
+
+  .connect-button-container {
+      display: none; /* Hide connect button on smaller screens */
+  }
+
+  .dropdown-menu {
+      display: none;
+  }
+}
+
+@media (min-width: 901px) {
+  .mobile-menu {
+      display: none; 
+  }
+}
+
+.ad img {
+    object-fit: cover; /* Cover the entire area of the container */
+    width: 100%;
+    height: 100%;
+}
+
+/* Base styles for the ads container */
+.ads-container {
+    display: grid;
+    gap: 1rem; /* Adjust gap as needed */
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Adjust minmax value based on desired minimum size */
+}
+
+/* 3x3 grid for screens wider than 1024px */
+@media (min-width: 1024px) {
+    .ads-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* 2x3 grid for screens between 600px and 1023px */
+@media (min-width: 600px) and (max-width: 1023px) {
+    .ads-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* 1x3 grid for screens under 600px */
+@media (max-width: 599px) {
+    .ads-container {
+        grid-template-columns: repeat(1, 1fr);
+    }
+}
