@@ -52,12 +52,12 @@ const LoginForm = () => {
     // };
 
     return (
-        <div className="flex justify-center items-center h-screen">
+        <div className="flex justify-center items-center">
          <div className="bg-black bg-opacity-10 text-gray-100 p-8 rounded-lg shadow-lg backdrop-blur-md border-2 border-opacity-20 border-pink-600">                
             <h2 className="text-2xl mb-4">Login</h2>
                 {error && <p className="text-red-500 mb-4">{error}</p>}
                 {success && <p className="text-green-500 mb-4">Login successful!</p>}
-                <form onSubmit={handleSubmit} className="max-w-md mx-auto p-6">
+                <form onSubmit={handleSubmit}>
                     <div className="mb-4">
                         <label className="block text-gray-100">Email:</label>
                         <input
