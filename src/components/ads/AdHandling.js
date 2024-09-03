@@ -4,7 +4,6 @@ const AdHandler = () => {
     const [ads, setAds] = useState([]);
     const [selectedAd, setSelectedAd] = useState(null);
     const [timer, setTimer] = useState(5);
-    const [currentPage, setCurrentPage] = useState(1);
     const [adsPerPage, setAdsPerPage] = useState(9); // Default to 9 ads per page
 
     // Fetch ads when the component mounts
@@ -13,8 +12,8 @@ const AdHandler = () => {
             try {
                 const response = await fetch("https://metasurfai-public-api.fly.dev/v1");
                 const data = await response.json();
-                console.log(data);
-                setAds(data);
+                const sortedAds = data.sort((a, b) => b.token_reward - a.token_reward); // Sort by token_reward descending
+                setAds(sortedAds);
             } catch (error) {
                 console.error("Error fetching ads:", error);
             }
@@ -63,26 +62,11 @@ const AdHandler = () => {
         }
     };
 
-    // Pagination logic
-    const indexOfLastAd = currentPage * adsPerPage;
-    const indexOfFirstAd = indexOfLastAd - adsPerPage;
-    const currentAds = ads.slice(indexOfFirstAd, indexOfLastAd);
-
-    const totalPages = Math.ceil(ads.length / adsPerPage);
-
-    const goToNextPage = () => {
-        setCurrentPage((prevPage) => Math.min(prevPage + 1, totalPages));
-    };
-
-    const goToPreviousPage = () => {
-        setCurrentPage((prevPage) => Math.max(prevPage - 1, 1));
-    };
-
     return (
-        <div className="container pt-4 w-11/12 min-h-screen m-auto flex flex-col">
+        <div className="container pt-4 pb-4 w-11/12 min-h-screen m-auto flex flex-col">
             {/* Ads Display */}
-            <div className="ads-container flex-grow grid gap-4">
-                {currentAds.map((ad, index) => (
+            <div className="ads-container flex-grow grid gap-4 overflow-y-auto" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(250px, 1fr))` }}>
+                {ads.map((ad, index) => (
                     <div
                         className="ad relative border-5 shadow-md overflow-hidden cursor-pointer"
                         key={index}
@@ -110,7 +94,7 @@ const AdHandler = () => {
                         <img
                             src={selectedAd.image_url}
                             alt={selectedAd.title}
-                            className="w-full h-auto"
+                            className="max-w-full max-h-80"
                         />
                         <div className="mt-4">
                             <h3 className="text-lg font-bold">{selectedAd.title}</h3>
@@ -125,26 +109,7 @@ const AdHandler = () => {
                     </div>
                 </div>
             )}
-             {/* Pagination Controls */}
-             <div className="pagination-controls mt-4 flex justify-center space-x-4">
-                <button
-                    onClick={goToPreviousPage}
-                    className="px-4 py-2 bg-gray-800 text-white rounded disabled:opacity-50"
-                    disabled={currentPage === 1}
-                >
-                    Previous
-                </button>
-                <span className="text-white">Page {currentPage} of {totalPages}</span>
-                <button
-                    onClick={goToNextPage}
-                    className="px-4 py-2 bg-gray-800 text-white rounded disabled:opacity-50"
-                    disabled={currentPage === totalPages}
-                >
-                    Next
-                </button>
-            </div>
         </div>
-        
     );
 };
 
