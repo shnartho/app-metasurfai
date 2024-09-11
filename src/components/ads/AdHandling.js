@@ -62,6 +62,18 @@ const AdHandler = () => {
         }
     };
 
+    // Determine the aspect ratio class
+    const getAspectRatioClass = (ad) => {
+        const { width, height } = ad;
+        const aspectRatio = width / height;
+
+        if (aspectRatio > 1) {
+            return "ad-horizontal"; // 16:9
+        } else {
+            return "ad-vertical"; // 9:16
+        }
+    };
+
     return (
         <div className="container pt-4 pb-4 w-11/12 min-h-screen m-auto flex flex-col">
             {/* Ads Display */}
