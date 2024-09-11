@@ -62,13 +62,25 @@ const AdHandler = () => {
         }
     };
 
+    // Determine the aspect ratio class
+    const getAspectRatioClass = (ad) => {
+        const { width, height } = ad;
+        const aspectRatio = width / height;
+
+        if (aspectRatio > 1) {
+            return "ad-horizontal"; // 16:9
+        } else {
+            return "ad-vertical"; // 9:16
+        }
+    };
+
     return (
         <div className="container pt-4 pb-4 w-11/12 min-h-screen m-auto flex flex-col">
             {/* Ads Display */}
             <div className="ads-container flex-grow grid gap-4 overflow-y-auto" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(250px, 1fr))` }}>
                 {ads.map((ad, index) => (
                     <div
-                        className="ad relative border-5 shadow-md overflow-hidden cursor-pointer"
+                        className={`ad relative border-5 shadow-md overflow-hidden cursor-pointer ${getAspectRatioClass(ad)}`}
                         key={index}
                         onClick={() => handleAdClick(ad)}
                     >
@@ -86,16 +98,16 @@ const AdHandler = () => {
             </div>
 
             {selectedAd && (
-                <div className="popup-ads fixed top-0 left-0 z-50 w-full h-full bg-black bg-opacity-80 flex items-center justify-center">
-                    <div className="relative bg-black bg-opacity-50 p-4 rounded-lg border-2 border-opacity-40 border-pink-600">
-                        <span onClick={closeModal} className="absolute top-2 right-2 text-3xl font-bold cursor-pointer">
+                <div className="p-4 fixed top-0 left-0 z-50 w-full h-full bg-black bg-opacity-80 flex items-center justify-center">
+                <div className="relative bg-black bg-opacity-50 p-4 rounded-lg border-2 border-opacity-40 border-pink-600 max-w-screen-lg w-full max-h-full md:max-h-[90vh] md:w-auto flex flex-col items-center justify-center overflow-y-auto">
+                    <span onClick={closeModal} className="absolute top-2 right-2 text-3xl font-bold cursor-pointer">
                             &times;
                         </span>
                         <img
                             src={selectedAd.image_url}
                             alt={selectedAd.title}
-                            className="max-w-full max-h-80"
-                        />
+                            className="object-contain max-w-full max-h-80 md:max-h-96"
+                            />
                         <div className="mt-4">
                             <h3 className="text-lg font-bold">{selectedAd.title}</h3>
                             <p className="text-sm">Posted by: {selectedAd.posted_by}</p>
