@@ -80,7 +80,7 @@ const AdHandler = () => {
             <div className="ads-container flex-grow grid gap-4 overflow-y-auto" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(250px, 1fr))` }}>
                 {ads.map((ad, index) => (
                     <div
-                        className={`ad relative border-5 shadow-md overflow-hidden cursor-pointer ${getAspectRatioClass(ad)}`}
+                        className={`ad relative rounded-xl border-5 shadow-md overflow-hidden cursor-pointer ${getAspectRatioClass(ad)}`}
                         key={index}
                         onClick={() => handleAdClick(ad)}
                     >
