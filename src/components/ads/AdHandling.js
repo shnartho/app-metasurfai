@@ -3,8 +3,10 @@ import React, { useState, useEffect } from "react";
 const AdHandler = () => {
     const [ads, setAds] = useState([]);
     const [selectedAd, setSelectedAd] = useState(null);
-    const [timer, setTimer] = useState(5);
+    const [timer, setTimer] = useState(10);
+    const [timeLeft, setTimeLeft] = useState(10);
     const [adsPerPage, setAdsPerPage] = useState(9); // Default to 9 ads per page
+    let countdown;
 
     // Fetch ads when the component mounts
     useEffect(() => {
@@ -43,22 +45,53 @@ const AdHandler = () => {
     // Handle ad click
     const handleAdClick = (ad) => {
         setSelectedAd(ad);
-        setTimer(5); // Reset timer
-        const countdown = setInterval(() => {
-            setTimer((prevTimer) => {
-                if (prevTimer <= 1) {
-                    clearInterval(countdown);
-                    return 0;
-                }
-                return prevTimer - 1;
-            });
-        }, 1000);
+        setTimer(10);
+        setTimerLeft(10);
+    
+        const startTimer = () => {
+            const countdown = setInterval(() => {
+                setTimer((prevTimer) => {
+                    if (prevTimer <= 1) {
+                        clearInterval(countdown);
+                        return 0;
+                    }
+                    return prevTimer - 1;
+                });
+            }, 1000);
+        };
+
+        const stopTimer = () => {
+            clearInterval(countdown);
+        };
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                stopTimer();
+            } else {
+                startTimer();
+            }
+        };
+
+        startTimer();
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        const cleanup = () => {
+            clearInterval(countdown);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
+
+        if (timer === 0) {
+            cleanup();
+        }
     };
 
     // Close modal
     const closeModal = () => {
         if (timer === 0) {
             setSelectedAd(null);
+            clearInterval(countdown);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
         }
     };
 
@@ -80,7 +113,7 @@ const AdHandler = () => {
             <div className="ads-container flex-grow grid gap-4 overflow-y-auto" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(250px, 1fr))` }}>
                 {ads.map((ad, index) => (
                     <div
-                        className={`ad relative border-5 shadow-md overflow-hidden cursor-pointer ${getAspectRatioClass(ad)}`}
+                        className={`ad relative rounded-xl border-5 shadow-md overflow-hidden cursor-pointer ${getAspectRatioClass(ad)}`}
                         key={index}
                         onClick={() => handleAdClick(ad)}
                     >
