@@ -150,7 +150,7 @@ const AdHandler = () => {
                             <p className="text-sm">Token Reward: {selectedAd.token_reward}</p>
                         </div>
                         <div className="mt-4 text-center">
-                            <p className="text-sm">You can close this ad in {timer} seconds</p>
+                            <p className="text-sm">You can close this ad in {timeLeft} seconds</p>
                         </div>
                     </div>
                 </div>
