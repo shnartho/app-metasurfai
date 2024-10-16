@@ -5,8 +5,7 @@ const AdHandler = () => {
     const [selectedAd, setSelectedAd] = useState(null);
     const [timer, setTimer] = useState(10);
     const [timeLeft, setTimeLeft] = useState(10);
-    const [adsPerPage, setAdsPerPage] = useState(9); // Default to 9 ads per page
-    let countdown;
+    const [adsPerPage, setAdsPerPage] = useState(9);
 
     // Fetch ads when the component mounts
     useEffect(() => {
@@ -14,7 +13,7 @@ const AdHandler = () => {
             try {
                 const response = await fetch("https://metasurfai-public-api.fly.dev/v2");
                 const data = await response.json();
-                const sortedAds = data.sort((a, b) => b.token_reward - a.token_reward); // Sort by token_reward descending
+                const sortedAds = data.sort((a, b) => b.token_reward - a.token_reward); 
                 setAds(sortedAds);
             } catch (error) {
                 console.error("Error fetching ads:", error);
@@ -45,17 +44,19 @@ const AdHandler = () => {
     // Handle ad click
     const handleAdClick = (ad) => {
         setSelectedAd(ad);
-        setTimer(10);
-        setTimerLeft(10);
-    
+        setTimer(10); 
+        setTimeLeft(10);
+
+        let countdown;
+
         const startTimer = () => {
-            const countdown = setInterval(() => {
-                setTimer((prevTimer) => {
-                    if (prevTimer <= 1) {
+            countdown = setInterval(() => {
+                setTimeLeft((prevTime) => {
+                    if (prevTime <= 1) {
                         clearInterval(countdown);
                         return 0;
                     }
-                    return prevTimer - 1;
+                    return prevTime - 1;
                 });
             }, 1000);
         };
@@ -88,7 +89,7 @@ const AdHandler = () => {
 
     // Close modal
     const closeModal = () => {
-        if (timer === 0) {
+        if (timeLeft === 0) {
             setSelectedAd(null);
             clearInterval(countdown);
             document.removeEventListener("visibilitychange", handleVisibilityChange);
@@ -149,7 +150,7 @@ const AdHandler = () => {
                             <p className="text-sm">Token Reward: {selectedAd.token_reward}</p>
                         </div>
                         <div className="mt-4 text-center">
-                            <p className="text-sm">You can close this ad in {timer} seconds</p>
+                            <p className="text-sm">You can close this ad in {timeLeft} seconds</p>
                         </div>
                     </div>
                 </div>
