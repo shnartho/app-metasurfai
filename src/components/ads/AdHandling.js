@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-
+import Multifilter from "./ads-filer/multifilter";
 const AdHandler = () => {
     const [ads, setAds] = useState([]);
     const [selectedAd, setSelectedAd] = useState(null);
