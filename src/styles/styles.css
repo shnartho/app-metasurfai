@@ -103,3 +103,19 @@ body {
     height: auto;
     overflow-y: auto;
   }
+
+.buttons-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.buttono {
+    border: 1px solid #dc007c;
+    background: transparent;
+    margin: 5px 5px;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
