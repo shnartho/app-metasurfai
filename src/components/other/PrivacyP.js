@@ -3,7 +3,9 @@ import React from 'react';
 const PrivacyPolicy = () => {
     return(
         <div className='px-36 py-8 max-w-4xl mx-auto'>
-            <h1 className='font-bold text-4xl'>Privacy Policy for MetaSurfAI</h1>
+            Coming Soon
+
+            {/* <h1 className='font-bold text-4xl'>Privacy Policy for MetaSurfAI</h1>
             <p>Last Updated: [Date]</p>
             <p>At MetaSurfAI ("we," "us," or "our"), we value the privacy of our users and are committed to protecting your personal data. This Privacy Policy explains how we collect, use, share, and safeguard your personal information when you use our services, including our website, advertising platform, and any related tools (collectively, the "Services").</p>
             <p>By accessing or using MetaSurfAI, you agree to this Privacy Policy. Please read it carefully.</p>
@@ -79,7 +81,7 @@ const PrivacyPolicy = () => {
             <p>MetaSurfAI</p>
             <p>[Address]</p>
             <p>Email: [privacy@metasurfai.com]</p>
-            <p>Phone: [Phone Number]</p>
+            <p>Phone: [Phone Number]</p> */}
         </div>
     );
 };

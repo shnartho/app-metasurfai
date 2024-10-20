@@ -3,7 +3,9 @@ import React from 'react';
 const ToS = () => {
     return (
         <div className='tos-container px-36 py-8 max-w-4xl mx-auto'>
-            <h1 className='font-bold'>Terms of Service for MetaSurfAI</h1>
+
+            Coming Soon
+            {/* <h1 className='font-bold'>Terms of Service for MetaSurfAI</h1>
 
             Last Updated: [Date]
 
@@ -96,7 +98,7 @@ const ToS = () => {
             MetaSurfAI
             [Address]
             [Email Address]
-            [Phone Number]
+            [Phone Number] */}
         </div>
     );
 };
