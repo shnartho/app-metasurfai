@@ -5,12 +5,12 @@ import LoginForm from './Login/Login';
 import SignUpForm from './Signup/Signup';
 import { useNavigate } from "react-router-dom";
 
-function NavBar(){
+const NavBar = ({ DarkMode, toggleDarkMode }) => {
 
     const navigate = useNavigate();
 
     const [activeForm, setActiveForm] = useState(null);
-    const [profileImage, setProfileImage] = useState(logo); // Default to local logo
+    //const [profileImage, setProfileImage] = useState(logo); // Default to local logo
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const openLoginForm = () => {
@@ -43,7 +43,7 @@ function NavBar(){
     const Connect = { link: 'Connect', Path: '/Connect' };
 
     return (
-        <div className="navbar bg-transparent" classnName={`${DarkMode && 'Dark'}`}>
+        <div className={`navbar bg-transparent ${DarkMode && 'Dark'}`}>
             <div className="flex-1">
                 <a href="/" className="btn btn-ghost text-xl flex items-center space-x-2">
                     <img src={DarkMode ? '/LogoDark.png' : '/Logo.png'} alt="MetaSurf Logo" width={40} height={40} className='rounded-full'/>
@@ -54,8 +54,8 @@ function NavBar(){
             <div className="flex items-center flex-grow lg:flex searchbar">
                 <input type="text" placeholder="Search" className="text-black bg-slate-50 outline-fuchsia-900 px-6 py-1 rounded-3xl" />
             </div>
-            <a href="/" className='items text-black dark:text-white font-Oxanium space-x-4 px-2 pt-2'>Explore</a>
-            <a href="/" className='items text-black dark:text-white font-Oxanium space-x-4 px-2 pt-2'>Live</a>
+            <a href="" className='items text-black dark:text-white font-Oxanium space-x-4 px-2 pt-2'>Explore</a>
+            <a href="" className='items text-black dark:text-white font-Oxanium space-x-4 px-2 pt-2' onClick={() => navigate('live')}>Live</a>
             <a href="" className='items text-black dark:text-white font-Oxanium space-x-4 px-2 pt-2 pl-5' onClick={() => navigate('Dashboard')}>Dashboard</a>
             <div className='space-x-4 lg:flex px-10 items-center connect-button-container'>
                 <a href={Connect.Path}>
@@ -111,6 +111,8 @@ function NavBar(){
                             onClick={() => { openLoginForm(); toggleMenu();}}>Login</a></li>
                             <li><a className="block px-4 py-2 text-lg text-gray-400"
                             onClick={() => { openSignUpForm(); toggleMenu();}}>Signup</a></li>
+                            <li> <a className='block px-4 py-2 text-lg text-gray-400'
+                            onClick={() => { navigate('live'); toggleMenu(); }}>Live</a></li>
                             <li className='block px-4 py-2 text-lg text-gray-400'
                              onClick={() => { toggleDarkMode(); toggleMenu(); }}>Theme</li>
                         </ul>
