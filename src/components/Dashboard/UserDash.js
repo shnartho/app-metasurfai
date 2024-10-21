@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import qs from "qs";
 
 // API endpoints
 const PROFILE_API = "https://metasurfai-public-api.fly.dev/v1/profile?username=nayem";
@@ -21,14 +20,14 @@ const UserDash = () => {
   const [ads, setAds] = useState([]);
 
   const ad = {
-      title,
+      title: title,
       image_url: imageUrl,
-      view_count,
-      description,
+      view_count : view_count,
+      description : description,
       posted_by: postedBy,
-      active,
-      max_views,
-      region,
+      active : active,
+      max_views : max_views,
+      region : region,
       token_reward: tokenReward
     };
 
@@ -59,19 +58,29 @@ const UserDash = () => {
       token_reward: tokenReward
     };
 
-    const adQueryString = qs.stringify(ad);
+    try{
+      const response = await fetch(CREATE_AD_API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(ad)
+      });
 
-    const response = await fetch(CREATE_AD_API, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: adQueryString
-    });
-
-    const result = await response.json();
-    console.log(result);
-  };
+      if (response.ok) {
+          // Clear the form fields after successful post
+          setPostedBy('');
+          setMaxViews('');
+          setRegion('');
+          setTokenReward('');
+          setImageUrl('');
+        } else {
+          console.error('Failed to post ad');
+        }
+      } catch (error) {
+        console.error('Error posting ad:', error);
+      }
+};
 
 
   const handleDeleteAd = async (adId) => {
@@ -111,7 +120,8 @@ const UserDash = () => {
           ))}
         </ul>
         <div>
-        <form className='grid grid-cols-3 gap-4'>
+      <form onSubmit={handlePostAd}>
+        <div className="grid grid-cols-3 gap-4">
           <div className="flex flex-col space-y-4">
             <input type="text" className='bg-transparent text-black dark:text-white' placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
             <input type="text" className='bg-transparent text-black dark:text-white' placeholder="Image URL" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} required />
@@ -133,10 +143,11 @@ const UserDash = () => {
             {/* <input type="file" onChange={handleFileChange} className="mr-4 text-black dark:text-white" />
               {filePreview && <img src={filePreview} alt="File Preview" className="w-20 h-20 object-cover" />} */}
           </div>
-        </form>
+          </div>
         <div className='flex justify-center mt-4'>        
-          <button type="submit" className='bg-pink-600 dark:bg-blue-600 text-white rounded-2xl px-4' onClick={handlePostAd}>Post Ad</button>
+          <button type="submit" className='bg-pink-600 dark:bg-blue-600 text-white rounded-2xl px-4'>Post Ad</button>
         </div>
+        </form>
         </div>
       </section>
     </div>
