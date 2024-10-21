@@ -42,34 +42,12 @@ const AdHandler = () => {
         return () => window.removeEventListener("resize", updateAdsPerPage);
     }, []);
 
-    
-    const handleVisibilityChange = () => {
-        if (document.hidden) {
-            stopTimer();
-        } else {
-            startTimer();
-        }
-    };
-
-    const startTimer = () => {
-        const countdown = setInterval(() => {
-            setTimer((prevTimer) => {
-                if (prevTimer <= 1) {
-                    clearInterval(countdown);
-                    return 0;
-                }
-                return prevTimer - 1;
-            });
-        }, 1000);
-    };
-
-    const stopTimer = () => {
-        clearInterval(countdown);
-    };
+    let countdown;
 
     // Handle ad click
     const handleAdClick = (ad) => {
         setSelectedAd(ad);
+<<<<<<< HEAD
 <<<<<<< HEAD
         setTimer(10); 
         setTimeLeft(10);
@@ -104,18 +82,46 @@ const AdHandler = () => {
         setTimer(10);
         setTimeLeft(10);
 >>>>>>> d6c5c43 (Modified Ad handling code)
+=======
+        setTimer(10); 
+        setTimeLeft(10);
+        const startTimer = () => {
+            countdown = setInterval(() => {
+                setTimeLeft((prevTime) => {
+                    if (prevTime <= 1) {
+                        clearInterval(countdown);
+                        return 0;
+                    }
+                    return prevTime - 1;
+                });
+            }, 1000);
+        };
+
+        const stopTimer = () => {
+            clearInterval(countdown);
+        };
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                stopTimer();
+            } else {
+                startTimer();
+            }
+        };
+
+>>>>>>> 5ab0b16 (modifed adhandling code)
         startTimer();
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
 
+        const cleanup = () => {
+            clearInterval(countdown);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
+
         if (timer === 0) {
             cleanup();
         }
-    };
-
-    const cleanup = () => {
-        clearInterval(countdown);
-        document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
 
     // Close modal
@@ -138,6 +144,7 @@ const AdHandler = () => {
             return "ad-vertical"; // 9:16
         }
     };
+
 
     return (
 <<<<<<< HEAD
