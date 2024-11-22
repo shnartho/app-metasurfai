@@ -53,7 +53,7 @@ const LoginForm = () => {
 
     return (
         <div className="flex justify-center items-center">
-         <div className="bg-black bg-opacity-10 text-gray-100 p-8 rounded-lg shadow-lg backdrop-blur-md border-2 border-opacity-20 border-pink-600">                
+         <div className="bg-black bg-opacity-10 text-gray-100 p-8 rounded-lg shadow-lg backdrop-blur-md border-2 border-opacity-20 border-pink-600 dark:border-blue-600">                
             <h2 className="text-2xl mb-4">Login</h2>
                 {error && <p className="text-red-500 mb-4">{error}</p>}
                 {success && <p className="text-green-500 mb-4">Login successful!</p>}
@@ -84,8 +84,10 @@ const LoginForm = () => {
                             <img src="/show-password.png" alt="Show Password" className="h-5 w-5" />
                         </span>
                     </div>
-                    <button type="submit" className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Login</button>
-                    <span class name="text-gray-100 text-sm mt-2 block text-center">Don't have an account? <a href="#" class name="text-blue-500 hover:underline">Register</a></span>
+                    <div className="flex justify-center mt-4">
+                    <button type="submit" className="bg-pink-600 dark:bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 dark:hover:bg-pink-600">Login</button>
+                    </div>
+                    <span className="texrt-gray-100 text-sm mt-2 ml-1 block text-center">Don't have an account? <a href="#" class name="text-blue-500 hover:underline">Register</a></span>
                 </form>
             </div>
         </div>
