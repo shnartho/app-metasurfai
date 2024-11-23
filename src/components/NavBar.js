@@ -56,8 +56,9 @@ const NavBar = ({ DarkMode, toggleDarkMode }) => {
             </div>
 
              {/* Search bar */}
-            <div className="flex flex-grow lg:flex searchbar">
-                <input type="text" placeholder="Search" className="text-black dark:text-white bg-slate-50 dark:bg-transparent outline-pink-600 dark:outline-blue-600 outline-none py-1 px-3 w-72 rounded-2xl" />
+            <div className="flex flex-grow lg:flex items-center relative searchbar">
+                <img src={'/search.svg'} alt="Search Icon" width={20} height={20} className='absolute left-3'/>
+                <input type="text" placeholder="Search" className="text-black dark:text-white bg-slate-50 dark:bg-transparent outline-pink-600 dark:outline-blue-600 outline-none py-1 pl-10 px-3 w-72 rounded-2xl" />
             </div>
             <div className='lg:flex items-center'>
                 <a href={Connect.Path}>
