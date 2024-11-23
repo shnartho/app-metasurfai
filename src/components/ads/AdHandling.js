@@ -118,34 +118,10 @@ const AdHandler = () => {
 
     return (
         <div>
-        <div className="text-center pt-6">
-         <h1 className="text-black text-4xl font-bold dark:text-white">We're offering the best</h1> <h1 className="text-4xl font-bold text-pink-500 dark:text-blue-600">Services</h1>
-         <div>
+        <div className="text-center pt-6">         
          <div className=' pt-10'>
          <h1 className="text-black dark:text-white text-4xl font-bold">Featured Videos</h1> 
          </div>
-         <div className="container pt-4 pb-4 w-11/12 min-h-screen m-auto flex flex-col">
-         <div className="ads-container flex-grow grid gap-4 overflow-y-auto" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(250px, 1fr))` }}>
-         {ads.slice(0, 4).map((ad, index) => (
-                       <div
-                           className={`ad relative rounded-xl border-5 border-y-cyan-500 shadow-md overflow-hidden cursor-pointer ${getAspectRatioClass(ad)}`}
-                           key={index}
-                           onClick={() => handleAdClick(ad)}
-                       >
-                           <img
-                               className="object-cover w-full h-full"
-                               src={ad.image_url}
-                               alt={ad.title}
-                           />
-                           <div className="ad-info absolute bottom-0 left-0 bg-black bg-opacity-20 text-white p-2">
-                               <h3 className="text-lg font-bold">{ad.title}</h3>
-                               <p className="text-sm">Token Reward: {ad.token_reward}</p>
-                           </div>
-                       </div>
-                   ))}
-               </div>
-           </div>
-           </div>
          </div>
          <div className="text-center pt-8">
                    <Multifilter/>
