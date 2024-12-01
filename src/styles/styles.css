@@ -173,3 +173,11 @@
         line-height: 1.75rem; /* 28px */
     }
 }
+
+.icon-dark-mode {
+    filter: invert(1) brightness(0) contrast(2);
+}
+
+.dark .icon-dark-mode {
+    filter: invert(1) brightness(1) contrast(2);
+}
