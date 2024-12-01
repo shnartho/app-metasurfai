@@ -5,7 +5,7 @@ import LoginForm from './Login/Login';
 import SignUpForm from './Signup/Signup';
 import { useNavigate } from "react-router-dom";
 
-const NavBar = ({ DarkMode, toggleDarkMode }) => {
+const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
 
     const navigate = useNavigate();
 
@@ -46,7 +46,7 @@ const NavBar = ({ DarkMode, toggleDarkMode }) => {
         <div className={`navbar bg-transparent ${DarkMode && 'Dark'}`}>
             {/* side menu */}
             <div className='pr-4'>
-                <img src={'/MenuIcon.svg'} alt="MetaSurf Logo" width={30} height={30} className='pl-2'/>
+                <img src={'/MenuIcon.svg'} alt="MetaSurf Logo" width={30} height={30} className='pl-2 icon-dark-mode' onClick={toggleSidebar}/>
             </div>
             <div className="flex-1">
                 <a href="/" className="btn btn-ghost flex">
