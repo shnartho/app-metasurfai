@@ -9,12 +9,18 @@ import PrivacyPolicy from "./components/other/PrivacyP";
 import About from "./components/other/About";
 import UserDash from "./components/Dashboard/UserDash";
 import LiveAds from "./components/live/LiveAds";
+import SideNav from "./components/SideNav";
 
 const App = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [DarkMode, setDarkMode] = useState(() => {
     const savedDarkMode = localStorage.getItem('DarkMode');
     return savedDarkMode === 'true';
   });
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
   useEffect(() => {
     if (DarkMode) {
@@ -31,8 +37,12 @@ const App = () => {
 
   return (
     <div className={`flex flex-col min-h-screen bg-white dark:bg-slate-900 ${DarkMode ? 'dark' : ''}`}>
-        <NavBar DarkMode={DarkMode} toggleDarkMode={toggleDarkMode} />
-        <main className="flex-grow">
+        <NavBar DarkMode={DarkMode} toggleDarkMode={toggleDarkMode} toggleSidebar={toggleSidebar}/>
+        <div className="flex flex-grow">
+          <SideNav isOpen={isSidebarOpen} />
+          <main className={`flex-grow transition-all duration-300 ${
+              isSidebarOpen ? 'ml-60' : 'ml-20'
+          }`}>          
           <Routes>
             <Route path="/" element={<AdHandler />} />
             <Route path="/profile" element={<Profile />} />
@@ -43,6 +53,7 @@ const App = () => {
             <Route path="/live" element={<LiveAds />} />
           </Routes>
         </main>
+      </div>
         <Footer DarkMode={DarkMode} />
       </div>
   );
