@@ -55,16 +55,16 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
             </div>
 
              {/* Search bar */}
-            <div className="flex flex-grow lg:flex items-center relative searchbar">
+            <div className="flex flex-grow lg:flex items-center relative searchbar ml-4">
                 <img src={'/search.svg'} alt="Search Icon" width={20} height={20} className='absolute left-3'/>
                 <input type="text" placeholder="Search" className="text-black dark:text-white bg-slate-50 dark:bg-transparent outline-pink-600 dark:outline-blue-600 outline-none py-1 pl-10 px-3 w-72 rounded-2xl" />
             </div>
-            <div className='lg:flex items-center'>
+            <div className='lg:flex items-center nav-button-container'>
                 <a href={Connect.Path}>
                     <button className='bg-pink-600 dark:bg-blue-600 text-white transition-all duration-300 rounded-xl w-24 h-10 hover:bg-grey font-sans connect-button'>{Connect.link}</button>
                 </a>
             </div>
-            <div className='lg:flex items-center px-3'>
+            <div className='lg:flex items-center px-3 nav-button-container'>
             <a onClick={openLoginForm}>
                     <button className='bg-pink-600 dark:bg-blue-600 text-white transition-all duration-300 rounded-xl w-24 h-10 hover:bg-grey font-sans connect-button'>Login</button>
                 </a>
@@ -102,11 +102,11 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
             </div>
             </div> */}
         {/* Mobile menu */}
-        <div className="mobile-menu relative">
+        <div className="mobile-menu">
             <button className="btn-sm btn-active btn-neutral" onClick={toggleMenu}>Menu</button>
             {isMenuOpen && (
-                <div className="fixed inset-0 bg-gray-800 z-50 flex justify-center items-center">
-                    <div className="bg-gray w-full h-full p-4 relative">
+                <div className="fixed inset-0 bg-gray-800 flex justify-center items-center">
+                    <div className="w-full h-full relative">
                         <button className="absolute top-4 right-4 text-gray-400 text-3xl" onClick={toggleMenu}>
                             &times;
                         </button>
