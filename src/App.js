@@ -50,7 +50,7 @@ const App = () => {
           <div className={`flex-grow transition-all duration-300 ${
               isSidebarOpen ? 'ml-60' : 'ml-20'
           }`}>
-            <div className="fixed top-12 left-0 right-0 z-40 px-4 py-2 bg-white dark:bg-slate-900 shadow-sm" style={{
+            <div className="fixed top-10 first-letter:left-0 right-0 z-40 px-4 py-2 bg-white dark:bg-slate-900 shadow-sm" style={{
                 left: isSidebarOpen ? '240px' : '80px'
             }}>
                 <Multifilter/>
