@@ -10,7 +10,6 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
     const navigate = useNavigate();
 
     const [activeForm, setActiveForm] = useState(null);
-    //const [profileImage, setProfileImage] = useState(logo); // Default to local logo
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const openLoginForm = () => {
@@ -43,9 +42,9 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
     const Connect = { link: 'Connect', Path: '/Connect' };
 
     return (
-        <div className={`navbar bg-transparent ${DarkMode && 'Dark'}`}>
+        <div className={`navbar dark:bg-slate-900 ${DarkMode && 'Dark'}`}>
             {/* side menu */}
-            <div className='pr-4'>
+            <div className='pl-3 pr-4'>
                 <img src={'/MenuIcon.svg'} alt="MetaSurf Logo" width={30} height={30} className='pl-2 icon-dark-mode' onClick={toggleSidebar}/>
             </div>
             <div className="flex-1">
