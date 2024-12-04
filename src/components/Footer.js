@@ -7,75 +7,64 @@ import GithubIcon from '../../public/github.svg';
 import LinkedinIcon from '../../public/linkedin.svg';
 import { useNavigate} from "react-router-dom";
 
-const Footer = ({ DarkMode }) => {
+const Footer = ({ DarkMode, isOpen }) => {
 
     const navigate = useNavigate();
+
+    if (!isOpen) return null;
+
     return (
-        <footer className="bg-pink-600 dark:bg-blue-600 bg-opacity-85 w-full mt-auto">
-            <div className="grid justify-between sm:flex sm:justify-between md:flex md:grid-cols-1">
-                <div className="space-y-4 mb-8">
-                    <a href="/" className="text-2xl font-semibold flex items-center space-x-3">
-                        <img src={DarkMode ? '/LogoDark.png' : '/Logo.png'} alt="MetaSurfAi Logo" width={32} height={32} className="object-scale-down h-8 w-8 inline-block rounded-full" />
-                        <span className="text-white font-Oxanium text-2xl font-bold pt-2">MetaSurfAi</span>
-                    </a>
+            <footer className="w-full mt-auto px-4 py-2">
+                <div className="flex flex-col space-y-4">
+                    <div className="space-y-4 text-xs">
+                        <div>
+                            <h2 className="text-black dark:text-white font-semibold mb-1">About</h2>
+                            <ul className="space-y-1">
+                                <li>
+                                    <a onClick={() => navigate('about')} 
+                                       className="text-gray-600 dark:text-gray-400 hover:text-pink-600 dark:hover:text-blue-600 cursor-pointer">
+                                       About Us
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h2 className="text-black dark:text-white font-semibold mb-1">Legal</h2>
+                            <ul className="space-y-1">
+                                <li>
+                                    <a onClick={() => navigate('privacy')} 
+                                       className="text-gray-600 dark:text-gray-400 hover:text-pink-600 dark:hover:text-blue-600 cursor-pointer">
+                                       Privacy
+                                    </a>
+                                </li>
+                                <li>
+                                    <a onClick={() => navigate('tos')} 
+                                       className="text-gray-600 dark:text-gray-400 hover:text-pink-600 dark:hover:text-blue-600 cursor-pointer">
+                                       Terms
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div className="space-y-1">
+                    <h2 className="text-black dark:text-white font-semibold mb-1 text-xs">Follow Us</h2>
+                    <div className=" icon-dark-mode grid grid-cols-2">
+                        <a href='#'><DiscordIcon className={`w-6 h-6 ${
+                            DarkMode ? 'text-gray-400 hover:text-blue-600' : 'text-black hover:text-pink-600'
+                        }`} /> </a>
+                        <a href='#'><TwitterIcon className={`w-6 h-6 ${
+                            DarkMode ? 'text-gray-400 hover:text-blue-600' : 'text-black hover:text-pink-600'
+                        }`} /></a>
+                        <a href='#'><GithubIcon className={`w-6 h-6 ${
+                            DarkMode ? 'text-gray-400 hover:text-blue-600' : 'text-black hover:text-pink-600'
+                        }`} /></a>
+                        <a href='#'><LinkedinIcon className={`w-6 h-6 ${
+                            DarkMode ? 'text-gray-400 hover:text-blue-600' : 'text-black hover:text-pink-600'
+                        }`} /></a>
+                    </div>
+                    </div>
                 </div>
-                <div className="grid grid-cols-2 gap-8 sm:mt-4 sm:grid-cols-3 sm:gap-6">
-                    <div>
-                        <h2 className="text-xl font-semibold mb-2 text-white">About</h2>
-                        <ul className="space-y-2">
-                            <li>
-                                <a href="" onClick={() => navigate('about')} className="text-white">MetaSurfAi</a>
-                            </li>
-                            <li>
-                                <a href="#" className="text-white">Our Services</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h2 className="text-xl font-semibold mb-2 text-white">Follow us</h2>
-                        <ul className="space-y-2">
-                            <li>
-                                <a href="#" className="text-white">Github</a>
-                            </li>
-                            <li>
-                                <a href="#" className="text-white">Discord</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h2 className="text-xl font-semibold mb-2 text-white">Legal</h2>
-                        <ul className="space-y-2">
-                            <li>
-                                <a href="" onClick={() => navigate('privacy')} className="text-white">Privacy Policy</a>
-                            </li>
-                            <li>
-                                <a href="" onClick={() => navigate('tos')} className="text-white">Terms & Conditions</a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <hr className="border-t my-4 border-white" />
-            <div className="w-11/12 sm:flex sm:items-center sm:justify-between">
-            <p className="mb-1 text-sm text-white">
-                © MetaSurfAi™ {new Date().getFullYear()}
-            </p>
-            <div className="mt-4 flex space-x-4 sm:mt-0 sm:justify-end sm:flex-1">
-                <a href="#" className="text-white hover:text-gray-300">
-                    <DiscordIcon className="fill-current text-white" />
-                </a>
-                <a href="#" className="text-white hover:text-gray-300">
-                    <LinkedinIcon className="fill-current text-white" />
-                </a>
-                <a href="#" className="text-white hover:text-gray-300">
-                    <TwitterIcon className="fill-current text-white" />
-                </a>
-                <a href="#" className="text-white hover:text-gray-300">
-                    <GithubIcon className="fill-current text-white" />
-                </a>
-            </div>
-        </div>
-    </footer>
+            </footer>
     );
 };
 

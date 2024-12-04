@@ -5,12 +5,11 @@ import LoginForm from './Login/Login';
 import SignUpForm from './Signup/Signup';
 import { useNavigate } from "react-router-dom";
 
-const NavBar = ({ DarkMode, toggleDarkMode }) => {
+const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
 
     const navigate = useNavigate();
 
     const [activeForm, setActiveForm] = useState(null);
-    //const [profileImage, setProfileImage] = useState(logo); // Default to local logo
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const openLoginForm = () => {
@@ -43,23 +42,31 @@ const NavBar = ({ DarkMode, toggleDarkMode }) => {
     const Connect = { link: 'Connect', Path: '/Connect' };
 
     return (
-        <div className={`navbar bg-transparent ${DarkMode && 'Dark'}`}>
+        <div className={`navbar dark:bg-slate-900 ${DarkMode && 'Dark'}`}>
+            {/* side menu */}
+            <div className='pl-3 pr-4'>
+                <img src={'/MenuIcon.svg'} alt="MetaSurf Logo" width={30} height={30} className='pl-2 icon-dark-mode' onClick={toggleSidebar}/>
+            </div>
             <div className="flex-1">
-                <a href="/" className="btn btn-ghost text-xl flex items-center space-x-2">
-                    <img src={DarkMode ? '/LogoDark.png' : '/Logo.png'} alt="MetaSurf Logo" width={40} height={40} className='rounded-full'/>
+                <a href="/" className="btn btn-ghost flex">
+                    <img src={DarkMode ? '/LogoDark.png' : '/Logo.png'} alt="MetaSurf Logo" width={36} height={36} className='rounded-xl'/>
+                    <span className='dark:text-white text-black text-2xl font-Oxanium'>MetaSurfAI</span> 
                 </a>
             </div>
 
              {/* Search bar */}
-            <div className="flex items-center flex-grow lg:flex searchbar">
-                <input type="text" placeholder="Search" className="text-black bg-slate-50 outline-fuchsia-900 px-6 py-1 rounded-3xl" />
+            <div className="flex flex-grow lg:flex items-center relative searchbar">
+                <img src={'/search.svg'} alt="Search Icon" width={20} height={20} className='absolute left-3'/>
+                <input type="text" placeholder="Search" className="text-black dark:text-white bg-slate-50 dark:bg-transparent outline-pink-600 dark:outline-blue-600 outline-none py-1 pl-10 px-3 w-72 rounded-2xl" />
             </div>
-            <a href="" className='items text-black dark:text-white font-Oxanium space-x-4 px-2 pt-2'>Explore</a>
-            <a href="" className='items text-black dark:text-white font-Oxanium space-x-4 px-2 pt-2' onClick={() => navigate('live')}>Live</a>
-            <a href="" className='items text-black dark:text-white font-Oxanium space-x-4 px-2 pt-2 pl-5' onClick={() => navigate('Dashboard')}>Dashboard</a>
-            <div className='space-x-4 lg:flex px-10 items-center connect-button-container'>
+            <div className='lg:flex items-center'>
                 <a href={Connect.Path}>
-                    <button className='bg-pink-600 dark:bg-blue-600 text-white px-4 transition-all duration-300 rounded-3xl w-24 h-10 hover:bg-grey font-sans connect-button'>{Connect.link}</button>
+                    <button className='bg-pink-600 dark:bg-blue-600 text-white transition-all duration-300 rounded-xl w-24 h-10 hover:bg-grey font-sans connect-button'>{Connect.link}</button>
+                </a>
+            </div>
+            <div className='lg:flex items-center px-3'>
+            <a onClick={openLoginForm}>
+                    <button className='bg-pink-600 dark:bg-blue-600 text-white transition-all duration-300 rounded-xl w-24 h-10 hover:bg-grey font-sans connect-button'>Login</button>
                 </a>
             </div>
             <button className='items w-8 h-8 bg-pink-600 dark:bg-blue-600 rounded-full text-2xl text-white flex justify-center items-center' onClick={toggleDarkMode}>

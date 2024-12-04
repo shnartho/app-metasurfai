@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 const PROFILE_API = "https://metasurfai-public-api.fly.dev/v1/profile?username=nayem";
 const CREATE_AD_API = "https://metasurfai-public-api.fly.dev/v2/createOneAds";
 const DELETE_AD_API = "https://metasurfai-public-api.fly.dev/v2/deleteOneAds";
+const authToken = localStorage.getItem('authToken');
 
 const UserDash = () => {
   const [title, setTitle] = useState("");
