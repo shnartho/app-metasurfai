@@ -117,12 +117,7 @@ const AdHandler = () => {
 
 
     return (
-        <div>
-        <div className="text-center pt-6">         
-         <div className=' pt-10'>
-         <h1 className="text-black dark:text-white text-4xl font-bold">Featured Videos</h1> 
-         </div>
-         </div>
+        <div className="pt-10">
          <div className="text-center pt-8">
                    <Multifilter/>
          </div>
