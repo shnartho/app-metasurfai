@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Footer from './Footer';
 
-const SideNav = ({ isOpen }) => {
+const SideNav = ({ isOpen, DarkMode }) => {
     const navigate = useNavigate();
     
     const menuItems = [
         { name: 'Home', icon: '/home.png', path: '/' },
+        { name: 'Live', icon: '/live.png', path: '/Live' },
         { name: 'Videos', icon: '/videos.png', path: '/videos' },
         { name: 'Markets', icon: '/markets.png', path: '/markets' },
         { name: 'VR', icon: '/vr.png', path: '/vr' },
@@ -16,10 +18,11 @@ const SideNav = ({ isOpen }) => {
     ];
 
     return (
-        <div className={`relative left-0 min-h-full overflow-y-auto bg-white dark:bg-slate-900 shadow-lg transition-all duration-300 ${
+        <div className={`fixed left-0 top-12 h-[calc(100vh-48px)] overflow-y-auto bg-white dark:bg-slate-900 shadow-lg transition-all duration-300 ${
             isOpen ? 'w-60' : 'w-20'
         }`}>
-            <div className="flex flex-col justify-between min-h-full">
+            <div className="flex flex-col  h-full">
+            <div className="flex-1 overflow-y-auto">
             <div className="flex flex-col gap-2 p-3">
                 {menuItems.map((item, index) => (
                     <div
@@ -64,6 +67,10 @@ const SideNav = ({ isOpen }) => {
             >
                 Settings
             </span>
+           </div>
+           <div className="mt-auto">
+                <Footer isOpen={isOpen} DarkMode={DarkMode}/>
+           </div>
            </div>
           </div>
         </div>
