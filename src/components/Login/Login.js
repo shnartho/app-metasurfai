@@ -16,40 +16,39 @@ const LoginForm = () => {
         setShowPassword(true);
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = async () => {
         setShowPassword(false);
-    };
-
         // Create user object
         const userData = {
             email: email,
             password: password
         };
-
-    //     try {
-    //         // Send POST request to your API endpoint
-    //         const response = await fetch('', {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json'
-    //             },
-    //             body: JSON.stringify(userData)
-    //         });
-
-    //         // Handle response
-    //         if (response.ok) {
-    //             setSuccess(true);
-    //             setError(null);
-    //         } else {
-    //             const data = await response.json();
-    //             setError(data.message);
-    //             setSuccess(false);
-    //         }
-    //     } catch (error) {
-    //         setError('Something went wrong. Please try again later.');
-    //         setSuccess(false);
-    //     }
-    // };
+    
+        try {
+            // Send POST request to your API endpoint
+            const response = await fetch('https://metasurfai-public-api.fly.dev/v2/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userData)
+            });
+    
+            // Handle response
+            if (response.ok) {
+                localStorage.setItem('authToken', data.token);
+                setSuccess(true);
+                setError(null);
+            } else {
+                const data = await response.json(); 
+                setError(data.message);
+                setSuccess(false);
+            }
+        } catch (error) {
+            setError('Something went wrong. Please try again later.');
+            setSuccess(false);
+        }
+    };
 
     return (
         <div className="flex justify-center items-center">

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import React from 'react';
 
 const SignUpForm = () => {
-    const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -11,6 +10,35 @@ const SignUpForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        // Create user object
+        const userData = {
+            email: email,
+            password: password
+        };
+
+        try {
+            // Send POST request to your API endpoint
+            const response = await fetch('https://metasurfai-public-api.fly.dev/v2/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userData)
+            });
+
+            // Handle response
+            if (response.ok) {
+                setSuccess(true);
+                setError(null);
+            } else {
+                const data = await response.json();
+                setError(data.message);
+                setSuccess(false);
+            }
+        } catch (error) {
+            setError('Something went wrong. Please try again later.');
+            setSuccess(false);
+        }
     };
 
     const handleMouseDown = () => {
@@ -23,35 +51,9 @@ const SignUpForm = () => {
 
         // Create user object
         const userData = {
-            name: name,
             email: email,
             password: password
         };
-
-    //     try {
-    //         // Send POST request to your API endpoint
-    //         const response = await fetch('YOUR_API_ENDPOINT', {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json'
-    //             },
-    //             body: JSON.stringify(userData)
-    //         });
-
-    //         // Handle response
-    //         if (response.ok) {
-    //             setSuccess(true);
-    //             setError(null);
-    //         } else {
-    //             const data = await response.json();
-    //             setError(data.message);
-    //             setSuccess(false);
-    //         }
-    //     } catch (error) {
-    //         setError('Something went wrong. Please try again later.');
-    //         setSuccess(false);
-    //     }
-    // };
 
 
     return (
@@ -61,15 +63,7 @@ const SignUpForm = () => {
                 {error && <p className="text-red-500 mb-4">{error}</p>}
                 {success && <p className="text-green-500 mb-4">Sign up successful!</p>}
                 <form onSubmit={handleSubmit}>
-                    <div className="mb-4">
-                        <label className="block text-gray-100">Name:</label>
-                        <input
-                            type="text"
-                            className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                        />
-                    </div>
+                
                     <div className="mb-4">
                         <label className="block text-gray-100">Email:</label>
                         <input
