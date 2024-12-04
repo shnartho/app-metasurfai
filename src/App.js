@@ -9,6 +9,13 @@ import PrivacyPolicy from "./components/other/PrivacyP";
 import About from "./components/other/About";
 import UserDash from "./components/Dashboard/UserDash";
 import LiveAds from "./components/live/LiveAds";
+import Videos from "./components/Videos/Videos";
+import Markets from "./components/Markets/Markets";
+import Radio from "./components/Radio/Radio";
+import Stream from "./components/Stream/Stream";
+import VR from "./components/VR/VR";
+import Billboard from "./components/Billboards/Billboard";
+import Channels from "./components/Channels/Channels";
 import SideNav from "./components/SideNav";
 
 const App = () => {
@@ -51,10 +58,17 @@ const App = () => {
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/Dashboard" element={<UserDash />} />
             <Route path="/live" element={<LiveAds />} />
+            <Route path="/videos" element={<Videos />} />
+            <Route path="/markets" element={<Markets />} />
+            <Route path="/radio" element={<Radio />} />
+            <Route path="/stream" element={<Stream />} />
+            <Route path="/vr" element={<VR />} />
+            <Route path="/billboard" element={<Billboard />} />
+            <Route path="/channels" element={<Channels />} />
           </Routes>
         </main>
       </div>
-        <Footer DarkMode={DarkMode} />
+        {/* <Footer DarkMode={DarkMode} /> */}
       </div>
   );
 };
