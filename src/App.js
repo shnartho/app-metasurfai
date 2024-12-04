@@ -1,5 +1,4 @@
 import NavBar from "./components/NavBar";
-import Footer from "./components/Footer";
 import AdHandler from "./components/ads/AdHandling";
 import Profile from "./components/profile/profile";
 import React, { useState, useEffect } from 'react';
@@ -13,10 +12,11 @@ import Videos from "./components/Videos/Videos";
 import Markets from "./components/Markets/Markets";
 import Radio from "./components/Radio/Radio";
 import Stream from "./components/Stream/Stream";
-import VR from "./components/VR/VR";
+import VR from "./components/VR/vr";
 import Billboard from "./components/Billboards/Billboard";
 import Channels from "./components/Channels/Channels";
 import SideNav from "./components/SideNav";
+import Multifilter from "./components/ads/ads-filter/multifilter";
 
 const App = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -47,9 +47,15 @@ const App = () => {
         <NavBar DarkMode={DarkMode} toggleDarkMode={toggleDarkMode} toggleSidebar={toggleSidebar}/>
         <div className="flex flex-grow">
           <SideNav isOpen={isSidebarOpen} />
-          <main className={`flex-grow transition-all duration-300 ${
+          <div className={`flex-grow transition-all duration-300 ${
               isSidebarOpen ? 'ml-60' : 'ml-20'
-          }`}>          
+          }`}>
+            <div className="fixed top-12 left-0 right-0 z-40 px-4 py-2 bg-white dark:bg-slate-900 shadow-sm" style={{
+                left: isSidebarOpen ? '240px' : '80px'
+            }}>
+                <Multifilter/>
+            </div>
+            <main className="mt-24 px-4">       
           <Routes>
             <Route path="/" element={<AdHandler />} />
             <Route path="/profile" element={<Profile />} />
@@ -69,6 +75,7 @@ const App = () => {
         </main>
       </div>
         {/* <Footer DarkMode={DarkMode} /> */}
+      </div>
       </div>
   );
 };

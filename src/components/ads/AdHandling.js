@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Multifilter from "./ads-filter/multifilter";
 
 const AdHandler = () => {
     const [ads, setAds] = useState([]);
@@ -118,9 +117,6 @@ const AdHandler = () => {
 
     return (
         <div className="pt-10">
-         <div className="text-center pt-8">
-                   <Multifilter/>
-         </div>
            <div className="container pt-4 pb-4 w-11/12 min-h-screen m-auto flex flex-col">
                {/* Ads Display */}
                <div className="ads-container flex-grow grid gap-4 overflow-y-auto" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(250px, 1fr))` }}>
