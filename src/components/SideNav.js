@@ -35,9 +35,9 @@ const SideNav = ({ isOpen, DarkMode }) => {
                         <img 
                             src={item.icon} 
                             alt={item.name}
-                            className=" sidebar-icon w-6 h-6 object-contain icon-dark-mode"
+                            className="w-6 h-6 object-contain icon-dark-mode"
                         />
-                        <span className={`text-black dark:text-white font-Oxanium sidebar-item-text ${
+                        <span className={`text-black dark:text-white font-Oxanium ${
                             isOpen 
                                 ? 'ml-3' 
                                 : 'text-xs mt-1 group-hover:text-pink-600 dark:group-hover:text-blue-600 '
