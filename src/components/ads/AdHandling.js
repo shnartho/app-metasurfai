@@ -11,7 +11,7 @@ const AdHandler = () => {
     useEffect(() => {
         const fetchAds = async () => {
             try {
-                const response = await fetch("https://metasurfai-public-api.fly.dev/v2");
+                const response = await fetch("https://metasurfai-public-api.fly.dev/v2/ads");
                 const data = await response.json();
                 const sortedAds = data.sort((a, b) => b.token_reward - a.token_reward); 
                 setAds(sortedAds);
