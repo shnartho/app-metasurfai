@@ -23,20 +23,17 @@ const Stream = () => {
         }
     };
 
-    const handleClick = (event) => {
-        const video = event.target;
-        if (document.contains(video)) {
-            if (video.requestFullscreen) {
-                video.requestFullscreen();
-            } else if (video.mozRequestFullScreen) {
-                video.mozRequestFullScreen();
-            } else if (video.webkitRequestFullscreen) { 
-                video.webkitRequestFullscreen();
-            } else if (video.msRequestFullscreen) {
-                video.msRequestFullscreen();
-            }
-        }
-    };
+    const handleClick = ({ target: video }) => {
+    if (document.contains(video)) {
+        const requestFullscreen = 
+            video.requestFullscreen || 
+            video.mozRequestFullScreen || 
+            video.webkitRequestFullscreen || 
+            video.msRequestFullscreen;
+
+        requestFullscreen?.call(video);
+    }
+};
 
     return (
         <div className="videos-container pt-10" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '20px', marginTop: '20px' }}>
