@@ -56,6 +56,13 @@ module.exports = {
                     'postcss-loader',
                 ],
             },
+            {
+                test: /\.(mp4|webm|ogg)$/i,
+                type: 'asset/resource',
+                generator: {
+                    filename: 'videos/[name][ext][query]',
+                },
+            },
         ],
     },
     plugins: [
