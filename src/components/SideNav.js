@@ -13,7 +13,7 @@ const SideNav = ({ isOpen, DarkMode }) => {
         { name: 'VR', icon: '/vr.png', path: '/vr' },
         { name: 'Channels', icon: '/channels.png', path: '/channels' },
         { name: 'Stream', icon: '/stream.png', path: '/stream' },
-        { name: 'Billboard', icon: '/billboard.png', path: '/billboard' },
+        { name: 'Billboard', icon: '/billboard.png', path: '/billboards' },
         { name: 'Radio', icon: '/radio.png', path: '/radio' }
     ];
 

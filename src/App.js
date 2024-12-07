@@ -69,7 +69,7 @@ const App = () => {
             <Route path="/radio" element={<Radio />} />
             <Route path="/stream" element={<Stream />} />
             <Route path="/vr" element={<VR />} />
-            <Route path="/billboard" element={<Billboard />} />
+            <Route path="/billboards" element={<Billboard />} />
             <Route path="/channels" element={<Channels />} />
           </Routes>
         </main>
