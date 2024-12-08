@@ -44,10 +44,10 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
     return (
         <div className={`navbar dark:bg-slate-900 ${DarkMode && 'Dark'}`}>
             {/* side menu */}
-            <div className='pl-3 pr-4'>
+            <div className='pl-3 pr-4 nav-item'>
                 <img src={'/MenuIcon.svg'} alt="MetaSurf Logo" width={30} height={30} className='pl-2 icon-dark-mode' onClick={toggleSidebar}/>
             </div>
-            <div className="flex-1">
+            <div className="flex-1 nav-item">
                 <a href="/" className="btn btn-ghost flex">
                     <img src={DarkMode ? '/LogoDark.png' : '/Logo.png'} alt="MetaSurf Logo" width={36} height={36} className='rounded-xl'/>
                     <span className='dark:text-white text-black text-2xl font-Oxanium'>MetaSurfAI</span> 
@@ -56,20 +56,20 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
 
              {/* Search bar */}
             <div className="flex flex-grow lg:flex items-center relative searchbar">
-                <img src={'/search.svg'} alt="Search Icon" width={20} height={20} className='absolute left-3'/>
+                <img src={'/search.svg'} alt="Search Icon" width={20} height={20} className='absolute left-3 icon-dark-mode'/>
                 <input type="text" placeholder="Search" className="text-black dark:text-white bg-slate-50 dark:bg-transparent outline-pink-600 dark:outline-blue-600 outline-none py-1 pl-10 px-3 w-72 rounded-2xl" />
             </div>
             <div className='lg:flex items-center'>
                 <a href={Connect.Path}>
-                    <button className='bg-pink-600 dark:bg-blue-600 text-white transition-all duration-300 rounded-xl w-24 h-10 hover:bg-grey font-sans connect-button'>{Connect.link}</button>
+                    <button className='bg-gradient-to-r from-fuchsia-500 to-pink-500 dark:from-indigo-900 dark:to-blue-600 text-white transition-all duration-300 rounded-xl w-24 h-10 hover:bg-grey font-sans nav-button'>{Connect.link}</button>
                 </a>
             </div>
             <div className='lg:flex items-center px-3'>
             <a onClick={openLoginForm}>
-                    <button className='bg-pink-600 dark:bg-blue-600 text-white transition-all duration-300 rounded-xl w-24 h-10 hover:bg-grey font-sans connect-button'>Login</button>
+                    <button className='bg-gradient-to-r from-fuchsia-500 to-pink-500 dark:from-indigo-900 dark:to-blue-600 text-white transition-all duration-300 rounded-xl w-24 h-10 hover:bg-grey font-sans nav-button'>Login</button>
                 </a>
             </div>
-            <button className='items w-8 h-8 bg-pink-600 dark:bg-blue-600 rounded-full text-2xl text-white flex justify-center items-center' onClick={toggleDarkMode}>
+            <button className='items w-8 h-8 bg-gradient-to-r from-fuchsia-500 to-pink-500 dark:from-indigo-900 dark:to-blue-600 rounded-full text-2xl text-white flex justify-center items-center' onClick={toggleDarkMode}>
                 {DarkMode ? '🌞' : '🌙'}
                 </button>
             {/* <div className="flex-none dropdown-menu"> 
@@ -102,7 +102,7 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
             </div>
             </div> */}
         {/* Mobile menu */}
-        <div className="mobile-menu relative">
+        <div className="mobile-menu relative nav-item">
             <button className="btn-sm btn-active btn-neutral" onClick={toggleMenu}>Menu</button>
             {isMenuOpen && (
                 <div className="fixed inset-0 bg-gray-800 z-50 flex justify-center items-center">
