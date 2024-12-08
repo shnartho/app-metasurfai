@@ -12,7 +12,7 @@
         display: none; /* Hide search bar on smaller screens */
     }
 
-    .connect-button-container {
+    .nav-button {
         display: none; /* Hide connect button on smaller screens */
     }
 
@@ -114,11 +114,25 @@
     margin-top: 20px;
 }
 
+/* Allow the filters to be fully displayed on smaller screens */
+@media (max-width: 950px) {
+    .buttons-container {
+        justify-content: start;
+    }
+    .buttono {
+        padding: 0.25rem 0.5rem; /* Adjust padding to make the height smaller */
+        font-size: 0.75rem; /* Adjust font size if needed */
+    }
+}
+.buttons-container::-webkit-scrollbar {
+    display: none; /* Hide scrollbar for a cleaner look */
+}
+
 .buttono {
     background: transparent;
-    margin: 5px 5px;
+    margin: 1px 4px;
     border-radius: 5px;
-    padding: 5px 10px;
+    padding: 1px 5px;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
 }
@@ -172,7 +186,7 @@
         font-size: 1.5rem; /* 24px */
         line-height: 1.75rem; /* 28px */
     }
-    .buttons-container .buttono {
+    .buttons-container.buttono {
         padding: 0.25rem 0.5rem;
         font-size: 0.75rem;
     }
@@ -190,4 +204,28 @@
 
 .dark .icon-dark-mode {
     filter: invert(1) brightness(1) contrast(2);
+}
+
+
+.video-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem; /* Adjust gap as needed */
+}
+
+.video-item {
+    width: 100%;
+    transition: transform 0.3s ease, z-index 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .video-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .video-container {
+        grid-template-columns: 1fr;
+    }
 }
