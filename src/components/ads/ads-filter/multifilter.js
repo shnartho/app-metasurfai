@@ -1,6 +1,7 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
+import filterlist from "./filterlist";
 
-const Multifilter = () => {
+const Multifilter = ({ isSidebarOpen }) => {
     const ads = [];
     useEffect(() => {
         filtersitems();
@@ -13,33 +14,32 @@ const Multifilter = () => {
                 return tempAds;
             });
             setFilteredads(filteredAds.flat());
-        }else {
-                setFilteredads([...ads]);
+        } else {
+            setFilteredads([...ads]);
         }
     };
-        
-        
+
     const [selectedFilter, setSelectedFilter] = useState([]);
     const [filteredads, setFilteredads] = useState(ads);
-    let filters = ['filter1', 'filter2', 'filter3', 'filter4', 'filter5'];
+    let filters = filterlist;
 
     const handleFilterClick = (selectedcategory) => {
         if (selectedFilter.includes(selectedcategory)) {
             let filters = selectedFilter.filter((f) => f !== selectedcategory);
-            setSelectedFilter(filters);}
-            else {
-                setSelectedFilter([...selectedFilter, selectedcategory]);
-            }
-    }
+            setSelectedFilter(filters);
+        } else {
+            setSelectedFilter([...selectedFilter, selectedcategory]);
+        }
+    };
 
     return (
         <div>
-            <div className="buttons-container">
+            <div className={`buttons-container flex items-center ${isSidebarOpen ? 'overflow-hidden' : 'overflow-x-scroll'} whitespace-nowrap scroll-snap-type-x mandatory`}>
                 {filters.map((category, index) => (
                     <button
                         key={`filters-${index}`}
-                        onClick={() => handleFilterClick(category)}  
-                        className={`buttono border-2 border-pink-600 dark:border-blue-600 ${selectedFilter.includes(category) ? 'active' : ''}`}
+                        onClick={() => handleFilterClick(category)}
+                        className={`buttono border-2 text-black dark:text-white hover:text-white border-pink-600 dark:border-blue-600 hover:bg-gradient-to-r from-fuchsia-500 to-pink-500 dark:hover:from-indigo-900 dark:hover:to-blue-600 ${selectedFilter.includes(category) ? 'active' : ''} scroll-snap-align-start`}
                     >
                         {category}
                     </button>

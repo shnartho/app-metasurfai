@@ -92,7 +92,7 @@ const Billboards = () => {
                                         <h3 className="text-lg font-bold">{Billboard.title}</h3>
                                         <p className="text-sm">{Billboard.description}</p>
                                         <div className="mt-4 flex justify-between items-center">
-                                            <button onClick={() => openModal(Billboard)} className="bg-pink-600 dark:bg-blue-600 text-white px-4 py-2 rounded-lg">Start Bid</button>
+                                            <button onClick={() => openModal(Billboard)} className="bg-gradient-to-r from-fuchsia-500 to-pink-500 dark:from-indigo-900 dark:to-blue-600 text-white px-4 py-2 rounded-lg">Start Bid</button>
                                             <p className="text-lg font-bold">Price: $5000</p>
                                         </div>
                                     </div>
@@ -129,7 +129,7 @@ const Billboards = () => {
                                                     className="border rounded p-2 mr-2"
                                                     placeholder="Enter Bid Amount"
                                                 />
-                                                <button type="submit" className="bg-pink-600 dark:bg-blue-600 text-white px-4 py-2 rounded-lg">Place Bid</button>
+                                                <button type="submit" className="bg-gradient-to-r from-fuchsia-500 to-pink-500 dark:from-indigo-900 dark:to-blue-600 text-white px-4 py-2 rounded-lg">Place Bid</button>
                                             </form>
                                         </div>
                                         <div className="flex-grow md:w-1/3 p-4">

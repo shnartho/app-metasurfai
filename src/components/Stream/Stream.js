@@ -36,7 +36,7 @@ const Stream = () => {
 };
 
     return (
-        <div className="videos-container pt-10" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '20px', marginTop: '20px' }}>
+        <div className="video-container pt-10">
             {videos.map((video, index) => (
                 <div key={index} className="video-item" style={{ flex: '0 1 calc(33.333% - 20px)', position: 'relative', border: '1px solid #ccc', borderRadius: '10px', overflow: 'hidden' }}>
                     <span style={{ position: 'absolute', top: '10px', left: '10px', backgroundColor: 'red', color: 'white', padding: '5px 10px', borderRadius: '5px', zIndex: 2 }}>Live</span>
