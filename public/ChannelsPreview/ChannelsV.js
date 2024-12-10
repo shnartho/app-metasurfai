@@ -9,7 +9,7 @@ const ChannelsToC = [
     {
         name: 'Whatsapp Notification Channel',
         Path: '/ChannelsPreview/whatsappMessage.mp4',
-        description: 'Advertisers can post ads that will instantly send whatsapp notifications to all users.',
+        description: 'Post ads that will instantly send whatsapp notifications to all users.',
         action: 'Post Ad',
         live: true
     },    
