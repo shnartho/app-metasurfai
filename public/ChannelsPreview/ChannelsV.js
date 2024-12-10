@@ -16,7 +16,7 @@ const ChannelsToC = [
     {
         name: 'Telegram Notification Channel',
         Path: '/ChannelsPreview/telegramUsage.jpg',
-        description: 'Advertisers can post ads that will instantly send telegram notifications to all users.',
+        description: 'Post ads that will instantly send telegram notifications to all users.',
         action: 'Post Ad',
         live: true
     },
