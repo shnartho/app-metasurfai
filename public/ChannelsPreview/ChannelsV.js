@@ -1,7 +1,7 @@
 const ChannelsToC = [
     {
         name: 'Mobile Notification Channel',
-        Path: '/ChannelsPreview/mobileNotif.mp4',
+        Path: '/ChannelsPreview/MobileNotifEx.mp4',
         description: 'Post ads that will instantly send mobile notifications to all users.',
         action: 'Post Ad',
         live: true
