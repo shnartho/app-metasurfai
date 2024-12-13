@@ -61,12 +61,24 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
             </div>
             <div className='lg:flex items-center'>
                 <a href={Connect.Path}>
-                    <button className='bg-gradient-to-r from-fuchsia-900 to-pink-500 dark:from-indigo-900 dark:to-blue-600 text-white transition-all duration-300 rounded-xl w-24 h-10 hover:bg-grey font-sans nav-button'>{Connect.link}</button>
+                <button className='pushable'>
+                    <span className="shadow"></span>
+                    <span className="edge"></span>
+                    <span className="front bg-gradient-to-r from-fuchsia-900 to-pink-500 dark:from-indigo-900 dark:to-blue-600">
+                        {Connect.link}
+                    </span>
+                  </button>
                 </a>
             </div>
             <div className='lg:flex items-center px-3'>
             <a onClick={openLoginForm}>
-                    <button className='bg-gradient-to-r from-fuchsia-900 to-pink-500 dark:from-indigo-900 dark:to-blue-600 text-white transition-all duration-300 rounded-xl w-24 h-10 hover:bg-grey font-sans nav-button'>Login</button>
+                    <button className='pushable'>
+                    <span className="shadow"></span>
+                    <span className="edge"></span>
+                    <span className="front bg-gradient-to-r from-fuchsia-900 to-pink-500 dark:from-indigo-900 dark:to-blue-600">
+                    Login
+                    </span>
+                  </button>
                 </a>
             </div>
             <button className='items w-8 h-8 bg-gradient-to-r from-fuchsia-900 to-pink-500 dark:from-indigo-900 dark:to-blue-600 rounded-full text-2xl text-white flex justify-center items-center' onClick={toggleDarkMode}>
