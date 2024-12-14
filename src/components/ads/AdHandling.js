@@ -116,7 +116,7 @@ const AdHandler = () => {
 
 
     return (
-        <div className=`pt-10`>
+        <div className="pt-10">
            <div className="container pb-4 w-11/12 min-h-screen m-auto flex flex-col">
                {/* Ads Display */}
                <div className="ads-container flex-grow grid gap-4 overflow-y-auto" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(250px, 1fr))` }}>
