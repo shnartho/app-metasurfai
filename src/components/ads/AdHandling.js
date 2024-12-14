@@ -116,8 +116,8 @@ const AdHandler = () => {
 
 
     return (
-        <div className="pt-10">
-           <div className="container pt-4 pb-4 w-11/12 min-h-screen m-auto flex flex-col">
+        <div className={`pt-10 ${selectedAd ? 'hidden-navbar' : ''}`}>
+           <div className="container pb-4 w-11/12 min-h-screen m-auto flex flex-col">
                {/* Ads Display */}
                <div className="ads-container flex-grow grid gap-4 overflow-y-auto" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(250px, 1fr))` }}>
                    {ads.map((ad, index) => (
@@ -131,12 +131,13 @@ const AdHandler = () => {
                                src={ad.image_url}
                                alt={ad.title}
                            />
-                           <div className="absolute rounded-3xl bg-white text-black">
-                               <p>{ad.timer}🕒</p>
+                           <div className="absolute top-2 right-2 font-bold flex items-center justify-center rounded-full bg-pink-600 dark:bg-blue-600 text-white w-12 h-12 hover:bg-white hover:text-pink-600 dark:hover:bg-white dark:hover:text-blue-600 hover:shadow-lg">
+                               {/* <p>{ad.timer}🕒</p> */}
+                               <p className="text-lg">{ad.token_reward}</p>
+                               <p className="text-xs">$</p>
                            </div>
                            <div className="ad-info absolute bottom-0 left-0 bg-black bg-opacity-20 text-white p-2">
                                <h3 className="text-lg font-bold">{ad.title}</h3>
-                               <p className="text-sm">Token Reward: {ad.token_reward}</p>
                            </div>
                        </div>
                    ))}
