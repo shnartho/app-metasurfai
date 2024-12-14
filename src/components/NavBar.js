@@ -59,29 +59,30 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                 <img src={'/search.svg'} alt="Search Icon" width={20} height={20} className='absolute left-3 icon-dark-mode'/>
                 <input type="text" placeholder="Search" className="text-black dark:text-white bg-slate-50 dark:bg-transparent outline-pink-600 dark:outline-blue-600 outline-none py-1 pl-10 px-3 w-72 rounded-2xl" />
             </div>
-            <div className='lg:flex items-center'>
+            <div className='lg:flex items-center items'>
                 <a href={Connect.Path}>
-                <button className='pushable'>
-                    <span className="shadow"></span>
-                    <span className="edge"></span>
-                    <span className="front bg-gradient-to-r from-fuchsia-900 to-pink-500 dark:from-indigo-900 dark:to-blue-600">
-                        {Connect.link}
+                <button className='buttonn'>
+                    <span className="hoverEffect">
+                    <div></div>
                     </span>
+                    {Connect.link}
                   </button>
                 </a>
             </div>
-            <div className='lg:flex items-center px-3'>
+            <div className='lg:flex items-center px-3 items'>
             <a onClick={openLoginForm}>
-                    <button className='pushable'>
-                    <span className="shadow"></span>
-                    <span className="edge"></span>
-                    <span className="front bg-gradient-to-r from-fuchsia-900 to-pink-500 dark:from-indigo-900 dark:to-blue-600">
-                    Login
+                    <button className='buttonn'>
+                    <span className="hoverEffect">
+                        <div></div>
                     </span>
+                    Login
                   </button>
                 </a>
             </div>
-            <button className='items w-8 h-8 bg-gradient-to-r from-fuchsia-900 to-pink-500 dark:from-indigo-900 dark:to-blue-600 rounded-full text-2xl text-white flex justify-center items-center' onClick={toggleDarkMode}>
+            <button className='items buttonn w-9 h-9 flex justify-center items-center' onClick={toggleDarkMode}>
+                <span className="hoverEffect">
+                <div></div>
+                </span>
                 {DarkMode ? '🌞' : '🌙'}
                 </button>
             {/* <div className="flex-none dropdown-menu"> 
