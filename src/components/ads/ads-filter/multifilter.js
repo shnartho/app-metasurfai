@@ -39,8 +39,11 @@ const Multifilter = ({ isSidebarOpen }) => {
                     <button
                         key={`filters-${index}`}
                         onClick={() => handleFilterClick(category)}
-                        className={`buttono border-2 text-black dark:text-white hover:text-white border-pink-600 dark:border-blue-600 hover:bg-gradient-to-r from-fuchsia-500 to-pink-500 dark:hover:from-indigo-900 dark:hover:to-blue-600 ${selectedFilter.includes(category) ? 'active' : ''} scroll-snap-align-start`}
+                        className={`buttonf mt-1 mx-1 text-black dark:text-white hover:text-white border-pink-600 dark:border-blue-600 hover:bg-gradient-to-r from-fuchsia-500 to-pink-500 dark:hover:from-indigo-900 dark:hover:to-blue-600 ${selectedFilter.includes(category) ? 'active' : ''} scroll-snap-align-start`}
                     >
+                        <div className="hoverEffect">
+                        <div></div>
+                        </div>
                         {category}
                     </button>
                 ))}

@@ -1,4 +1,5 @@
 const Videos = [
+    { path: '/TempVideos/xqcClip.mp4', name: 'xQc Playing', action: 'Watch', live: true },
     { path: '/TempVideos/ChessTutorialStream.mp4', name: 'Learning Chess', action: 'Buy', live: true },
     { path: '/TempVideos/ClassicGameStream.mp4', name: 'Super mario Retro Playthrough', action: 'Buy' , live: true },
     { path: '/TempVideos/FortnitePlaying.mp4', name: 'Fortnite OG Here', action: 'Buy', live: false },

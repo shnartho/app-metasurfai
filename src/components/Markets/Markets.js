@@ -3,6 +3,8 @@ import videos from '../../../public/TempVideos/Videos';
 
 const Markets = () => {
 
+    const filteredVideos = videos.filter(video => video.name !== 'xQc Playing');
+
     const handleMouseEnter = (event) => {
         const video = event.target;
         if (document.contains(video)) {
@@ -34,7 +36,7 @@ const Markets = () => {
 
     return (
         <div className="video-container pt-10">
-            {videos.map((video, index) => (
+            {filteredVideos.map((video, index) => (
                 <div key={index} className="video-item" style={{ flex: '0 1 calc(33.333% - 20px)', position: 'relative', border: '1px solid #ccc', borderRadius: '10px', overflow: 'hidden' }}>
                     {video.live && (
                         <div style={{ position: 'absolute', top: '10px', left: '10px', backgroundColor: 'red', color: 'white', padding: '5px 10px', borderRadius: '5px', zIndex: 2 }}>
@@ -58,7 +60,10 @@ const Markets = () => {
                     <div style={{ padding: '10px', textAlign: 'left' }}>
                         <h3 style={{ fontSize: '18px', margin: '10px 0' }}>{video.name}</h3>
                         {video.action && (
-                            <button className="px-4 py-2 text-white border-none rounded bg-gradient-to-r from-fuchsia-500 to-pink-500 dark:from-indigo-900 dark:to-blue-600">
+                            <button className="buttonn px-4 py-2 text-white border-none">
+                                <span className="hoverEffect">
+                                <div></div>
+                                </span>
                                 {video.action}
                             </button>
                         )}

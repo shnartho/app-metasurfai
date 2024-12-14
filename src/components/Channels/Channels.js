@@ -22,8 +22,11 @@ const Channels = () => {
                   <div style={{ padding: '10px', textAlign: 'left' }}>
                         <h3 style={{ fontSize: '18px', margin: '10px 0' }}>{video.name}</h3>
                         {video.action && (
-                            <button onClick={handlePostAdClick} className="px-4 py-2 text-white border-none rounded bg-gradient-to-r from-fuchsia-500 to-pink-500 dark:from-indigo-900 dark:to-blue-600">
-                                {video.action}
+                            <button onClick={handlePostAdClick} className="buttonn px-4 py-2 text-white border-none rounded ">
+                                <span className="hoverEffect">
+                                <div></div>
+                                </span>
+                               {video.action}
                             </button>
                         )}
                     </div>
