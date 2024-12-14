@@ -21,7 +21,10 @@ const Radio = () => {
                             <h3 style={{ fontSize: '18px', margin: '10px 0' }}>{station.name}</h3>
                             <p style={{ fontSize: '14px', margin: '10px 0' }}>{station.description}</p>
                             {station.action && (
-                                <button className="px-4 py-2 text-white border-none rounded bg-gradient-to-r from-fuchsia-500 to-pink-500 dark:from-indigo-900 dark:to-blue-600">
+                                <button className="buttonn px-4 py-2 text-white border-none rounded ">
+                                <span className="hoverEffect">
+                                <div></div>
+                                </span>
                                     {station.action}
                                 </button>
                             )}
