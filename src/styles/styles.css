@@ -13,6 +13,10 @@
         display: none; /* Hide search bar on smaller screens */
     }
 
+    .mbtns {
+        display: none;
+    }
+
     .nav-button {
         display: none; /* Hide connect button on smaller screens */
     }
@@ -190,6 +194,28 @@
     .buttons-container.buttono {
         padding: 0.25rem 0.5rem;
         font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        display: none;
+    }
+
+    .sidebtn {
+        display: none;
+    }
+    
+    /* Ensure content takes full width when sidebar is hidden */
+    .content {
+        margin-left: 0 !important;
+    }
+}
+
+/* Restore sidebar visibility on larger screens */
+@media (min-width: 769px) {
+    .sidebar {
+        display: block;
     }
 }
 
@@ -380,20 +406,81 @@
   transform: scale(0.97);
 }
 
+/* Enhanced mobile filter styles */
+@media (max-width: 767px) {
+    .buttons-container {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .buttonf {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.75rem;
+        min-width: auto;
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
 
-
-
-.buttonf:hover .hoverEffect div {
-  width: 8rem;
-  height: 8rem;
+    /* Hide hover effects on mobile for better performance */
+    .buttonf .hoverEffect {
+        display: none;
+    }
 }
 
-@keyframes effect {
-  0% {
-    transform: rotate(0deg);
-  }
+/* Better scrollbar for desktop horizontal scroll */
+@media (min-width: 768px) {
+    .buttons-container::-webkit-scrollbar {
+        height: 4px;
+    }
+    
+    .buttons-container::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .buttons-container::-webkit-scrollbar-thumb {
+        background: rgba(219, 39, 119, 0.3);
+        border-radius: 2px;
+    }
+    
+    .dark .buttons-container::-webkit-scrollbar-thumb {
+        background: rgba(59, 130, 246, 0.3);
+    }
+}
 
-  100% {
-    transform: rotate(360deg);
-  }
+/* Improved button styles for both mobile and desktop */
+.buttonf {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease-in-out;
+    font-weight: 500;
+    cursor: pointer;
+    z-index: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.buttonf:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.buttonf:active {
+    transform: translateY(0);
+}
+
+
+
+
+.ReactModal__Content {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.modal-content {
+    border: none !important;
+    box-shadow: none !important;
 }

@@ -18,7 +18,7 @@ const SideNav = ({ isOpen, DarkMode }) => {
     ];
 
     return (
-        <div className={`fixed left-0 top-12 h-[calc(100vh-48px)] overflow-y-auto bg-white dark:bg-slate-900 shadow-lg transition-all duration-300 ${
+        <div className={`fixed left-0 top-12 h-[calc(100vh-48px)] overflow-y-auto bg-white dark:bg-slate-900 shadow-lg transition-all duration-300 hidden md:block ${
             isOpen ? 'w-60' : 'w-20'
         }`}>
             <div className="flex flex-col  h-full">

@@ -2,7 +2,7 @@ import NavBar from "./components/NavBar";
 import AdHandler from "./components/ads/AdHandling";
 import Profile from "./components/profile/profile";
 import React, { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import ToS from "./components/other/ToS";
 import PrivacyPolicy from "./components/other/PrivacyP";
 import About from "./components/other/About";
@@ -17,8 +17,10 @@ import Billboard from "./components/Billboards/Billboard";
 import Channels from "./components/Channels/Channels";
 import SideNav from "./components/SideNav";
 import Multifilter from "./components/ads/ads-filter/multifilter";
+import Settings from "./components/settings/settings";
 
 const App = () => {
+  const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [DarkMode, setDarkMode] = useState(() => {
     const savedDarkMode = localStorage.getItem('DarkMode');
@@ -35,27 +37,32 @@ const App = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
-    sessionStorage.setItem('darkMode', DarkMode);
+    localStorage.setItem('DarkMode', DarkMode);
   }, [DarkMode]);
 
   const toggleDarkMode = () => {
     setDarkMode(!DarkMode);
   };
 
+  // Only show filter on main page
+  const showFilter = location.pathname === '/';
+
   return (
     <div className={`flex flex-col min-h-screen bg-white dark:bg-slate-900 ${DarkMode ? 'dark' : ''}`}>
         <NavBar DarkMode={DarkMode} toggleDarkMode={toggleDarkMode} toggleSidebar={toggleSidebar}/>
         <div className="flex flex-grow">
-          <SideNav isOpen={isSidebarOpen} />
+          <SideNav isOpen={isSidebarOpen} DarkMode={DarkMode} />
           <div className={`flex-grow transition-all duration-300 ${
               isSidebarOpen ? 'ml-60' : 'ml-20'
           }`}>
-            <div className="fixed top-10 first-letter:left-0 right-0 z-40 pt-2 bg-white dark:bg-slate-900 shadow-sm" style={{
-                left: isSidebarOpen ? '240px' : '80px'
-            }}>
-                <Multifilter/>
-            </div>
-            <main className="pt-20 px-4">       
+            {showFilter && (
+              <div className="fixed top-10 first-letter:left-0 right-0 z-40 pt-2 bg-white dark:bg-slate-900 shadow-sm" style={{
+                  left: isSidebarOpen ? '240px' : '80px'
+              }}>
+                  <Multifilter isSidebarOpen={isSidebarOpen} />
+              </div>
+            )}
+            <main className={`px-4 ${showFilter ? 'pt-20' : 'pt-12'}`}>       
           <Routes>
             <Route path="/" element={<AdHandler />} />
             <Route path="/profile" element={<Profile />} />
@@ -71,11 +78,13 @@ const App = () => {
             <Route path="/vr" element={<VR />} />
             <Route path="/billboards" element={<Billboard />} />
             <Route path="/channels" element={<Channels />} />
+            <Route path="/settings" element={<Settings />} />
           </Routes>
         </main>
       </div>
     </div>
   </div>
+  
   );
 };
 

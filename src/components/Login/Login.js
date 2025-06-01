@@ -1,31 +1,24 @@
 import { useState } from 'react';
 import React from 'react';
+import ReactModal from 'react-modal';
+import SignUpForm from '../Signup/Signup';
 
-const LoginForm = () => {
+const LoginForm = ({ onClose }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
+    const [isSignUpOpen, setIsSignUpOpen] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-    };
-
-    const handleMouseDown = () => {
-        setShowPassword(true);
-    };
-
-    const handleMouseUp = async () => {
-        setShowPassword(false);
-        // Create user object
         const userData = {
             email: email,
             password: password
         };
-    
+
         try {
-            // Send POST request to your API endpoint
             const response = await fetch('https://metasurfai-public-api.fly.dev/v2/login', {
                 method: 'POST',
                 headers: {
@@ -33,12 +26,33 @@ const LoginForm = () => {
                 },
                 body: JSON.stringify(userData)
             });
-    
-            // Handle response
+            
+          
+            
             if (response.ok) {
+                const data = await response.json();
                 localStorage.setItem('authToken', data.token);
+                
+                // Fetch profile data
+                const profileResponse = await fetch('https://metasurfai-public-api.fly.dev/v2/profile', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${data.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (profileResponse.ok) {
+                    const profileData = await profileResponse.json();
+                    localStorage.setItem('userProfile', JSON.stringify(profileData));
+                }
+                
                 setSuccess(true);
                 setError(null);
+                
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
             } else {
                 const data = await response.json(); 
                 setError(data.message);
@@ -50,10 +64,26 @@ const LoginForm = () => {
         }
     };
 
+    const handleMouseDown = () => {
+        setShowPassword(true);
+    };
+
+    const handleMouseUp = () => {
+        setShowPassword(false);
+    };
+
+    const openSignUpForm = () => {
+        setIsSignUpOpen(true);
+    };
+
+    const closeSignUpForm = () => {
+        setIsSignUpOpen(false);
+    };
+
     return (
         <div className="flex justify-center items-center">
-         <div className="bg-black bg-opacity-10 text-gray-100 p-8 rounded-lg shadow-lg backdrop-blur-md border-2 border-opacity-20 border-pink-600 dark:border-blue-600">                
-            <h2 className="text-2xl mb-4">Login</h2>
+            <div className="bg-black bg-opacity-10 text-gray-100 p-8 rounded-lg shadow-lg backdrop-blur-md border-2 border-opacity-20 border-pink-600 dark:border-blue-600">                
+                <h2 className="text-2xl mb-4">Login</h2>
                 {error && <p className="text-red-500 mb-4">{error}</p>}
                 {success && <p className="text-green-500 mb-4">Login successful!</p>}
                 <form onSubmit={handleSubmit}>
@@ -84,11 +114,53 @@ const LoginForm = () => {
                         </span>
                     </div>
                     <div className="flex justify-center mt-4">
-                    <button type="submit" className="bg-pink-600 dark:bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 dark:hover:bg-pink-600">Login</button>
+                        <button type="submit" className="bg-pink-600 dark:bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 dark:hover:bg-pink-600">Login</button>
                     </div>
-                    <span className="texrt-gray-100 text-sm mt-2 ml-1 block text-center">Don't have an account? <a href="#" class name="text-blue-500 hover:underline">Register</a></span>
+                    <span className="text-gray-100 text-sm mt-2 ml-1 block text-center">
+                        Don't have an account? 
+                        <a onClick={openSignUpForm} className="text-blue-500 hover:underline cursor-pointer ml-1">Register</a>
+                    </span>
                 </form>
             </div>
+            
+            {isSignUpOpen && (
+                <ReactModal
+                    isOpen={isSignUpOpen}
+                    onRequestClose={closeSignUpForm}
+                    contentLabel="Sign Up Modal"
+                    style={{
+                        overlay: {
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                            zIndex: 1002
+                        },
+                        content: {
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            right: 'auto',
+                            bottom: 'auto',
+                            marginRight: '-50%',
+                            transform: 'translate(-50%, -50%)',
+                            background: 'transparent',
+                            overflow: 'auto',
+                            WebkitOverflowScrolling: 'touch',
+                            borderRadius: '4px',
+                            outline: 'none',
+                            padding: '20px',
+                            zIndex: 1003
+                        }
+                    }}
+                >
+                    <SignUpForm onSwitchToLogin={() => {
+                        closeSignUpForm();
+                    }} />
+                </ReactModal>
+            )}
         </div>
     );
 };

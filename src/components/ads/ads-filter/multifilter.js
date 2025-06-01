@@ -33,20 +33,48 @@ const Multifilter = ({ isSidebarOpen }) => {
     };
 
     return (
-        <div>
-            <div className={`buttons-container flex items-center ${isSidebarOpen ? 'overflow-hidden' : 'overflow-x-scroll'} whitespace-nowrap scroll-snap-type-x mandatory`}>
-                {filters.map((category, index) => (
-                    <button
-                        key={`filters-${index}`}
-                        onClick={() => handleFilterClick(category)}
-                        className={`buttonf mt-1 mx-1 text-black dark:text-white hover:text-white border-pink-600 dark:border-blue-600 hover:bg-gradient-to-r from-fuchsia-500 to-pink-500 dark:hover:from-indigo-900 dark:hover:to-blue-600 ${selectedFilter.includes(category) ? 'active' : ''} scroll-snap-align-start`}
-                    >
-                        <div className="hoverEffect">
-                        <div></div>
-                        </div>
-                        {category}
-                    </button>
-                ))}
+        <div className="w-full px-2">
+            {/* Mobile: Wrap filters in multiple rows */}
+            <div className="md:hidden">
+                <div className="flex flex-wrap gap-2 justify-start">
+                    {filters.map((category, index) => (
+                        <button
+                            key={`filters-mobile-${index}`}
+                            onClick={() => handleFilterClick(category)}
+                            className={`buttonf px-3 py-1 text-xs font-medium text-black dark:text-white hover:text-white border border-pink-600 dark:border-blue-600 hover:bg-gradient-to-r from-fuchsia-500 to-pink-500 dark:hover:from-indigo-900 dark:hover:to-blue-600 rounded-full transition-all duration-200 ${
+                                selectedFilter.includes(category)
+                                    ? 'bg-gradient-to-r from-fuchsia-500 to-pink-500 dark:from-indigo-900 dark:to-blue-600 text-white'
+                                    : 'bg-white dark:bg-gray-800'
+                            }`}
+                        >
+                            {category}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Desktop: Horizontal scroll */}
+            <div className="hidden md:block">
+                <div className={`buttons-container flex items-center ${
+                    isSidebarOpen ? 'overflow-hidden' : 'overflow-x-auto'
+                } gap-2 pb-2`}>
+                    {filters.map((category, index) => (
+                        <button
+                            key={`filters-desktop-${index}`}
+                            onClick={() => handleFilterClick(category)}
+                            className={`buttonf whitespace-nowrap px-4 py-2 text-sm font-medium text-black dark:text-white hover:text-white border border-pink-600 dark:border-blue-600 hover:bg-gradient-to-r from-fuchsia-500 to-pink-500 dark:hover:from-indigo-900 dark:hover:to-blue-600 rounded-full transition-all duration-200 ${
+                                selectedFilter.includes(category)
+                                    ? 'bg-gradient-to-r from-fuchsia-500 to-pink-500 dark:from-indigo-900 dark:to-blue-600 text-white'
+                                    : 'bg-white dark:bg-gray-800'
+                            }`}
+                        >
+                            <div className="hoverEffect">
+                                <div></div>
+                            </div>
+                            {category}
+                        </button>
+                    ))}
+                </div>
             </div>
         </div>
     );
