@@ -27,7 +27,7 @@ const LoginForm = ({ onClose }) => {
                 body: JSON.stringify(userData)
             });
             
-            console.log('login data:', userData);
+          
             
             if (response.ok) {
                 const data = await response.json();
