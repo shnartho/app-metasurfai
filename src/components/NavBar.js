@@ -4,8 +4,164 @@ import ReactModal from 'react-modal';
 import LoginForm from './Login/Login';
 import SignUpForm from './Signup/Signup';
 import { useNavigate } from "react-router-dom";
-import AddAdModal from '../components/ads/AddAdModal';
 import Glocation from '../components/Glocation';
+
+// Create a simple Add Ad Modal component within NavBar
+const SimpleAddAdModal = ({ onClose }) => {
+    const [adForm, setAdForm] = useState({
+        title: '',
+        image_url: '',
+        description: '',
+        max_views: 0,
+        region: '',
+        token_reward: ''
+    });
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const token = localStorage.getItem('authToken');
+        const profile = JSON.parse(localStorage.getItem('userProfile'));
+
+        try {
+            const adData = {
+                title: adForm.title,
+                image_url: adForm.image_url,
+                description: adForm.description,
+                posted_by: profile?.email || '',
+                max_views: parseInt(adForm.max_views),
+                region: adForm.region,
+                token_reward: parseFloat(adForm.token_reward),
+                view_count: 0,
+                active: true
+            };
+
+            const response = await fetch('https://metasurfai-public-api.fly.dev/v2/ads', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(adData)
+            });
+
+            if (response.ok) {
+                alert('Ad created successfully!');
+                onClose();
+            } else {
+                const errorData = await response.json();
+                alert(`Error creating ad: ${errorData.message || 'Unknown error'}`);
+            }
+        } catch (err) {
+            alert('Error creating ad. Please try again.');
+        }
+    };
+
+    return (
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-96 max-w-full">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+                Create New Ad
+            </h3>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Title:
+                    </label>
+                    <input
+                        type="text"
+                        value={adForm.title}
+                        onChange={(e) => setAdForm({...adForm, title: e.target.value})}
+                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        required
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Image URL:
+                    </label>
+                    <input
+                        type="url"
+                        value={adForm.image_url}
+                        onChange={(e) => setAdForm({...adForm, image_url: e.target.value})}
+                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        required
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Description:
+                    </label>
+                    <textarea
+                        value={adForm.description}
+                        onChange={(e) => setAdForm({...adForm, description: e.target.value})}
+                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        rows="3"
+                        required
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Max Views:
+                    </label>
+                    <input
+                        type="number"
+                        value={adForm.max_views}
+                        onChange={(e) => setAdForm({...adForm, max_views: e.target.value})}
+                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        min="1"
+                        required
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Region:
+                    </label>
+                    <input
+                        type="text"
+                        value={adForm.region}
+                        onChange={(e) => setAdForm({...adForm, region: e.target.value})}
+                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        required
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Token Reward:
+                    </label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        value={adForm.token_reward}
+                        onChange={(e) => setAdForm({...adForm, token_reward: e.target.value})}
+                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        min="0"
+                        required
+                    />
+                </div>
+
+                <div className="flex justify-end space-x-2 pt-4">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        className="bg-pink-600 dark:bg-blue-600 hover:bg-pink-700 dark:hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
+                    >
+                        Create Ad
+                    </button>
+                </div>
+            </form>
+        </div>
+    );
+};
 
 const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
     const navigate = useNavigate();
@@ -157,6 +313,7 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                                 {isAuthenticated ? (
                                     <>
                                         <li><a className="block px-4 py-2 text-lg text-gray-400" onClick={() => { navigate('Dashboard'); toggleMenu(); }}>Dashboard</a></li>
+                                        <li><a className="block px-4 py-2 text-lg text-gray-400" onClick={() => { openAddAdsForm(); toggleMenu(); }}>Create Ad</a></li>
                                         <li><a className="block px-4 py-2 text-lg text-gray-400" onClick={() => { handleLogout(); toggleMenu(); }}>Logout</a></li>
                                     </>
                                 ) : (
@@ -211,7 +368,7 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
             >
                 {activeForm === 'login' && <LoginForm onClose={() => setActiveForm(null)} />}
                 {activeForm === 'signup' && <SignUpForm onSwitchToLogin={() => setActiveForm('login')} />}
-                {activeForm === 'ad' && <AddAdModal />}
+                {activeForm === 'ad' && <SimpleAddAdModal onClose={() => setActiveForm(null)} />}
                 {activeForm === 'map' && <Glocation />}
             </ReactModal>
         </div>
