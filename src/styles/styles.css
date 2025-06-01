@@ -13,6 +13,10 @@
         display: none; /* Hide search bar on smaller screens */
     }
 
+    .mbtns {
+        display: none;
+    }
+
     .nav-button {
         display: none; /* Hide connect button on smaller screens */
     }
@@ -190,6 +194,28 @@
     .buttons-container.buttono {
         padding: 0.25rem 0.5rem;
         font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        display: none;
+    }
+
+    .sidebtn {
+        display: none;
+    }
+    
+    /* Ensure content takes full width when sidebar is hidden */
+    .content {
+        margin-left: 0 !important;
+    }
+}
+
+/* Restore sidebar visibility on larger screens */
+@media (min-width: 769px) {
+    .sidebar {
+        display: block;
     }
 }
 
@@ -396,4 +422,14 @@
   100% {
     transform: rotate(360deg);
   }
+}
+
+.ReactModal__Content {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.modal-content {
+    border: none !important;
+    box-shadow: none !important;
 }
