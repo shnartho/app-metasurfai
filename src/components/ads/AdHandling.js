@@ -6,6 +6,7 @@ const AdHandler = () => {
     const [timer, setTimer] = useState(10);
     const [timeLeft, setTimeLeft] = useState(10);
     const [adsPerPage, setAdsPerPage] = useState(9);
+    const [watchProgress, setWatchProgress] = useState(0); // Progress percentage
 
     // Fetch ads when the component mounts
     useEffect(() => {
@@ -54,13 +55,19 @@ const AdHandler = () => {
         countdown = setInterval(() => {
             const currentTime = Date.now();
             const elapsedTime = Math.floor((currentTime - startTime) / 1000);
-            setTimeLeft((prevTime) => Math.max(0, remainingTime - elapsedTime));
+            const newTimeLeft = Math.max(0, remainingTime - elapsedTime);
+            setTimeLeft(newTimeLeft);
+            
+            // Calculate progress percentage (0-100%)
+            const progress = ((10 - newTimeLeft) / 10) * 100;
+            setWatchProgress(progress);
     
             if (remainingTime - elapsedTime <= 0) {
                 clearInterval(countdown);
-                setTimeLeft(0); // Ensure timeLeft is set to 0 when finished
+                setTimeLeft(0);
+                setWatchProgress(100); // Ensure progress is 100% when finished
             }
-        }, 1000);
+        }, 100); // Update more frequently for smoother progress bar
     };
     
     const stopTimer = () => {
@@ -88,6 +95,7 @@ const AdHandler = () => {
         setSelectedAd(ad);
         remainingTime = 10; // Reset remaining time
         setTimeLeft(remainingTime);
+        setWatchProgress(0); // Reset progress
         startTimer();
     
         document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -98,6 +106,7 @@ const AdHandler = () => {
         if (timeLeft === 0) {
             setSelectedAd(null);
             clearInterval(countdown);
+            setWatchProgress(0); // Reset progress
             document.removeEventListener("visibilitychange", handleVisibilityChange);
         }
     };
@@ -113,7 +122,6 @@ const AdHandler = () => {
             return "ad-vertical"; // 9:16
         }
     };
-
 
     return (
         <div className="pt-10">
@@ -132,7 +140,6 @@ const AdHandler = () => {
                                alt={ad.title}
                            />
                            <div className="absolute top-2 right-2 font-bold flex items-center justify-center rounded-full bg-pink-600 dark:bg-blue-600 text-white w-12 h-12 hover:bg-white hover:text-pink-600 dark:hover:bg-white dark:hover:text-blue-600 hover:shadow-lg">
-                               {/* <p>{ad.timer}🕒</p> */}
                                <p className="text-lg">{ad.token_reward}</p>
                                <p className="text-xs">$</p>
                            </div>
@@ -146,29 +153,75 @@ const AdHandler = () => {
                {selectedAd && (
                    <div className="p-4 fixed top-0 left-0 z-50 w-full h-full bg-black bg-opacity-80 flex items-center justify-center">
                        <div className="relative bg-black bg-opacity-50 p-4 rounded-lg border-2 border-opacity-40 border-pink-600 dark:border-blue-600 max-w-screen-lg w-full max-h-full md:max-h-[90vh] md:w-auto flex flex-col items-center justify-center overflow-y-auto">
-                           <span onClick={closeModal} className="absolute top-2 right-2 text-3xl font-bold cursor-pointer">
+                           <span 
+                               onClick={closeModal} 
+                               className={`absolute top-2 right-2 text-3xl font-bold cursor-pointer transition-colors ${
+                                   timeLeft === 0 ? 'text-green-400 hover:text-green-300' : 'text-gray-500 cursor-not-allowed'
+                               }`}
+                           >
                                &times;
                            </span>
+                           
                            <img
                                src={selectedAd.image_url}
                                alt={selectedAd.title}
                                className="object-contain max-w-full max-h-80 md:max-h-96"
                            />
-                           <div className="mt-4">
+                           
+                           <div className="mt-4 text-white text-center">
                                <h3 className="text-lg font-bold">{selectedAd.title}</h3>
                                <p className="text-sm">Posted by: {selectedAd.posted_by}</p>
                                <p className="text-sm">Description: {selectedAd.description}</p>
                                <p className="text-sm">Region: {selectedAd.region}</p>
-                               <p className="text-sm">Token Reward: {selectedAd.token_reward}</p>
                            </div>
-                           <div className="mt-4 text-center">
-                               <p className="text-sm">You can close this ad in {timeLeft} seconds</p>
+                           
+                           {/* Progress Bar Section */}
+                           <div className="mt-6 w-full max-w-md">
+                               <div className="flex items-center justify-between text-white text-sm mb-2">
+                                   <span>Watch Progress</span>
+                                   <span>{timeLeft > 0 ? `${timeLeft}s remaining` : 'Complete!'}</span>
+                               </div>
+                               
+                               {/* Progress Bar */}
+                               <div className="w-full bg-gray-700 rounded-full h-3 mb-2">
+                                   <div 
+                                       className="bg-gradient-to-r from-pink-500 to-blue-500 h-3 rounded-full transition-all duration-300 ease-out"
+                                       style={{ width: `${watchProgress}%` }}
+                                   ></div>
+                               </div>
+                               
+                               {/* Progress Percentage and Status */}
+                               <div className="text-center text-white">
+                                   <div className="text-sm mb-1">
+                                       {Math.round(watchProgress)}% watched
+                                   </div>
+                                   
+                                   {watchProgress === 100 ? (
+                                       <div className="text-green-400 text-sm font-semibold">
+                                           ✓ Ad Completed! Reward Earned: ${selectedAd.token_reward}
+                                       </div>
+                                   ) : (
+                                       <div className="text-yellow-400 text-sm">
+                                           Keep watching to earn ${selectedAd.token_reward}
+                                       </div>
+                                   )}
+                               </div>
+                               
+                               {/* Close Button - Only active when completed */}
+                               {timeLeft === 0 && (
+                                   <button
+                                       onClick={closeModal}
+                                       className="mt-4 w-full bg-gradient-to-r from-pink-500 to-blue-500 text-white py-2 px-4 rounded-lg font-semibold hover:from-pink-600 hover:to-blue-600 transition-all duration-200"
+                                   >
+                                       Claim Reward & Close
+                                   </button>
+                               )}
                            </div>
-                     </div>
-               </div>
-           )}
-       </div>
-   </div>
+                       </div>
+                   </div>
+               )}
+           </div>
+        </div>
     );
 };
 
