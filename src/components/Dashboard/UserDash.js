@@ -32,7 +32,16 @@ const UserDash = () => {
         const storedProfile = localStorage.getItem('userProfile');
         if (storedProfile) {
             const profileData = JSON.parse(storedProfile);
-            setProfile(profileData);
+            
+            // Initialize local balance if it doesn't exist
+            if (!profileData.localBalance) {
+                const updatedProfile = { ...profileData, localBalance: 0 };
+                setProfile(updatedProfile);
+                localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+            } else {
+                setProfile(profileData);
+            }
+            
             setAdForm(prev => ({ ...prev, posted_by: profileData.email }));
             setLoading(false);
             // Delay to ensure profile is set
@@ -40,6 +49,35 @@ const UserDash = () => {
         } else {
             fetchProfile(token);
         }
+
+        // Listen for localStorage changes to update balance in real-time
+        const handleStorageChange = () => {
+            const updatedProfile = localStorage.getItem('userProfile');
+            if (updatedProfile) {
+                setProfile(JSON.parse(updatedProfile));
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        
+        // Also listen for manual updates (same tab)
+        const intervalId = setInterval(() => {
+            const currentProfile = localStorage.getItem('userProfile');
+            if (currentProfile) {
+                const profile = JSON.parse(currentProfile);
+                setProfile(prevProfile => {
+                    if (!prevProfile || prevProfile.localBalance !== profile.localBalance) {
+                        return profile;
+                    }
+                    return prevProfile;
+                });
+            }
+        }, 1000);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            clearInterval(intervalId);
+        };
     }, [navigate]);
 
     const fetchUserAds = async (token, userProfile = profile) => {
@@ -323,10 +361,25 @@ const UserDash = () => {
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Balance
+                                            Local Balance
                                         </label>
-                                        <p className="mt-1 text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-md">
+                                        <div className="mt-1 bg-gradient-to-r from-pink-500 to-blue-500 text-white px-3 py-2 rounded-md text-center font-bold">
+                                            ${profile?.localBalance?.toFixed(2) || '0.00'}
+                                        </div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            Earned from watching ads
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Server Balance
+                                        </label>
+                                        <p className="mt-1 text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-md text-center">
                                             ${profile?.balance?.toFixed(2) || '0.00'}
+                                        </p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            From server (when API is connected)
                                         </p>
                                     </div>
 
