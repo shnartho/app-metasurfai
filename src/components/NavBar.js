@@ -10,12 +10,23 @@ import Glocation from '../components/Glocation';
 const SimpleAddAdModal = ({ onClose }) => {
     const [adForm, setAdForm] = useState({
         title: '',
-        image_url: '',
+        imageFile: null,
         description: '',
         max_views: 0,
         region: '',
         token_reward: ''
     });
+
+    // const handleFileChange = (e) => {
+    //     const file = e.target.files[0];
+    //     if (file) {
+    //         setAdForm(prev => ({
+    //             ...prev,
+    //             imageFile: file,
+    //             image_url: '' 
+    //         }));
+    //     }
+    // };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -56,6 +67,94 @@ const SimpleAddAdModal = ({ onClose }) => {
         }
     };
 
+    //create ad api
+    // const handleSubmitN = async (e) => {
+    //     e.preventDefault();
+    //     const token = localStorage.getItem('authToken');
+    //     const profile = JSON.parse(localStorage.getItem('userProfile'));
+
+    //     if (!token) {
+    //         alert('Authentication required. Please login.');
+    //         return;
+    //     }
+
+    //     try {
+    //         let imageUrl = adForm.image_url;
+
+    //         // If there's a file to upload (assuming you have a file input)
+    //         if (adForm.imageFile) {
+    //             // Step 1: Upload image/video to get URL
+    //             const formData = new FormData();
+    //             formData.append('image', adForm.imageFile);
+
+    //             const uploadResponse = await fetch('https://ty0xbob8r8.execute-api.us-east-1.amazonaws.com/dev/images', {
+    //                 method: 'POST',
+    //                 headers: {
+    //                     'Authorization': `Bearer ${token}`,
+    //                     // Don't set Content-Type for FormData - browser will set it with boundary
+    //                 },
+    //                 body: formData
+    //             });
+
+    //             if (!uploadResponse.ok) {
+    //                 throw new Error(`Image upload failed: ${uploadResponse.status}`);
+    //             }
+
+    //             const getImageResponse = await fetch('https://ty0xbob8r8.execute-api.us-east-1.amazonaws.com/dev/images', {
+    //                 method: 'GET',
+    //                 headers: {
+    //                     'Authorization': `Bearer ${token}`,
+    //                     'Content-Type': 'application/json'
+    //             }
+    //         });
+
+    //         if (!getImageResponse.ok) {
+    //             throw new Error(`Failed to retrieve image URL: ${getImageResponse.status}`);
+    //         }
+
+    //         const imageData = await getImageResponse.json();
+    //         imageUrl = imageData.url || imageData.image_url; // Adjust based on API response
+    //         console.log('Retrieved image URL:', imageUrl);
+    //     }
+
+    //         // Step 3: Create ad with the image URL
+    //         const adData = {
+    //             title: adForm.title,
+    //             image_url: imageUrl,
+    //             description: adForm.description,
+    //             posted_by: profile?.email || '',
+    //             max_views: parseInt(adForm.max_views),
+    //             region: adForm.region,
+    //             token_reward: parseFloat(adForm.token_reward),
+    //             view_count: 0,
+    //             active: true
+    //         };
+
+    //         const adResponse = await fetch('https://ty0xbob8r8.execute-api.us-east-1.amazonaws.com/dev/ads', {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Authorization': `Bearer ${token}`,
+    //                 'Content-Type': 'application/json'
+    //             },
+    //             body: JSON.stringify(adData)
+    //         });
+
+    //         if (adResponse.ok) {
+    //             const result = await adResponse.json();
+    //             console.log('Ad created successfully:', result);
+    //             alert('Ad created successfully!');
+    //             onClose();
+    //         } else {
+    //             const errorData = await adResponse.json();
+    //             alert(`Error creating ad: ${errorData.message || 'Unknown error'}`);
+    //         }
+
+    //     } catch (err) {
+    //         console.error('Error in ad creation process:', err);
+    //         alert('Error creating ad. Please try again.');
+    //     }
+    // };
+
     return (
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-96 max-w-full">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
@@ -87,6 +186,19 @@ const SimpleAddAdModal = ({ onClose }) => {
                         required
                     />
                 </div>
+
+                {/* Handle file upload */}
+                {/* <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Image URL:
+                    </label>
+                    <input
+                        type="file"
+                        accept="image/*,video/*"
+                        onChange={handleFileChange}
+                        className="w-full p-2 border border-gray-300 rounded"
+                    />
+                </div> */}
 
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
