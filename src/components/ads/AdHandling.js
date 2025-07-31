@@ -59,6 +59,41 @@ const AdHandler = () => {
         fetchAds();
     }, []);
 
+
+    // //Fetch ads from new api
+    //     useEffect(() => {
+    //         const fetchAds = async () => {
+    //             try {
+    //                 const getUserRegion = async () => {
+    //                     try {
+    //                         const response = await fetch('https://ipapi.co/country/');
+    //                         const country = await response.text();
+    //                         return country.trim().toUpperCase();
+    //                 } catch (error) {
+    //                     console.error('Error getting user region:', error);
+    //                     return 'PT'; // fallback
+    //                 }
+    //             };
+
+    //             const region = await getUserRegion();
+    //             const response = await fetch("https://ty0xbob8r8.execute-api.us-east-1.amazonaws.com/dev/images", {
+    //                 method: 'GET',
+    //                 headers: {
+    //                     'x-fetch-all-images': 'true',
+    //                     'x-region': region,
+    //                     'Content-Type': 'application/json'
+    //                 }
+    //             });
+    //             const data = await response.json();
+    //             const sortedAds = data.sort((a, b) => b.token_reward - a.token_reward); 
+    //                 setAds(sortedAds);
+    //             } catch (error) {
+    //                 console.error("Error fetching ads:", error);
+    //             }
+    //         };
+    //         fetchAds();
+    //     }, []);
+
     // Add a new function to sort ads based on watched status
     const getSortedAds = () => {
         if (!ads.length) return [];
