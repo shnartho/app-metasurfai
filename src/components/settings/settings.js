@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Settings = () => {
+    const navigate = useNavigate();
     // Get current theme from localStorage or default to system
     const [theme, setTheme] = useState(() => {
         const savedTheme = localStorage.getItem('DarkMode');
@@ -77,6 +79,10 @@ const Settings = () => {
         if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
             alert('Account deletion initiated. Please check your email for confirmation.');
         }
+    };
+
+     const handleViewProfile = () => {
+        navigate('/profile');
     };
 
     // Custom Toggle Component
@@ -301,6 +307,22 @@ const Settings = () => {
                     <div className="px-6 py-4 space-y-4">
                         <div className="flex justify-between items-center">
                             <div>
+                                <h3 className="text-sm font-medium text-gray-900 dark:text-white">Profile</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">View and edit your profile information</p>
+                            </div>
+                            <button
+                                onClick={handleViewProfile}
+                                className="px-4 py-2 bg-pink-600 dark:bg-blue-600 text-white rounded-md hover:bg-pink-700 dark:hover:bg-blue-700 transition-colors flex items-center gap-2"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                View Profile
+                            </button>
+                        </div>
+
+                        <div className="flex justify-between items-center">
+                            <div>
                                 <h3 className="text-sm font-medium text-gray-900 dark:text-white">Export Data</h3>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">Download all your account data</p>
                             </div>
@@ -311,6 +333,7 @@ const Settings = () => {
                                 Export
                             </button>
                         </div>
+                        
                         <div className="flex justify-between items-center">
                             <div>
                                 <h3 className="text-sm font-medium text-red-600">Delete Account</h3>
