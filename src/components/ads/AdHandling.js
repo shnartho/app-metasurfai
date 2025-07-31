@@ -345,6 +345,55 @@ const AdHandler = () => {
         }
     };
 
+    // //New api to update balance
+    // const claimLocalRewardAndNextN = async () => {
+    //     if (!isAuthenticated || watchProgress !== 100 || !selectedAd || !authToken) return;
+
+    //     const adId = selectedAd.id || selectedAd._id;
+        
+    //     if (watchedAds.has(adId)) {
+    //         alert('You have already earned a reward for this ad!');
+    //         return;
+    //     }
+
+    //     try {
+    //         const response = await fetch("https://ty0xbob8r8.execute-api.us-east-1.amazonaws.com/dev/user/balance", {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Authorization': `Bearer ${authToken}`,
+    //                 'Content-Type': 'application/json'
+    //             },
+    //             body: JSON.stringify({
+    //                 balance: selectedAd.token_reward
+    //             })
+    //         });
+
+    //         if (!response.ok) {
+    //             throw new Error(`HTTP error! status: ${response.status}`);
+    //         }
+
+    //         const result = await response.json();
+    //         console.log('Balance update result:', result);
+
+    //         // Only update watched ads status locally
+    //         const newWatchedAds = new Set(watchedAds);
+    //         newWatchedAds.add(adId);
+    //         setWatchedAds(newWatchedAds);
+    //         localStorage.setItem('watchedAds', JSON.stringify([...newWatchedAds]));
+            
+    //         showRewardNotification(selectedAd.token_reward);
+            
+    //         // Auto-navigate to next ad after 1.5 seconds
+    //         setTimeout(() => {
+    //             goToNextAd();
+    //         }, 1500);
+
+    //     } catch (error) {
+    //         console.error('Error claiming reward:', error);
+    //         alert('Error claiming reward. Please try again.');
+    //     }
+    // };
+
     // Show reward notification
     const showRewardNotification = (reward, newBalance) => {
         const notification = document.createElement('div');
