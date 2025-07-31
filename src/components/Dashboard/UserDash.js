@@ -120,6 +120,14 @@ const UserDash = () => {
                     'Content-Type': 'application/json'
                 }
             });
+            //New API endpoint for profile data
+            // const responseN = await fetch('https://ty0xbob8r8.execute-api.us-east-1.amazonaws.com/user/profile', {
+            //     method: 'GET',
+            //     headers: {
+            //         'Authorization': `Bearer ${token}`,
+            //         'Content-Type': 'application/json'
+            //     }
+            // });
 
             if (response.ok) {
                 const profileData = await response.json();
