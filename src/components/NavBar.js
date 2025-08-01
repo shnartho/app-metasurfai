@@ -88,7 +88,7 @@ const SimpleAddAdModal = ({ onClose }) => {
     //             formData.append('image', adForm.imageFile);
 
     //             const uploadResponse = await fetch('https://ty0xbob8r8.execute-api.us-east-1.amazonaws.com/dev/images', {
-    //                 method: 'POST',
+    //                 method: 'PUT',
     //                 headers: {
     //                     'Authorization': `Bearer ${token}`,
     //                     // Don't set Content-Type for FormData - browser will set it with boundary
@@ -305,17 +305,14 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
     };
 
     const openLoginForm = () => {
-        console.log('Opening Login Form');
         setActiveForm('login');
     };
 
     const openSignUpForm = () => {
-        console.log('Opening Sign Up Form');
         setActiveForm('signup');
     };
 
     const openAddAdsForm = () => {
-        console.log('Opening Add Ads Form');
         setActiveForm('ad');
     };
 

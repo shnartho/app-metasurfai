@@ -92,16 +92,12 @@ const UserDash = () => {
 
             if (response.ok) {
                 const ads = await response.json();
-                console.log('All ads from API:', ads);
-                console.log('Current user email:', userProfile?.email);
                 
                 // Filter ads by the current user's email
                 const myAds = ads.filter(ad => {
-                    console.log(`Comparing: "${ad.posted_by}" === "${userProfile?.email}"`);
                     return ad.posted_by === userProfile?.email;
                 });
                 
-                console.log('Filtered user ads:', myAds);
                 setUserAds(myAds);
             } else {
                 console.error('Failed to fetch ads:', response.status);
@@ -169,8 +165,6 @@ const UserDash = () => {
                 "token_reward": parseFloat(adForm.token_reward)
             };
 
-            console.log('Sending ad data:', adData);
-
             const response = await fetch('https://metasurfai-public-api.fly.dev/v2/ads', {
                 method: 'POST',
                 headers: {
@@ -182,7 +176,6 @@ const UserDash = () => {
 
             if (response.ok) {
                 const responseData = await response.json();
-                console.log('Success response:', responseData);
                 alert('Ad created successfully!');
                 setShowCreateAd(false);
                 setAdForm({
@@ -280,10 +273,9 @@ const UserDash = () => {
     const handleRefreshAds = () => {
         const token = localStorage.getItem('authToken');
         if (token && profile) {
-            console.log('Manually refreshing ads for user:', profile.email);
             fetchUserAds(token, profile);
         } else {
-            console.log('No token or profile available for refresh');
+            console.log('Unable to refresh ads');
         }
     };
 

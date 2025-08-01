@@ -33,7 +33,6 @@ export default function Glocation({ onClose }) {
 
       // Add map load event listener
       map.current.on('load', () => {
-        console.log('Map loaded successfully');
         
         // Add a source for drawing shapes
         map.current.addSource('drawn-shapes', {
@@ -331,7 +330,6 @@ export default function Glocation({ onClose }) {
             <div className="space-y-2 pt-3 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => {
-                  console.log('Applying geographic targeting with shapes:', drawnShapes);
                   onClose();
                 }}
                 className="w-full px-4 py-2 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-md hover:from-pink-600 hover:to-blue-600 transition-all duration-200 text-sm font-medium"
