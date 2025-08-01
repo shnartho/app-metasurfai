@@ -59,6 +59,41 @@ const AdHandler = () => {
         fetchAds();
     }, []);
 
+
+    // //Fetch ads from new api
+    //     useEffect(() => {
+    //         const fetchAds = async () => {
+    //             try {
+    //                 const getUserRegion = async () => {
+    //                     try {
+    //                         const response = await fetch('https://ipapi.co/country/');
+    //                         const country = await response.text();
+    //                         return country.trim().toUpperCase();
+    //                 } catch (error) {
+    //                     console.error('Error getting user region:', error);
+    //                     return 'PT'; // fallback
+    //                 }
+    //             };
+
+    //             const region = await getUserRegion();
+    //             const response = await fetch("https://ty0xbob8r8.execute-api.us-east-1.amazonaws.com/dev/images", {
+    //                 method: 'GET',
+    //                 headers: {
+    //                     'x-fetch-all-images': 'true',
+    //                     'x-region': region,
+    //                     'Content-Type': 'application/json'
+    //                 }
+    //             });
+    //             const data = await response.json();
+    //             const sortedAds = data.sort((a, b) => b.token_reward - a.token_reward); 
+    //                 setAds(sortedAds);
+    //             } catch (error) {
+    //                 console.error("Error fetching ads:", error);
+    //             }
+    //         };
+    //         fetchAds();
+    //     }, []);
+
     // Add a new function to sort ads based on watched status
     const getSortedAds = () => {
         if (!ads.length) return [];
@@ -309,6 +344,55 @@ const AdHandler = () => {
             alert('Error claiming reward. Please try again.');
         }
     };
+
+    // //New api to update balance
+    // const claimLocalRewardAndNextN = async () => {
+    //     if (!isAuthenticated || watchProgress !== 100 || !selectedAd || !authToken) return;
+
+    //     const adId = selectedAd.id || selectedAd._id;
+        
+    //     if (watchedAds.has(adId)) {
+    //         alert('You have already earned a reward for this ad!');
+    //         return;
+    //     }
+
+    //     try {
+    //         const response = await fetch("https://ty0xbob8r8.execute-api.us-east-1.amazonaws.com/dev/user/balance", {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Authorization': `Bearer ${authToken}`,
+    //                 'Content-Type': 'application/json'
+    //             },
+    //             body: JSON.stringify({
+    //                 balance: selectedAd.token_reward
+    //             })
+    //         });
+
+    //         if (!response.ok) {
+    //             throw new Error(`HTTP error! status: ${response.status}`);
+    //         }
+
+    //         const result = await response.json();
+    //         console.log('Balance update result:', result);
+
+    //         // Only update watched ads status locally
+    //         const newWatchedAds = new Set(watchedAds);
+    //         newWatchedAds.add(adId);
+    //         setWatchedAds(newWatchedAds);
+    //         localStorage.setItem('watchedAds', JSON.stringify([...newWatchedAds]));
+            
+    //         showRewardNotification(selectedAd.token_reward);
+            
+    //         // Auto-navigate to next ad after 1.5 seconds
+    //         setTimeout(() => {
+    //             goToNextAd();
+    //         }, 1500);
+
+    //     } catch (error) {
+    //         console.error('Error claiming reward:', error);
+    //         alert('Error claiming reward. Please try again.');
+    //     }
+    // };
 
     // Show reward notification
     const showRewardNotification = (reward, newBalance) => {

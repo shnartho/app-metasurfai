@@ -92,16 +92,12 @@ const UserDash = () => {
 
             if (response.ok) {
                 const ads = await response.json();
-                console.log('All ads from API:', ads);
-                console.log('Current user email:', userProfile?.email);
                 
                 // Filter ads by the current user's email
                 const myAds = ads.filter(ad => {
-                    console.log(`Comparing: "${ad.posted_by}" === "${userProfile?.email}"`);
                     return ad.posted_by === userProfile?.email;
                 });
                 
-                console.log('Filtered user ads:', myAds);
                 setUserAds(myAds);
             } else {
                 console.error('Failed to fetch ads:', response.status);
@@ -120,6 +116,14 @@ const UserDash = () => {
                     'Content-Type': 'application/json'
                 }
             });
+            //New API endpoint for profile data
+            // const responseN = await fetch('https://ty0xbob8r8.execute-api.us-east-1.amazonaws.com/user/profile', {
+            //     method: 'GET',
+            //     headers: {
+            //         'Authorization': `Bearer ${token}`,
+            //         'Content-Type': 'application/json'
+            //     }
+            // });
 
             if (response.ok) {
                 const profileData = await response.json();
@@ -161,8 +165,6 @@ const UserDash = () => {
                 "token_reward": parseFloat(adForm.token_reward)
             };
 
-            console.log('Sending ad data:', adData);
-
             const response = await fetch('https://metasurfai-public-api.fly.dev/v2/ads', {
                 method: 'POST',
                 headers: {
@@ -174,7 +176,6 @@ const UserDash = () => {
 
             if (response.ok) {
                 const responseData = await response.json();
-                console.log('Success response:', responseData);
                 alert('Ad created successfully!');
                 setShowCreateAd(false);
                 setAdForm({
@@ -272,10 +273,9 @@ const UserDash = () => {
     const handleRefreshAds = () => {
         const token = localStorage.getItem('authToken');
         if (token && profile) {
-            console.log('Manually refreshing ads for user:', profile.email);
             fetchUserAds(token, profile);
         } else {
-            console.log('No token or profile available for refresh');
+            console.error('Unable to refresh ads');
         }
     };
 
@@ -368,18 +368,6 @@ const UserDash = () => {
                                         </div>
                                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                             Earned from watching ads
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Server Balance
-                                        </label>
-                                        <p className="mt-1 text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-md text-center">
-                                            ${profile?.balance?.toFixed(2) || '0.00'}
-                                        </p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                            From server (when API is connected)
                                         </p>
                                     </div>
 

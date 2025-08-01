@@ -22,7 +22,6 @@ const AddAdModal = ({ closeModal }) => {
             region,
             token_reward: tokenReward
         };
-        console.log('Ad data:', adData);
         closeModal();
     };
 
