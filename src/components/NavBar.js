@@ -386,6 +386,7 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                         </div>
                     </div>
                 )}
+                {isAuthenticated && (
                 <button 
                     className='buttonn mbtns flex items-center justify-center transform hover:scale-110 transition-all duration-200' 
                     onClick={openMapModal}
@@ -399,7 +400,7 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                         className="icon-dark-mode transition-colors duration-200 w-5 h-5" 
                     />
                 </button>
-
+                )}
                 {/* Show + button only if authenticated */}
                 {isAuthenticated && (
                     <button 
