@@ -275,7 +275,7 @@ const UserDash = () => {
         if (token && profile) {
             fetchUserAds(token, profile);
         } else {
-            console.log('Unable to refresh ads');
+            console.error('Unable to refresh ads');
         }
     };
 
