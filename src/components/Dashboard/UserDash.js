@@ -373,18 +373,6 @@ const UserDash = () => {
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Server Balance
-                                        </label>
-                                        <p className="mt-1 text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-md text-center">
-                                            ${profile?.balance?.toFixed(2) || '0.00'}
-                                        </p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                            From server (when API is connected)
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                             Verification Status
                                         </label>
                                         <div className="mt-1">
