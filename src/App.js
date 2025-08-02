@@ -18,6 +18,9 @@ import Channels from "./components/Channels/Channels";
 import SideNav from "./components/SideNav";
 import Multifilter from "./components/ads/ads-filter/multifilter";
 import Settings from "./components/settings/settings";
+import Modal from 'react-modal';
+    
+Modal.setAppElement('#app');
 
 const App = () => {
   const location = useLocation();
@@ -30,6 +33,7 @@ const App = () => {
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+
 
   useEffect(() => {
     if (DarkMode) {
