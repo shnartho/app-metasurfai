@@ -3,6 +3,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const isDevelopment = process.env.NODE_ENV === 'development';
+const Dotenv = require('dotenv-webpack');
 
 module.exports = {
     entry: './src/index.js',
@@ -78,6 +79,7 @@ module.exports = {
                 { from: 'public', to: '' }, // Copy all files from public to dist/public
             ],
         }),
+        new Dotenv(),
     ],
     performance: {
         maxAssetSize: 1024 * 1024, // Increase asset size limit to 1 MiB
