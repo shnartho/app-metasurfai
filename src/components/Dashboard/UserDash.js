@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useState as useReactState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const UserDash = () => {
@@ -11,6 +12,10 @@ const UserDash = () => {
     const [selectedAds, setSelectedAds] = useState([]);
 
     // Ad creation form state
+    const [showWithdrawModal, setShowWithdrawModal] = useReactState(false);
+    const [showBuyTokenModal, setShowBuyTokenModal] = useReactState(false);
+    const [buyEmail, setBuyEmail] = useReactState('');
+    const [buySuccess, setBuySuccess] = useReactState(false);
     const [adForm, setAdForm] = useState({
         title: '',
         image_url: '',
@@ -361,7 +366,7 @@ const UserDash = () => {
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Local Balance
+                                            Balance
                                         </label>
                                         <div className="mt-1 bg-gradient-to-r from-pink-500 to-blue-500 text-white px-3 py-2 rounded-md text-center font-bold">
                                             ${profile?.localBalance?.toFixed(2) || '0.00'}
@@ -369,7 +374,96 @@ const UserDash = () => {
                                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                             Earned from watching ads
                                         </p>
+                                        <div className="flex flex-col gap-2 mt-3">
+                                            <button
+                                                className="bg-gray-700 hover:bg-gray-900 text-white px-4 py-2 rounded-md transition-colors"
+                                                onClick={() => setShowWithdrawModal(true)}
+                                            >
+                                                Withdraw Funds
+                                            </button>
+                                            <button
+                                                className="bg-blue-600 hover:bg-blue-800 text-white px-4 py-2 rounded-md transition-colors"
+                                                onClick={() => setShowBuyTokenModal(true)}
+                                            >
+                                                Buy Metasurfai Token
+                                            </button>
+                                        </div>
                                     </div>
+            {/* Withdraw Funds Modal */}
+            {showWithdrawModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-md w-full">
+                        <h2 className="text-xl font-bold mb-4 text-center">Withdraw Funds</h2>
+                        <p className="mb-6 text-center">We are currently in the Pre-ICO stage. Withdrawals are not available at this time.</p>
+                        <button
+                            className="block mx-auto bg-blue-600 hover:bg-blue-800 text-white px-6 py-2 rounded-md"
+                            onClick={() => setShowWithdrawModal(false)}
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Buy Metasurfai Token Modal */}
+            {showBuyTokenModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-md w-full">
+                        <h2 className="text-xl font-bold mb-2 text-center">Join Metasurfai’s Exclusive Pre-ICO Private Token Sale</h2>
+                        <p className="mb-4 text-sm text-center">
+                            Metasurfai is gearing up for its upcoming Initial Coin Offering (ICO), and we’re excited to offer a limited Pre-ICO private token sale for early investors.<br/><br/>
+                            This is your chance to secure tokens ahead of the public sale and be part of our journey to revolutionize the AI-powered metaverse.<br/><br/>
+                            Interested in learning more or participating? Reach out to us at:<br/>
+                            <b>📧 info@metasurfai.com</b><br/>—or—<br/>
+                            Leave your email below:
+                        </p>
+                        {buySuccess ? (
+                            <div className="text-green-600 text-center font-semibold mb-4">Thank you! We’ll be in touch soon.</div>
+                        ) : (
+                            <form
+                                className="flex flex-col gap-3"
+                                method="POST"
+                                action={process.env.WEBHOOK}
+                                target="_blank"
+                                onSubmit={e => {
+                                    e.preventDefault();
+                                    // Optionally, send via fetch or just submit
+                                    fetch(process.env.WEBHOOK, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ email: buyEmail })
+                                    });
+                                    setBuySuccess(true);
+                                    setBuyEmail('');
+                                    setTimeout(() => setShowBuyTokenModal(false), 2000);
+                                }}
+                            >
+                                <input
+                                    type="email"
+                                    required
+                                    className="border px-3 py-2 rounded-md"
+                                    placeholder="Your email address"
+                                    value={buyEmail}
+                                    onChange={e => setBuyEmail(e.target.value)}
+                                />
+                                <input type="hidden" name="webhook" value={process.env.WEBHOOK || ''} />
+                                <button
+                                    type="submit"
+                                    className="bg-pink-600 hover:bg-pink-800 text-white px-4 py-2 rounded-md"
+                                >
+                                    Submit
+                                </button>
+                            </form>
+                        )}
+                        <button
+                            className="block mx-auto mt-4 bg-gray-600 hover:bg-gray-900 text-white px-6 py-2 rounded-md"
+                            onClick={() => { setShowBuyTokenModal(false); setBuySuccess(false); }}
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
