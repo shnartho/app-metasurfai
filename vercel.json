@@ -1,9 +1,4 @@
 {
-    "functions": {
-        "api/proxy.js": {
-            "runtime": "nodejs20.x"
-        }
-    },
     "rewrites": [
         {
             "source": "/api/(.*)",
@@ -28,5 +23,6 @@
                 }
             ]
         }
-    ]
+    ],
+    "outputDirectory": "dist"
 }
