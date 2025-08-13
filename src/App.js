@@ -19,6 +19,8 @@ import SideNav from "./components/SideNav";
 import Multifilter from "./components/ads/ads-filter/multifilter";
 import Settings from "./components/settings/settings";
 import Modal from 'react-modal';
+import { ToastProvider } from "./components/Toast/ToastContext";
+import "./styles/toast.css";
     
 Modal.setAppElement('#app');
 
@@ -52,13 +54,14 @@ const App = () => {
   const showFilter = location.pathname === '/';
 
   return (
-    <div className={`flex flex-col min-h-screen bg-white dark:bg-slate-900 ${DarkMode ? 'dark' : ''}`}>
-        <NavBar DarkMode={DarkMode} toggleDarkMode={toggleDarkMode} toggleSidebar={toggleSidebar}/>
-        <div className="flex flex-grow">
-          <SideNav isOpen={isSidebarOpen} DarkMode={DarkMode} />
-          <div className={`flex-grow transition-all duration-300 ${
-              isSidebarOpen ? 'ml-60' : 'ml-20'
-          }`}>
+    <ToastProvider>
+      <div className={`flex flex-col min-h-screen bg-white dark:bg-slate-900 ${DarkMode ? 'dark' : ''}`}>
+          <NavBar DarkMode={DarkMode} toggleDarkMode={toggleDarkMode} toggleSidebar={toggleSidebar}/>
+          <div className="flex flex-grow">
+            <SideNav isOpen={isSidebarOpen} DarkMode={DarkMode} />
+            <div className={`flex-grow transition-all duration-300 ${
+                isSidebarOpen ? 'ml-60' : 'ml-20'
+            }`}>
             {showFilter && (
               <div className="fixed top-10 first-letter:left-0 right-0 z-40 pt-2 bg-white dark:bg-slate-900 shadow-sm" style={{
                   left: isSidebarOpen ? '240px' : '80px'
@@ -88,7 +91,7 @@ const App = () => {
       </div>
     </div>
   </div>
-  
+  </ToastProvider>
   );
 };
 
