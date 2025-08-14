@@ -70,9 +70,11 @@ const apiMapNew = {
         endpoint: '/images/user',
         method: 'PUT',
         headers: (body, token) => {
+            // Content-Type should be set to image/jpeg or appropriate type by the caller or fetch
             const headers = { 'x-api-key': API_KEY };
             if (token) headers['Authorization'] = `Bearer ${token}`;
-            // No Content-Type here as it will be set based on file type
+            // If file type is provided, set Content-Type
+            if (body && body.file && body.file.type) headers['Content-Type'] = body.file.type;
             return headers;
         },
         transform: (body) => body // Pass through the file directly
