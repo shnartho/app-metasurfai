@@ -1,27 +1,47 @@
+
 import React, { useState } from 'react';
 
-const AddAdModal = ({ closeModal }) => {
+const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy = '', error }) => {
     const [title, setTitle] = useState('');
     const [imageUrl, setImageUrl] = useState('');
+    const [imageFile, setImageFile] = useState(null);
     const [description, setDescription] = useState('');
-    const [postedBy, setPostedBy] = useState('');
-    const [maxViews, setMaxViews] = useState(0);
     const [region, setRegion] = useState('');
     const [tokenReward, setTokenReward] = useState(0);
+    const [maxViews, setMaxViews] = useState(0);
 
-    const handleSubmit = (event) => {
+    const handleFileChange = (e) => {
+        setImageFile(e.target.files[0]);
+        setImageUrl('');
+    };
+
+    const handleUrlChange = (e) => {
+        setImageUrl(e.target.value);
+        setImageFile(null); // Clear file if URL is entered
+    };
+
+    const handleSubmit = async (event) => {
         event.preventDefault();
+        if (!imageFile && !imageUrl) {
+            setError('Please provide an image file or image URL.');
+            return;
+        }
+        setError('');
         const adData = {
             title,
             image_url: imageUrl,
-            view_count: 0, // Default value
+            image_file: imageFile,
+            view_count: 0,
             description,
             posted_by: postedBy,
-            active: true, // Default value
+            active: true,
             max_views: maxViews,
             region,
             token_reward: tokenReward
         };
+        if (onSubmit) {
+            await onSubmit(adData);
+        }
         closeModal();
     };
 
@@ -43,15 +63,25 @@ const AddAdModal = ({ closeModal }) => {
                         />
                     </div>
                     <div className="mb-4">
-                        <label className="block text-gray-100">Image URL:</label>
+                        <label className="block text-gray-100">Image File:</label>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-100">Or Image URL:</label>
                         <input
                             type="text"
                             value={imageUrl}
-                            onChange={(e) => setImageUrl(e.target.value)}
+                            onChange={handleUrlChange}
                             className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
-                            required
+                            placeholder="https://..."
                         />
                     </div>
+                    {error && <div className="text-red-500 mb-2">{error}</div>}
                     <div className="mb-4">
                         <label className="block text-gray-100">Description:</label>
                         <input
@@ -112,5 +142,4 @@ const AddAdModal = ({ closeModal }) => {
         </div>
     );
 };
-
 export default AddAdModal;
