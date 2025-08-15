@@ -68,15 +68,16 @@ export default async function handler(req, res) {
             res.status(400).json({ error: 'Missing or invalid JSON body. Please send a request with Content-Type: application/json and a valid JSON body.' });
             return;
         }
-        const { action, token, ...body } = req.body;
-        // Resolve mapping per action
-        const mapping = useNewAPI ? apiMapNew[action] : apiMapOld[action];
+        const { action, token, __base, ...body } = req.body;
+        // Use __base from frontend if provided, else fallback to global flag
+        const base = __base || (useNewAPI ? 'new' : 'old');
+        const mapping = base === 'new' ? apiMapNew[action] : apiMapOld[action];
         if (!mapping) {
             console.error('Unknown action:', action);
             res.status(404).json({ error: `Unknown action: ${action}` });
             return;
         }
-        const baseUrl = useNewAPI
+        const baseUrl = base === 'new'
             ? process.env.API_NEW_URL
             : process.env.API_OLD_URL;
         const targetUrl = `${baseUrl}${mapping.endpoint}`;
