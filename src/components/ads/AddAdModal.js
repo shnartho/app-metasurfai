@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
+import { apiCall } from '../../utils/api';
 
-const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy = '', error }) => {
+const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy = '', error: propError }) => {
     const [title, setTitle] = useState('');
     const [imageUrl, setImageUrl] = useState('');
     const [imageFile, setImageFile] = useState(null);
@@ -9,6 +10,9 @@ const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy = '', erro
     const [region, setRegion] = useState('');
     const [tokenReward, setTokenReward] = useState(0);
     const [maxViews, setMaxViews] = useState(0);
+    const [error, setError] = useState(propError || '');
+
+    const isNewApi = () => process.env.USE_NEW_API === 'true';
 
     const handleFileChange = (e) => {
         setImageFile(e.target.files[0]);
@@ -27,22 +31,73 @@ const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy = '', erro
             return;
         }
         setError('');
-        const adData = {
-            title,
-            image_url: imageUrl,
-            image_file: imageFile,
-            view_count: 0,
-            description,
-            posted_by: postedBy,
-            active: true,
-            max_views: maxViews,
-            region,
-            token_reward: tokenReward
-        };
-        if (onSubmit) {
-            await onSubmit(adData);
+        try {
+            const token = localStorage.getItem('authToken');
+            let image_url = imageUrl;
+            const base = isNewApi() ? 'new' : 'old';
+            if (isNewApi()) {
+                // New API logic: file upload or URL
+                if (imageFile) {
+                    // 1. Upload image
+                    await apiCall('uploadImage', {
+                        body: { file: imageFile },
+                        token,
+                        base
+                    });
+                    // 2. Get presigned URLs
+                    const imagesRes = await apiCall('getImages', {
+                        token,
+                        base
+                    });
+                    // 3. Find the most recent image with a presigned_url
+                    if (imagesRes && Array.isArray(imagesRes.images) && imagesRes.images.length > 0) {
+                        const lastImage = imagesRes.images[imagesRes.images.length - 1];
+                        image_url = lastImage.presigned_url || lastImage.url || lastImage.image_url;
+                    } else {
+                        throw new Error('Image upload succeeded but no presigned URL found.');
+                    }
+                }
+                // 4. Create ad (new API)
+                const adData = {
+                    title,
+                    image_url,
+                    description,
+                    posted_by: postedBy,
+                    active: true,
+                    max_views: maxViews,
+                    region,
+                    token_reward: tokenReward
+                };
+                await apiCall('createAd', {
+                    body: adData,
+                    token,
+                    base
+                });
+                if (onSubmit) await onSubmit(adData);
+                closeModal();
+            } else {
+                // Old API logic: just post ad data as JSON, ignore file
+                const adData = {
+                    title,
+                    image_url: imageUrl, // Only use URL, not file
+                    description,
+                    posted_by: postedBy,
+                    active: true,
+                    max_views: maxViews,
+                    region,
+                    token_reward: tokenReward
+                };
+                await apiCall('createAd', {
+                    body: adData,
+                    token,
+                    base
+                });
+                if (onSubmit) await onSubmit(adData);
+                closeModal();
+            }
+        } catch (err) {
+            setError(err.message || 'Error creating ad.');
         }
-        closeModal();
     };
 
     return (
@@ -62,25 +117,41 @@ const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy = '', erro
                             required
                         />
                     </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-100">Image File:</label>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                            className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
-                        />
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-100">Or Image URL:</label>
-                        <input
-                            type="text"
-                            value={imageUrl}
-                            onChange={handleUrlChange}
-                            className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
-                            placeholder="https://..."
-                        />
-                    </div>
+                    {isNewApi() ? (
+                        <>
+                        <div className="mb-4">
+                            <label className="block text-gray-100">Image File:</label>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileChange}
+                                className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-100">Or Image URL:</label>
+                            <input
+                                type="text"
+                                value={imageUrl}
+                                onChange={handleUrlChange}
+                                className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
+                                placeholder="https://..."
+                            />
+                        </div>
+                        </>
+                    ) : (
+                        <div className="mb-4">
+                            <label className="block text-gray-100">Image URL:</label>
+                            <input
+                                type="text"
+                                value={imageUrl}
+                                onChange={handleUrlChange}
+                                className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
+                                placeholder="https://..."
+                                required
+                            />
+                        </div>
+                    )}
                     {error && <div className="text-red-500 mb-2">{error}</div>}
                     <div className="mb-4">
                         <label className="block text-gray-100">Description:</label>
