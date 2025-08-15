@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import React from 'react';
+import { apiCall } from '../../utils/api';
 
 const SignUpForm = ({ onSwitchToLogin }) => {
     const [email, setEmail] = useState('');
@@ -9,84 +10,32 @@ const SignUpForm = ({ onSwitchToLogin }) => {
     const [success, setSuccess] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
+    const isNewApi = () => process.env.USE_NEW_API === 'true';
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        
         const userData = {
             email: email,
             password: password
         };
-
         try {
-            // Step 1: Sign up the user
-            const signupResponse = await fetch('https://metasurfai-public-api.fly.dev/v2/signup', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(userData)
-            });
-
-            if (signupResponse.ok) {
-                setSuccess(true);
-                setError(null);
-                
-                // Step 2: Automatically log in the user after successful signup
-                const loginResponse = await fetch('https://metasurfai-public-api.fly.dev/v2/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(userData)
-                });
-
-                if (loginResponse.ok) {
-                    const loginData = await loginResponse.json();
-                    localStorage.setItem('authToken', loginData.token);
-                    
-                    // Step 3: Fetch profile data
-                    const profileResponse = await fetch('https://metasurfai-public-api.fly.dev/v2/profile', {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${loginData.token}`,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    //New API endpoint for profile data
-                    // const profileResponseN = await fetch('https://ty0xbob8r8.execute-api.us-east-1.amazonaws.com/user/profile', {
-                    //     method: 'GET',
-                    //     headers: {
-                    //         'Authorization': `Bearer ${token}`,
-                    //         'Content-Type': 'application/json'
-                    //     }
-                    // });
-                    
-                    if (profileResponse.ok) {
-                        const profileData = await profileResponse.json();
-                        localStorage.setItem('userProfile', JSON.stringify(profileData));
-                    }
-                    
-                    // Step 4: Reload the page to update the navbar and redirect to main page
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                } else {
-                    // If login fails after signup, show error but still offer to switch to login
-                    setError('Registration successful, but automatic login failed. Please log in manually.');
-                    setTimeout(() => {
-                        if (onSwitchToLogin) {
-                            onSwitchToLogin();
-                        }
-                    }, 2000);
-                }
-            } else {
-                const data = await signupResponse.json();
-                setError(data.message || 'Registration failed. Please try again.');
-                setSuccess(false);
-            }
+            // Step 1: Sign up the user (old or new API)
+            const base = isNewApi() ? 'new' : 'old';
+            await apiCall('signup', { body: userData, base });
+            setSuccess(true);
+            setError(null);
+            // Step 2: Automatically log in the user after successful signup
+            const loginRes = await apiCall('login', { body: userData, base });
+            localStorage.setItem('authToken', loginRes.token);
+            // Step 3: Fetch profile data
+            const profileRes = await apiCall('profile', { token: loginRes.token, base });
+            localStorage.setItem('userProfile', JSON.stringify(profileRes));
+            // Step 4: Reload the page to update the navbar and redirect to main page
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
         } catch (error) {
-            setError('Something went wrong. Please try again later.');
+            setError(error.message || 'Something went wrong. Please try again later.');
             setSuccess(false);
         } finally {
             setIsLoading(false);
