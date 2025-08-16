@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useState as useReactState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiCall } from '../../utils/api';
+import AddAdModal from '../ads/AddAdModal';
+import ReactModal from 'react-modal';
 const WEBHOOK_URL = process.env.WEBHOOK;
+const isNewApi = () => process.env.NEXT_PUBLIC_USE_NEW_API === 'true';
+
 const UserDash = () => {
     const navigate = useNavigate();
-    const [profile, setProfile] = useState(null);
+    const storedProfile = localStorage.getItem('userProfile');
+    const [profile, setProfile] = useState(storedProfile ? JSON.parse(storedProfile) : null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showCreateAd, setShowCreateAd] = useState(false);
     const [userAds, setUserAds] = useState([]);
+    const [adModalError, setAdModalError] = useState('');
     const [selectedAds, setSelectedAds] = useState([]);
 
     // Ad creation form state
@@ -37,185 +44,107 @@ const UserDash = () => {
             campaign = params.get('utm_campaign') || localStorage.getItem('utm_campaign') || 'Token Waitlist';
         } catch (e) {}
         setUtmCampaign(campaign);
-    }, []);
-
-    // Single useEffect for initialization
-    useEffect(() => {
-        const token = localStorage.getItem('authToken');
-        if (!token) {
-            navigate('/');
-            return;
-        }
-
-        const storedProfile = localStorage.getItem('userProfile');
-        if (storedProfile) {
-            const profileData = JSON.parse(storedProfile);
-            
-            // Initialize local balance if it doesn't exist
-            if (!profileData.localBalance) {
-                const updatedProfile = { ...profileData, localBalance: 0 };
-                setProfile(updatedProfile);
-                localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+            // If profile exists in state, fetch ads for this user
+            if (profile) {
+                const token = localStorage.getItem('authToken');
+                fetchUserAds(token, profile);
+                setLoading(false);
             } else {
-                setProfile(profileData);
+                setLoading(false);
+                setError('No user profile found. Please log in.');
             }
-            
-            setAdForm(prev => ({ ...prev, posted_by: profileData.email }));
-            setLoading(false);
-            // Delay to ensure profile is set
-            setTimeout(() => fetchUserAds(token, profileData), 100);
-        } else {
-            fetchProfile(token);
-        }
-
-        // Listen for localStorage changes to update balance in real-time
-        const handleStorageChange = () => {
-            const updatedProfile = localStorage.getItem('userProfile');
-            if (updatedProfile) {
-                setProfile(JSON.parse(updatedProfile));
-            }
-        };
-
-        window.addEventListener('storage', handleStorageChange);
-        
-        // Also listen for manual updates (same tab)
-        const intervalId = setInterval(() => {
-            const currentProfile = localStorage.getItem('userProfile');
-            if (currentProfile) {
-                const profile = JSON.parse(currentProfile);
-                setProfile(prevProfile => {
-                    if (!prevProfile || prevProfile.localBalance !== profile.localBalance) {
-                        return profile;
-                    }
-                    return prevProfile;
-                });
-            }
-        }, 1000);
-
-        return () => {
-            window.removeEventListener('storage', handleStorageChange);
-            clearInterval(intervalId);
-        };
     }, [navigate]);
 
-    const fetchUserAds = async (token, userProfile = profile) => {
+    // Universal ad submit handler
+    const handleAdSubmit = async (adData) => {
+        setAdModalError('');
+        const token = localStorage.getItem('authToken');
+        if (!token || !profile) {
+            setAdModalError('Authentication required. Please login.');
+            return;
+        }
         try {
-            const response = await fetch('https://metasurfai-public-api.fly.dev/v2/ads', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                const ads = await response.json();
-                
-                // Filter ads by the current user's email
-                const myAds = ads.filter(ad => {
-                    return ad.posted_by === userProfile?.email;
+            let imageUrl = adData.image_url;
+            // If using new API and file is provided, upload image first
+            if (isNewApi && adData.image_file) {
+                const uploadRes = await apiCall('uploadImage', {
+                    body: { file: adData.image_file },
+                    token,
+                    base: 'new'
                 });
-                
-                setUserAds(myAds);
-            } else {
-                console.error('Failed to fetch ads:', response.status);
+                imageUrl = uploadRes.url || uploadRes.image_url;
+                if (!imageUrl) throw new Error('Image upload failed');
             }
+            // For old API, only allow image_url
+            if (!isNewApi() && !imageUrl) {
+                setAdModalError('Image URL is required for the current API.');
+                return;
+            }
+            // Compose ad payload
+            const payload = {
+                title: adData.title,
+                image_url: imageUrl,
+                description: adData.description,
+                posted_by: profile.email,
+                max_views: parseInt(adData.max_views),
+                region: adData.region,
+                token_reward: parseFloat(adData.token_reward),
+                view_count: 0,
+                active: true
+            };
+            await apiCall('createAd', {
+                body: payload,
+                token,
+                base: isNewApi() ? 'new' : 'old'
+            });
+            alert('Ad created successfully!');
+            setShowCreateAd(false);
+            setTimeout(() => fetchUserAds(token, profile), 1000);
         } catch (err) {
-            console.error('Error fetching user ads:', err);
+            setAdModalError(err.message || 'Error creating ad. Please try again.');
         }
     };
 
-    const fetchProfile = async (token) => {
+    const fetchUserAds = async (token, userProfile = profile) => {
         try {
-            const response = await fetch('https://metasurfai-public-api.fly.dev/v2/profile', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            //New API endpoint for profile data
-            // const responseN = await fetch('https://ty0xbob8r8.execute-api.us-east-1.amazonaws.com/user/profile', {
-            //     method: 'GET',
-            //     headers: {
-            //         'Authorization': `Bearer ${token}`,
-            //         'Content-Type': 'application/json'
-            //     }
-            // });
-
-            if (response.ok) {
-                const profileData = await response.json();
-                setProfile(profileData);
-                setAdForm(prev => ({ ...prev, posted_by: profileData.email }));
-                localStorage.setItem('userProfile', JSON.stringify(profileData));
-                // Call fetchUserAds after profile is properly set
-                setTimeout(() => fetchUserAds(token, profileData), 100);
-            } else {
-                setError('Failed to fetch profile data');
-                if (response.status === 401) {
-                    localStorage.removeItem('authToken');
-                    localStorage.removeItem('userProfile');
-                    navigate('/');
-                }
-            }
+            const ads = await apiCall('ads', { token, base: 'old' });
+            // Filter ads by the current user's email
+            const myAds = Array.isArray(ads) ? ads.filter(ad => ad.posted_by === userProfile?.email) : [];
+            setUserAds(myAds);
         } catch (err) {
-            setError('Something went wrong while fetching profile data');
-        } finally {
-            setLoading(false);
+            console.error('Error fetching user ads:', err);
         }
     };
 
     const handleCreateAd = async (e) => {
         e.preventDefault();
         const token = localStorage.getItem('authToken');
-
         try {
             const adData = {
-                "_id": new Date().getTime().toString(),
-                "title": adForm.title,
-                "image_url": adForm.image_url,
-                "view_count": 0,
-                "description": adForm.description,
-                "posted_by": adForm.posted_by,
-                "active": true,
-                "max_views": parseInt(adForm.max_views),
-                "region": adForm.region,
-                "token_reward": parseFloat(adForm.token_reward)
+                title: adForm.title,
+                image_url: adForm.image_url,
+                description: adForm.description,
+                posted_by: adForm.posted_by,
+                max_views: parseInt(adForm.max_views),
+                region: adForm.region,
+                token_reward: parseFloat(adForm.token_reward),
+                active: true
             };
-
-            const response = await fetch('https://metasurfai-public-api.fly.dev/v2/ads', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(adData)
+            await apiCall('createAdRecord', { body: adData, token, base: 'new' });
+            alert('Ad created successfully!');
+            setShowCreateAd(false);
+            setAdForm({
+                title: '',
+                image_url: '',
+                description: '',
+                posted_by: profile?.email || '',
+                max_views: 0,
+                region: '',
+                token_reward: ''
             });
-
-            if (response.ok) {
-                const responseData = await response.json();
-                alert('Ad created successfully!');
-                setShowCreateAd(false);
-                setAdForm({
-                    title: '',
-                    image_url: '',
-                    description: '',
-                    posted_by: profile?.email || '',
-                    max_views: 0,
-                    region: '',
-                    token_reward: ''
-                });
-                
-                // Wait a moment then refresh the ads list
-                setTimeout(() => {
-                    fetchUserAds(token, profile);
-                }, 1000);
-                
-            } else {
-                const responseText = await response.text();
-                console.error('Error response text:', responseText);
-                alert(`Error creating ad: ${response.status} - ${responseText}`);
-            }
+            setTimeout(() => {
+                fetchUserAds(token, profile);
+            }, 1000);
         } catch (err) {
             console.error('Error creating ad:', err);
             alert('Error creating ad. Please try again.');
@@ -227,33 +156,16 @@ const UserDash = () => {
             alert('Please select ads to delete');
             return;
         }
-
         if (!window.confirm(`Are you sure you want to delete ${selectedAds.length} ad(s)?`)) {
             return;
         }
-
         const token = localStorage.getItem('authToken');
-
         try {
             const deletePromises = selectedAds.map(adId =>
-                fetch(`https://metasurfai-public-api.fly.dev/v2/ads/${adId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                })
+                apiCall('deleteAd', { body: { id: adId }, token, base: 'new' })
             );
-
-            const results = await Promise.all(deletePromises);
-            const successful = results.filter(res => res.ok).length;
-            
-            if (successful === selectedAds.length) {
-                alert('Ads deleted successfully!');
-            } else {
-                alert(`${successful} out of ${selectedAds.length} ads deleted successfully`);
-            }
-
+            await Promise.all(deletePromises);
+            alert('Ads deleted successfully!');
             setSelectedAds([]);
             fetchUserAds(token, profile);
         } catch (err) {
@@ -622,132 +534,57 @@ const UserDash = () => {
                         </div>
 
                         {/* Create Ad Modal */}
-                        {showCreateAd && (
-                            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-                                <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
-                                    <div className="mt-3">
-                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-                                            Upload Your Ad
-                                        </h3>
-                                        <form onSubmit={handleCreateAd} className="space-y-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                    Title:
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={adForm.title}
-                                                    onChange={(e) => setAdForm({...adForm, title: e.target.value})}
-                                                    className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                                    required
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                    Image URL:
-                                                </label>
-                                                <input
-                                                    type="url"
-                                                    value={adForm.image_url}
-                                                    onChange={(e) => setAdForm({...adForm, image_url: e.target.value})}
-                                                    className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                                    required
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                    Description:
-                                                </label>
-                                                <textarea
-                                                    value={adForm.description}
-                                                    onChange={(e) => setAdForm({...adForm, description: e.target.value})}
-                                                    className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                                    rows="3"
-                                                    required
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                    Posted By:
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={adForm.posted_by}
-                                                    readOnly
-                                                    className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-white"
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                    Max Views:
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    value={adForm.max_views}
-                                                    onChange={(e) => setAdForm({...adForm, max_views: e.target.value})}
-                                                    className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                                    min="1"
-                                                    required
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                    Region:
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={adForm.region}
-                                                    onChange={(e) => setAdForm({...adForm, region: e.target.value})}
-                                                    className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                                    required
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                    Token Reward:
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    step="0.01"
-                                                    value={adForm.token_reward}
-                                                    onChange={(e) => setAdForm({...adForm, token_reward: e.target.value})}
-                                                    className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                                    min="0"
-                                                    required
-                                                />
-                                            </div>
-
-                                            <div className="flex justify-end space-x-2 pt-4">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowCreateAd(false)}
-                                                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md transition-colors"
-                                                >
-                                                    Cancel
-                                                </button>
-                                                <button
-                                                    type="submit"
-                                                    className="bg-pink-600 dark:bg-blue-600 hover:bg-pink-700 dark:hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
-                                                >
-                                                    Create Ad
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                        <ReactModal
+                            isOpen={showCreateAd}
+                            onRequestClose={() => setShowCreateAd(false)}
+                            contentLabel="Create Ad Modal"
+                            style={{
+                                overlay: {
+                                    position: 'fixed',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                                    zIndex: 1002
+                                },
+                                content: {
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+                                    right: 'auto',
+                                    bottom: 'auto',
+                                    marginRight: '-50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    background: 'none',
+                                    border: 'none',
+                                    boxShadow: 'none',
+                                    overflow: 'visible',
+                                    WebkitOverflowScrolling: 'touch',
+                                    borderRadius: '0px',
+                                    outline: 'none',
+                                    padding: 0,
+                                    zIndex: 1003
+                                }
+                            }}
+                        >
+                            {showCreateAd && (
+                                <AddAdModal
+                                    closeModal={() => setShowCreateAd(false)}
+                                    onSubmit={handleAdSubmit}
+                                    onlyUrl={!isNewApi()}
+                                    postedBy={profile?.email || ''}
+                                    error={adModalError}
+                                />
+                            )}
+                        </ReactModal>
 
                         {/* Ads List */}
                         <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
                             <div className="px-6 py-4">
-                                {userAds.length > 0 ? (
+                                {userAds.length === 0 ? (
+                                    <div className="text-center text-gray-400 mt-8">No ads created yet.</div>
+                                ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {userAds.map((ad) => (
                                             <div key={ad.id || ad._id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
@@ -780,34 +617,6 @@ const UserDash = () => {
                                                 </div>
                                             </div>
                                         ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-8">
-                                        <svg
-                                            className="mx-auto h-12 w-12 text-gray-400"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                                            />
-                                        </svg>
-                                        <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No ads</h3>
-                                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                            You haven't created any ads yet.
-                                        </p>
-                                        <div className="mt-6">
-                                            <button
-                                                onClick={() => setShowCreateAd(true)}
-                                                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-pink-600 dark:bg-blue-600 hover:bg-pink-700 dark:hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 dark:focus:ring-blue-500"
-                                            >
-                                                Create Your First Ad
-                                            </button>
-                                        </div>
                                     </div>
                                 )}
                             </div>
