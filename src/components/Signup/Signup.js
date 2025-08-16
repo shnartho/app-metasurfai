@@ -10,7 +10,7 @@ const SignUpForm = ({ onSwitchToLogin }) => {
     const [success, setSuccess] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    const isNewApi = () => process.env.USE_NEW_API === 'true';
+    const isNewApi = (process.env.NEXT_PUBLIC_USE_NEW_API === 'true');
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
@@ -20,7 +20,7 @@ const SignUpForm = ({ onSwitchToLogin }) => {
         };
         try {
             // Step 1: Sign up the user (old or new API)
-            const base = isNewApi() ? 'new' : 'old';
+            const base = isNewApi ? 'new' : 'old';
             await apiCall('signup', { body: userData, base });
             setSuccess(true);
             setError(null);

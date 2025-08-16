@@ -18,10 +18,12 @@ const LoginForm = ({ onClose, onSwitchToSignup }) => {
         };
         try {
             // Login via apiCall
-            const data = await apiCall('login', { body: userData, base: 'new' });
+            const isNewApi = (process.env.NEXT_PUBLIC_USE_NEW_API === 'true');
+            const base = isNewApi ? 'new' : 'old';
+            const data = await apiCall('login', { body: userData, base });
             localStorage.setItem('authToken', data.token);
             // Fetch profile data via apiCall
-            const profileData = await apiCall('profile', { token: data.token, base: 'new' });
+            const profileData = await apiCall('profile', { token: data.token, base });
             localStorage.setItem('userProfile', JSON.stringify(profileData));
             setSuccess(true);
             setError(null);
