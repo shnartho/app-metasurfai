@@ -83,6 +83,7 @@ module.exports = {
         new Dotenv(),
         new webpack.DefinePlugin({
             'process.env.NEXT_PUBLIC_USE_NEW_API': JSON.stringify(process.env.NEXT_PUBLIC_USE_NEW_API),
+            'process.env.NEXT_PUBLIC_WEBHOOK': JSON.stringify(process.env.NEXT_PUBLIC_WEBHOOK),
         }),
     ],
     performance: {

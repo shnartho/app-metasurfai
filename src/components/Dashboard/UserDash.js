@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { apiCall } from '../../utils/api';
 import AddAdModal from '../ads/AddAdModal';
 import ReactModal from 'react-modal';
-const WEBHOOK_URL = process.env.WEBHOOK;
+const WEBHOOK_URL = process.env.NEXT_PUBLIC_WEBHOOK;
 const isNewApi = () => process.env.NEXT_PUBLIC_USE_NEW_API === 'true';
 
 const UserDash = () => {
@@ -395,12 +395,12 @@ const UserDash = () => {
                             <form
                                 className="flex flex-col gap-3"
                                 method="POST"
-                                action={process.env.WEBHOOK}
+                                action={WEBHOOK_URL}
                                 target="_blank"
                                 onSubmit={e => {
                                     e.preventDefault();
                                     // Optionally, send via fetch or just submit
-                                    fetch(process.env.WEBHOOK, {
+                                    fetch(WEBHOOK_URL, {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({ email: buyEmail })
@@ -418,7 +418,7 @@ const UserDash = () => {
                                     value={buyEmail}
                                     onChange={e => setBuyEmail(e.target.value)}
                                 />
-                                <input type="hidden" name="webhook" value={process.env.WEBHOOK || ''} />
+                                <input type="hidden" name="webhook" value={WEBHOOK_URL || ''} />
                                 <button
                                     type="submit"
                                     className="bg-pink-600 hover:bg-pink-800 text-white px-4 py-2 rounded-md"
