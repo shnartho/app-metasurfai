@@ -103,9 +103,7 @@ const apiMapNew = {
         }),
         transform: (body) => ({ image_name: body.image_name })
     },
-    
-    // Ad endpoints
-    // Ad endpoints
+
     ads: {
         base: 'new',
         endpoint: '/ads',
@@ -118,7 +116,7 @@ const apiMapNew = {
         transform: (body) => body.id ? { id: body.id } : {}
     },
     
-    createAdRecord: {
+    createAd: {
         base: 'new',
         endpoint: '/ads',
         method: 'POST',
