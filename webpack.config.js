@@ -4,6 +4,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const isDevelopment = process.env.NODE_ENV === 'development';
 const Dotenv = require('dotenv-webpack');
+const webpack = require('webpack');
 
 module.exports = {
     entry: './src/index.js',
@@ -80,6 +81,9 @@ module.exports = {
             ],
         }),
         new Dotenv(),
+        new webpack.DefinePlugin({
+            'process.env.NEXT_PUBLIC_USE_NEW_API': JSON.stringify(process.env.NEXT_PUBLIC_USE_NEW_API),
+        }),
     ],
     performance: {
         maxAssetSize: 1024 * 1024, // Increase asset size limit to 1 MiB
