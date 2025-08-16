@@ -116,40 +116,7 @@ const UserDash = () => {
         }
     };
 
-    const handleCreateAd = async (e) => {
-        e.preventDefault();
-        const token = localStorage.getItem('authToken');
-        try {
-            const adData = {
-                title: adForm.title,
-                image_url: adForm.image_url,
-                description: adForm.description,
-                posted_by: adForm.posted_by,
-                max_views: parseInt(adForm.max_views),
-                region: adForm.region,
-                token_reward: parseFloat(adForm.token_reward),
-                active: true
-            };
-            await apiCall('createAdRecord', { body: adData, token, base: 'new' });
-            alert('Ad created successfully!');
-            setShowCreateAd(false);
-            setAdForm({
-                title: '',
-                image_url: '',
-                description: '',
-                posted_by: profile?.email || '',
-                max_views: 0,
-                region: '',
-                token_reward: ''
-            });
-            setTimeout(() => {
-                fetchUserAds(token, profile);
-            }, 1000);
-        } catch (err) {
-            console.error('Error creating ad:', err);
-            alert('Error creating ad. Please try again.');
-        }
-    };
+    
 
     const handleDeleteSelectedAds = async () => {
         if (selectedAds.length === 0) {
