@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { apiCall } from "../../utils/api";
 
 const AdHandler = () => {
     const [ads, setAds] = useState([]);
@@ -43,71 +44,37 @@ const AdHandler = () => {
         }
     }, []);
 
-    // Fetch ads when the component mounts
+    // const isNewApi = () => process.env.USE_NEW_API === 'true';
     useEffect(() => {
         const fetchAds = async () => {
             try {
-                const response = await fetch("https://metasurfai-public-api.fly.dev/v2/ads");
-                const data = await response.json();
-                const sortedAds = data.sort((a, b) => b.token_reward - a.token_reward); 
-                setAds(sortedAds);
+                // Always use old API for ads
+                const adsData = await apiCall("ads", { base: 'old' });
+                // Defensive: Only set ads if response is an array
+                if (Array.isArray(adsData)) {
+                    const sortedAds = adsData.sort((a, b) => b.token_reward - a.token_reward);
+                    setAds(sortedAds);
+                } else {
+                    setAds([]);
+                }
             } catch (error) {
+                setAds([]);
                 console.error("Error fetching ads:", error);
             }
         };
-
         fetchAds();
     }, []);
 
-
-    // //Fetch ads from new api
-    //     useEffect(() => {
-    //         const fetchAds = async () => {
-    //             try {
-    //                 const getUserRegion = async () => {
-    //                     try {
-    //                         const response = await fetch('https://ipapi.co/country/');
-    //                         const country = await response.text();
-    //                         return country.trim().toUpperCase();
-    //                 } catch (error) {
-    //                     console.error('Error getting user region:', error);
-    //                     return 'PT'; // fallback
-    //                 }
-    //             };
-
-    //             const region = await getUserRegion();
-    //             const response = await fetch("https://ty0xbob8r8.execute-api.us-east-1.amazonaws.com/dev/images", {
-    //                 method: 'GET',
-    //                 headers: {
-    //                     'x-fetch-all-images': 'true',
-    //                     'x-region': region,
-    //                     'Content-Type': 'application/json'
-    //                 }
-    //             });
-    //             const data = await response.json();
-    //             const sortedAds = data.sort((a, b) => b.token_reward - a.token_reward); 
-    //                 setAds(sortedAds);
-    //             } catch (error) {
-    //                 console.error("Error fetching ads:", error);
-    //             }
-    //         };
-    //         fetchAds();
-    //     }, []);
-
     // Add a new function to sort ads based on watched status
     const getSortedAds = () => {
-        if (!ads.length) return [];
-        
+        if (!Array.isArray(ads) || !ads.length) return [];
         // Separate watched and unwatched ads
         const unwatchedAds = ads.filter(ad => !isAdWatched(ad));
         const watchedAds = ads.filter(ad => isAdWatched(ad));
-        
         // Sort unwatched ads by token reward (highest first)
         const sortedUnwatched = unwatchedAds.sort((a, b) => b.token_reward - a.token_reward);
-        
         // Sort watched ads by token reward (highest first) 
         const sortedWatched = watchedAds.sort((a, b) => b.token_reward - a.token_reward);
-        
         // Return unwatched ads first, then watched ads
         return [...sortedUnwatched, ...sortedWatched];
     };
@@ -345,55 +312,6 @@ const AdHandler = () => {
         }
     };
 
-    // //New api to update balance
-    // const claimLocalRewardAndNextN = async () => {
-    //     if (!isAuthenticated || watchProgress !== 100 || !selectedAd || !authToken) return;
-
-    //     const adId = selectedAd.id || selectedAd._id;
-        
-    //     if (watchedAds.has(adId)) {
-    //         alert('You have already earned a reward for this ad!');
-    //         return;
-    //     }
-
-    //     try {
-    //         const response = await fetch("https://ty0xbob8r8.execute-api.us-east-1.amazonaws.com/dev/user/balance", {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Authorization': `Bearer ${authToken}`,
-    //                 'Content-Type': 'application/json'
-    //             },
-    //             body: JSON.stringify({
-    //                 balance: selectedAd.token_reward
-    //             })
-    //         });
-
-    //         if (!response.ok) {
-    //             throw new Error(`HTTP error! status: ${response.status}`);
-    //         }
-
-    //         const result = await response.json();
-    //         console.log('Balance update result:', result);
-
-    //         // Only update watched ads status locally
-    //         const newWatchedAds = new Set(watchedAds);
-    //         newWatchedAds.add(adId);
-    //         setWatchedAds(newWatchedAds);
-    //         localStorage.setItem('watchedAds', JSON.stringify([...newWatchedAds]));
-            
-    //         showRewardNotification(selectedAd.token_reward);
-            
-    //         // Auto-navigate to next ad after 1.5 seconds
-    //         setTimeout(() => {
-    //             goToNextAd();
-    //         }, 1500);
-
-    //     } catch (error) {
-    //         console.error('Error claiming reward:', error);
-    //         alert('Error claiming reward. Please try again.');
-    //     }
-    // };
-
     // Show reward notification
     const showRewardNotification = (reward, newBalance) => {
         const notification = document.createElement('div');
@@ -468,67 +386,67 @@ const AdHandler = () => {
 
                {/* Ads Display - YouTube Shorts Style Grid */}
                <div className="ads-grid">
-                   {getSortedAds().map((ad, index) => (
-                       <div
-                           className={`ad-card ${isAdWatched(ad) ? 'watched' : ''}`}
-                           key={ad.id || ad._id || index}
-                           onClick={() => handleAdClick(ad)}
-                           style={{ 
-                               animationDelay: `${index * 0.05}s`
-                           }}>
-                           {/* Image Container with Fixed Aspect Ratio */}
-                           <div className="ad-image-container">
-                               <img
-                                   className="ad-image"
-                                   src={ad.image_url}
-                                   alt={ad.title}
-                                   loading="lazy"
-                               />
-                               
-                               {/* Gradient Overlay */}
-                               <div className="ad-overlay"></div>
-                               
-                               {/* Token Reward Badge */}
-                               <div className={`token-badge ${isAdWatched(ad) ? 'watched' : ''}`}>
-                                   <span>${ad.token_reward}</span>
-                               </div>
-                               
-                               {/* Watch Status Overlay */}
-                               {!isAuthenticated ? (
-                                   <div className="status-overlay">
-                                       <div className="status-content">
-                                           <svg className="status-icon" fill="currentColor" viewBox="0 0 20 20">
-                                               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                                           </svg>
-                                           <span className="status-text">Login to Earn</span>
-                                       </div>
+                   {Array.isArray(ads) && ads.length > 0 ? (
+                       getSortedAds().map((ad, index) => (
+                           <div
+                               className={`ad-card ${isAdWatched(ad) ? 'watched' : ''}`}
+                               key={ad.id || ad._id || index}
+                               onClick={() => handleAdClick(ad)}
+                               style={{ 
+                                   animationDelay: `${index * 0.05}s`
+                               }}>
+                               {/* Image Container with Fixed Aspect Ratio */}
+                               <div className="ad-image-container">
+                                   <img
+                                       className="ad-image"
+                                       src={ad.image_url}
+                                       alt={ad.title}
+                                       loading="lazy"
+                                   />
+                                   {/* Gradient Overlay */}
+                                   <div className="ad-overlay"></div>
+                                   {/* Token Reward Badge */}
+                                   <div className={`token-badge ${isAdWatched(ad) ? 'watched' : ''}`}>
+                                       <span>${ad.token_reward}</span>
                                    </div>
-                               ) : isAdWatched(ad) && (
-                                   <div className="status-overlay completed">
-                                       <div className="status-content">
-                                           <svg className="status-icon" fill="currentColor" viewBox="0 0 20 20">
-                                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                           </svg>
-                                           <span className="status-text">Completed</span>
+                                   {/* Watch Status Overlay */}
+                                   {!isAuthenticated ? (
+                                       <div className="status-overlay">
+                                           <div className="status-content">
+                                               <svg className="status-icon" fill="currentColor" viewBox="0 0 20 20">
+                                                   <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                                               </svg>
+                                               <span className="status-text">Login to Earn</span>
+                                           </div>
                                        </div>
-                                   </div>
-                               )}
-                           </div>
-                           
-                           {/* YouTube Shorts Style Info */}
-                           <div className="ad-info">
-                               <div className="ad-creator">
-                                   <span className="creator-name">{ad.posted_by || 'Anonymous'}</span>
+                                   ) : isAdWatched(ad) && (
+                                       <div className="status-overlay completed">
+                                           <div className="status-content">
+                                               <svg className="status-icon" fill="currentColor" viewBox="0 0 20 20">
+                                                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                               </svg>
+                                               <span className="status-text">Completed</span>
+                                           </div>
+                                       </div>
+                                   )}
                                </div>
-                               <h3 className="ad-title">{ad.title}</h3>
-                               <p className="ad-description">{ad.description}</p>
-                               <div className="ad-stats">
-                                   <span className="ad-region">{ad.region}</span>
-                                   <span className="ad-views">{ad.view_count || 0} views</span>
+                               {/* YouTube Shorts Style Info */}
+                               <div className="ad-info">
+                                   <div className="ad-creator">
+                                       <span className="creator-name">{ad.posted_by || 'Anonymous'}</span>
+                                   </div>
+                                   <h3 className="ad-title">{ad.title}</h3>
+                                   <p className="ad-description">{ad.description}</p>
+                                   <div className="ad-stats">
+                                       <span className="ad-region">{ad.region}</span>
+                                       <span className="ad-views">{ad.view_count || 0} views</span>
+                                   </div>
                                </div>
                            </div>
-                       </div>
-                   ))}
+                       ))
+                   ) : (
+                       <div className="no-ads-message">No ads to display</div>
+                   )}
                </div>
 
                {/* YouTube Shorts Style Modal */}

@@ -3,6 +3,8 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const isDevelopment = process.env.NODE_ENV === 'development';
+const Dotenv = require('dotenv-webpack');
+const webpack = require('webpack');
 
 module.exports = {
     entry: './src/index.js',
@@ -77,6 +79,11 @@ module.exports = {
             patterns: [
                 { from: 'public', to: '' }, // Copy all files from public to dist/public
             ],
+        }),
+        new Dotenv(),
+        new webpack.DefinePlugin({
+            'process.env.NEXT_PUBLIC_USE_NEW_API': JSON.stringify(process.env.NEXT_PUBLIC_USE_NEW_API),
+            'process.env.NEXT_PUBLIC_WEBHOOK': JSON.stringify(process.env.NEXT_PUBLIC_WEBHOOK),
         }),
     ],
     performance: {
