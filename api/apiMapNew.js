@@ -72,7 +72,7 @@ const apiMapNew = {
         headers: (body, token) => {
             // Content-Type should be set to image/jpeg or appropriate type by the caller or fetch
             const headers = { 'x-api-key': API_KEY };
-            if (token) headers['Authorization'] = `Bearer ${token}`;
+            if (token) headers['Authorization'] = `${token}`;
             // If file type is provided, set Content-Type
             if (body && body.file && body.file.type) headers['Content-Type'] = body.file.type;
             return headers;
