@@ -118,7 +118,7 @@ const apiMapNew = {
     
     createAd: {
         base: 'new',
-        endpoint: '/ads',
+        endpoint: '/user/ads',
         method: 'POST',
         headers: (body, token) => ({ 
             'Content-Type': 'application/json', 
@@ -137,7 +137,7 @@ const apiMapNew = {
     
     updateAd: {
         base: 'new',
-        endpoint: '/ads',
+        endpoint: '/user/ads',
         method: 'PATCH',
         headers: (body, token) => ({ 
             'Content-Type': 'application/json', 
@@ -157,7 +157,7 @@ const apiMapNew = {
     
     deleteAd: {
         base: 'new',
-        endpoint: '/ads',
+        endpoint: '/user/ads',
         method: 'DELETE',
         headers: (body, token) => ({ 
             'Content-Type': 'application/json', 
