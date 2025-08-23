@@ -130,9 +130,10 @@ const apiMapNew = {
             image_url: body.image_url, 
             description: body.description, 
             region: body.region, 
-            budget: body.budget, // Calculate budget from max_views * token_reward
-            reward_per_view: body.token_reward,
-            type: body.type
+            budget: body.budget || 0, 
+            reward_per_view: body.reward_per_view || 0,
+            type: body.type || 'native',
+            redirection_link: body.redirection_link || null
         })
     },
     
