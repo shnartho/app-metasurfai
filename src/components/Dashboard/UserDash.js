@@ -10,6 +10,7 @@ const isNewApi = () => process.env.NEXT_PUBLIC_USE_NEW_API === 'true';
 const UserDash = () => {
     const navigate = useNavigate();
     const storedProfile = localStorage.getItem('userProfile');
+    const storedAds = localStorage.getItem('Ads');
     const [profile, setProfile] = useState(storedProfile ? JSON.parse(storedProfile) : null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -44,79 +45,23 @@ const UserDash = () => {
             campaign = params.get('utm_campaign') || localStorage.getItem('utm_campaign') || 'Token Waitlist';
         } catch (e) {}
         setUtmCampaign(campaign);
-            // If profile exists in state, fetch ads for this user
-            if (profile) {
-                const token = localStorage.getItem('authToken');
-                fetchUserAds(token, profile);
-                setLoading(false);
-            } else {
-                setLoading(false);
-                setError('No user profile found. Please log in.');
-            }
-    }, [navigate]);
-
-    // Universal ad submit handler
-    const handleAdSubmit = async (adData) => {
-        setAdModalError('');
-        const token = localStorage.getItem('authToken');
-        if (!token || !profile) {
-            setAdModalError('Authentication required. Please login.');
+        setLoading(true);
+        setError(null);
+        const storedProfile = localStorage.getItem('userProfile');
+        if (!storedProfile) {
+            setLoading(false);
+            setError('No user profile found. Please log in.');
             return;
         }
-        try {
-            let imageUrl = adData.image_url;
-            // If using new API and file is provided, upload image first
-            if (isNewApi && adData.image_file) {
-                const uploadRes = await apiCall('uploadImage', {
-                    body: { file: adData.image_file },
-                    token,
-                    base: 'new'
-                });
-                imageUrl = uploadRes.url || uploadRes.image_url;
-                if (!imageUrl) throw new Error('Image upload failed');
-            }
-            // For old API, only allow image_url
-            if (!isNewApi() && !imageUrl) {
-                setAdModalError('Image URL is required for the current API.');
-                return;
-            }
-            // Compose ad payload
-            const payload = {
-                title: adData.title,
-                image_url: imageUrl,
-                description: adData.description,
-                posted_by: profile.email,
-                max_views: parseInt(adData.max_views),
-                region: adData.region,
-                token_reward: parseFloat(adData.token_reward),
-                view_count: 0,
-                active: true
-            };
-            await apiCall('createAd', {
-                body: payload,
-                token,
-                base: isNewApi() ? 'new' : 'old'
-            });
-            alert('Ad created successfully!');
-            setShowCreateAd(false);
-            setTimeout(() => fetchUserAds(token, profile), 1000);
-        } catch (err) {
-            setAdModalError(err.message || 'Error creating ad. Please try again.');
-        }
-    };
-
-    const fetchUserAds = async (token, userProfile = profile) => {
-        try {
-            const ads = await apiCall('ads', { token, base: 'old' });
-            // Filter ads by the current user's email
-            const myAds = Array.isArray(ads) ? ads.filter(ad => ad.posted_by === userProfile?.email) : [];
-            setUserAds(myAds);
-        } catch (err) {
-            console.error('Error fetching user ads:', err);
-        }
-    };
-
-    
+        const profileObj = JSON.parse(storedProfile);
+        setProfile(profileObj);
+        const allAds = JSON.parse(localStorage.getItem('userAds') || '[]');
+        const userAdsFiltered = Array.isArray(allAds)
+            ? allAds.filter(ad => ad.posted_by === profileObj.id)
+            : [];
+        setUserAds(userAdsFiltered);
+        setLoading(false);
+    }, [navigate]); 
 
     const handleDeleteSelectedAds = async () => {
         if (selectedAds.length === 0) {
@@ -126,18 +71,14 @@ const UserDash = () => {
         if (!window.confirm(`Are you sure you want to delete ${selectedAds.length} ad(s)?`)) {
             return;
         }
-        const token = localStorage.getItem('authToken');
-        try {
-            const deletePromises = selectedAds.map(adId =>
-                apiCall('deleteAd', { body: { id: adId }, token, base: 'new' })
-            );
-            await Promise.all(deletePromises);
-            alert('Ads deleted successfully!');
-            setSelectedAds([]);
-            fetchUserAds(token, profile);
-        } catch (err) {
-            alert('Error deleting ads. Please try again.');
-        }
+    // You may want to update localStorage here if you support ad deletion client-side
+    // For now, just remove from UI
+    const allAds = JSON.parse(localStorage.getItem('userAds') || '[]');
+    const remainingAds = allAds.filter(ad => !selectedAds.includes(ad.id || ad._id));
+    localStorage.setItem('userAds', JSON.stringify(remainingAds));
+    setUserAds(remainingAds.filter(ad => ad.posted_by === profile?.id));
+    setSelectedAds([]);
+    alert('Ads deleted from local view!');
     };
 
     const handleAdSelection = (adId) => {
@@ -168,12 +109,22 @@ const UserDash = () => {
 
     // Add the missing handleRefreshAds function
     const handleRefreshAds = () => {
-        const token = localStorage.getItem('authToken');
-        if (token && profile) {
-            fetchUserAds(token, profile);
-        } else {
-            console.error('Unable to refresh ads');
+        setLoading(true);
+        setError(null);
+        const storedProfile = localStorage.getItem('userProfile');
+        if (!storedProfile) {
+            setLoading(false);
+            setError('No user profile found. Please log in.');
+            return;
         }
+        const profileObj = JSON.parse(storedProfile);
+        setProfile(profileObj);
+        const allAds = JSON.parse(localStorage.getItem('userAds') || '[]');
+        const userAdsFiltered = Array.isArray(allAds)
+            ? allAds.filter(ad => ad.posted_by === profileObj.id)
+            : [];
+        setUserAds(userAdsFiltered);
+        setLoading(false);
     };
 
     if (loading) {
@@ -261,7 +212,7 @@ const UserDash = () => {
                                             Balance
                                         </label>
                                         <div className="mt-1 bg-gradient-to-r from-pink-500 to-blue-500 text-white px-3 py-2 rounded-md text-center font-bold">
-                                            ${profile?.localBalance?.toFixed(2) || '0.00'}
+                                            ${profile?.balance?.toFixed(2) || '0.00'}
                                         </div>
                                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                             Earned from watching ads
@@ -538,7 +489,6 @@ const UserDash = () => {
                             {showCreateAd && (
                                 <AddAdModal
                                     closeModal={() => setShowCreateAd(false)}
-                                    onSubmit={handleAdSubmit}
                                     onlyUrl={!isNewApi()}
                                     postedBy={profile?.email || ''}
                                     error={adModalError}

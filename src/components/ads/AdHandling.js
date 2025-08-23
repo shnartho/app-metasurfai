@@ -49,11 +49,12 @@ const AdHandler = () => {
         const fetchAds = async () => {
             try {
                 // Always use old API for ads
-                const adsData = await apiCall("ads", { base: 'old' });
+                const adsData = await apiCall("ads", { base: 'new' });
                 // Defensive: Only set ads if response is an array
                 if (Array.isArray(adsData)) {
-                    const sortedAds = adsData.sort((a, b) => b.token_reward - a.token_reward);
+                    const sortedAds = adsData.sort((a, b) => b.reward_per_view - a.reward_per_view);
                     setAds(sortedAds);
+                    localStorage.setItem('Ads', JSON.stringify(adsData));
                 } else {
                     setAds([]);
                 }

@@ -283,7 +283,7 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
             >
                 {activeForm === 'login' && <LoginForm onClose={() => setActiveForm(null)} onSwitchToSignup={() => setActiveForm('signup')} />}
                 {activeForm === 'signup' && <SignUpForm onSwitchToLogin={() => setActiveForm('login')} />}
-                {activeForm === 'ad' && <AddAdModal isOpen={true} onClose={() => setActiveForm(null)} />}
+                {activeForm === 'ad' && <AddAdModal isOpen={true} closeModal={() => setActiveForm(null)} />}
                 {activeForm === 'map' && <Glocation onClose={() => setActiveForm(null)} />}
             </ReactModal>
         </div>

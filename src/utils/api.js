@@ -5,22 +5,26 @@
 export const apiCall = async (action, { body = {}, token = '', headers = {}, base } = {}) => {
     try {
         let config;
-        // Special handling for file uploads
+        // Special handling for image uploads: send raw binary, not FormData
         if (body.file && (body.file instanceof File || body.file instanceof Blob)) {
-            const formData = new FormData();
-            formData.append('file', body.file, body.file.name);
-            // Add any extra fields if needed
-            if (body.fileName) formData.append('fileName', body.fileName);
-            if (body.contentType) formData.append('contentType', body.contentType);
-            // Add Authorization header if token is present
+            // Read the file as a Blob and send as raw binary
             const uploadHeaders = { ...headers };
             if (token && !uploadHeaders['Authorization']) {
-                uploadHeaders['Authorization'] = `Bearer ${token}`;
+                uploadHeaders['Authorization'] = `Bearer ${token.trim()}`;
+            }
+            if (!uploadHeaders['x-api-key']) {
+                uploadHeaders['x-api-key'] = process.env.API_KEY || '';
+            }
+            // Set Content-Type to the file's MIME type (e.g., image/jpeg)
+            if (body.file.type) {
+                uploadHeaders['Content-Type'] = body.file.type;
+            } else {
+                uploadHeaders['Content-Type'] = 'application/octet-stream';
             }
             config = {
-                method: 'POST',
-                headers: uploadHeaders, // Let browser set Content-Type for FormData
-                body: formData
+                method: 'PUT', // <-- CHANGE THIS FROM 'POST' TO 'PUT'
+                headers: uploadHeaders,
+                body: body.file
             };
         } else {
             config = {
