@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { apiCall } from "../../utils/api";
+import ScriptAd from "./ScriptAds";
+import { addScriptAdsToExistingAds } from "./ScriptAdUtils";
 
 const AdHandler = () => {
     const [ads, setAds] = useState([]);
@@ -55,14 +57,22 @@ const AdHandler = () => {
                 const adsData = await apiCall("ads", { base: 'new' });
                 // Defensive: Only set ads if response is an array
                 if (Array.isArray(adsData)) {
-                    const sortedAds = adsData.sort((a, b) => b.reward_per_view - a.reward_per_view);
+                    // Add script-based ads to the mix
+                    const combinedAds = addScriptAdsToExistingAds(adsData, 3);
+                    const sortedAds = combinedAds.sort((a, b) => b.reward_per_view - a.reward_per_view);
                     setAds(sortedAds);
-                    localStorage.setItem('Ads', JSON.stringify(adsData));
+                    localStorage.setItem('Ads', JSON.stringify(sortedAds));
                 } else {
-                    setAds([]);
+                    // If no ads from API, still create script ads
+                    const scriptAdsOnly = addScriptAdsToExistingAds([], 3);
+                    setAds(scriptAdsOnly);
+                    localStorage.setItem('Ads', JSON.stringify(scriptAdsOnly));
                 }
             } catch (error) {
-                setAds([]);
+                // Even on error, create script ads
+                const scriptAdsOnly = addScriptAdsToExistingAds([], 3);
+                setAds(scriptAdsOnly);
+                localStorage.setItem('Ads', JSON.stringify(scriptAdsOnly));
                 console.error("Error fetching ads:", error);
             }
         };
@@ -174,14 +184,22 @@ const AdHandler = () => {
         // Check if next ad is already watched
         const nextAd = ads[nextIndex];
         if (isAuthenticated && !isAdWatched(nextAd)) {
-            // Start fresh timer for unwatched ads
-            setTimeout(() => {
+            // Start fresh timer for unwatched ads (except script ads)
+            if (nextAd.type !== 'script') {
+                setTimeout(() => {
+                    remainingTimeRef.current = 10;
+                    setTimeLeft(10);
+                    setWatchProgress(0);
+                    startTimer();
+                    document.addEventListener("visibilitychange", handleVisibilityChange);
+                }, 100);
+            } else {
+                // For script ads, just prepare the timer
                 remainingTimeRef.current = 10;
                 setTimeLeft(10);
                 setWatchProgress(0);
-                startTimer();
                 document.addEventListener("visibilitychange", handleVisibilityChange);
-            }, 100);
+            }
         } else {
             // Already watched or not authenticated - show as complete
             setTimeLeft(0);
@@ -204,14 +222,22 @@ const AdHandler = () => {
         // Check if previous ad is already watched
         const prevAd = ads[prevIndex];
         if (isAuthenticated && !isAdWatched(prevAd)) {
-            // Start fresh timer for unwatched ads
-            setTimeout(() => {
+            // Start fresh timer for unwatched ads (except script ads)
+            if (prevAd.type !== 'script') {
+                setTimeout(() => {
+                    remainingTimeRef.current = 10;
+                    setTimeLeft(10);
+                    setWatchProgress(0);
+                    startTimer();
+                    document.addEventListener("visibilitychange", handleVisibilityChange);
+                }, 100);
+            } else {
+                // For script ads, just prepare the timer
                 remainingTimeRef.current = 10;
                 setTimeLeft(10);
                 setWatchProgress(0);
-                startTimer();
                 document.addEventListener("visibilitychange", handleVisibilityChange);
-            }, 100);
+            }
         } else {
             // Already watched or not authenticated - show as complete
             setTimeLeft(0);
@@ -230,14 +256,23 @@ const AdHandler = () => {
         setSelectedAd(ad);
         
         if (isAuthenticated && !isAdWatched(ad)) {
-            // Start timer for unwatched ads
-            setTimeout(() => {
+            // Start timer for unwatched ads (except script ads which start on load)
+            if (ad.type !== 'script') {
+                setTimeout(() => {
+                    remainingTimeRef.current = 10;
+                    setTimeLeft(10);
+                    setWatchProgress(0);
+                    startTimer();
+                    document.addEventListener("visibilitychange", handleVisibilityChange);
+                }, 100);
+            } else {
+                // For script ads, just set up the timer values, but don't start yet
+                // The timer will start when the script ad loads via the onLoad callback
                 remainingTimeRef.current = 10;
                 setTimeLeft(10);
                 setWatchProgress(0);
-                startTimer();
                 document.addEventListener("visibilitychange", handleVisibilityChange);
-            }, 100);
+            }
         } else {
             // Already watched or not authenticated - show appropriate state
             setTimeLeft(0);
@@ -536,12 +571,24 @@ const AdHandler = () => {
                                }}>
                                {/* Image Container with Fixed Aspect Ratio */}
                                <div className="ad-image-container">
-                                   <img
-                                       className="ad-image"
-                                       src={ad.image_url}
-                                       alt={ad.title}
-                                       loading="lazy"
-                                   />
+                                   {ad.type === 'script' ? (
+                                       <div className="script-ad-preview" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                           <div className="flex flex-col items-center justify-center text-center p-2">
+                                               <svg className="w-10 h-10 text-pink-500 dark:text-blue-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+                                               </svg>
+                                               <span className="font-medium">Interactive Ad</span>
+                                               <span className="text-xs mt-1 text-pink-500 dark:text-blue-400">Premium Content</span>
+                                           </div>
+                                       </div>
+                                   ) : (
+                                       <img
+                                           className="ad-image"
+                                           src={ad.image_url}
+                                           alt={ad.title}
+                                           loading="lazy"
+                                       />
+                                   )}
                                    {/* Gradient Overlay */}
                                    <div className="ad-overlay"></div>
                                    {/* Token Reward Badge */}
@@ -603,11 +650,23 @@ const AdHandler = () => {
                            <div className="shorts-content">
                                {/* Image */}
                                <div className="shorts-image-container">
-                                   <img
-                                       src={selectedAd.image_url}
-                                       alt={selectedAd.title}
-                                       className="shorts-image"
-                                   />
+                                   {selectedAd.type === 'script' ? (
+                                       <ScriptAd 
+                                           adData={selectedAd} 
+                                           onLoad={() => {
+                                               // When script ad loads, consider it as started watching
+                                               if (isAuthenticated && !isAdWatched(selectedAd)) {
+                                                   startTimer();
+                                               }
+                                           }}
+                                       />
+                                   ) : (
+                                       <img
+                                           src={selectedAd.image_url}
+                                           alt={selectedAd.title}
+                                           className="shorts-image"
+                                       />
+                                   )}
                                </div>
 
                                {/* Side Controls */}
@@ -688,6 +747,19 @@ const AdHandler = () => {
                                                                >
                                                                    Visit Site for 10s to Earn Reward
                                                                </button>
+                                                           </div>
+                                                       )}
+                                                       
+                                                       {/* Script ad specific message */}
+                                                       {selectedAd.type === 'script' && timeLeft > 0 && (
+                                                           <div className="script-ad-message mt-3 p-3 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-lg text-sm text-center">
+                                                               <div className="flex items-center justify-center mb-1">
+                                                                   <svg className="w-4 h-4 mr-1 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                                                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                                   </svg>
+                                                                   <span className="font-semibold">Premium Interactive Content</span>
+                                                               </div>
+                                                               View for 10 seconds to earn your reward
                                                            </div>
                                                        )}
                                                        
