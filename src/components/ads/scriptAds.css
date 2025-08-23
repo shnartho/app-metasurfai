@@ -1,0 +1,73 @@
+/* Script Ad Styles */
+.script-ad-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 250px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.script-ad-frame {
+    position: relative;
+    width: 300px;
+    height: 250px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.loading-ad {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    font-size: 14px;
+    color: #6c757d;
+    text-align: center;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.script-ad-preview {
+    background: linear-gradient(45deg, #f3f4f6, #e5e7eb);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.script-ad-preview:hover {
+    transform: scale(1.02);
+}
+
+.script-ad-message {
+    animation: fadeInOut 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.6;
+    }
+}
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 0.7;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.7;
+    }
+}
