@@ -1,26 +1,38 @@
 import React, { useState } from 'react';
 import { apiCall } from '../../utils/api';
 
-const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy = '', error: propError }) => {
+const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy: initialPostedBy = '', error: propError }) => {
     const [title, setTitle] = useState('');
     const [imageUrl, setImageUrl] = useState('');
     const [imageFile, setImageFile] = useState(null);
     const [description, setDescription] = useState('');
     const [region, setRegion] = useState('');
-    const [tokenReward, setTokenReward] = useState(0);
-    const [maxViews, setMaxViews] = useState(0);
+    const [rewardPerView, setRewardPerView] = useState(0);
+    const [budget, setBudget] = useState(0);
     const [error, setError] = useState(propError || '');
+    const userProfile = (() => { try { return JSON.parse(localStorage.getItem('userProfile')); } catch { return null; } })();
+    const defaultPostedBy = userProfile?.email || initialPostedBy;
+    const [postedBy, setPostedBy] = useState(defaultPostedBy);
 
     const isNewApi = (process.env.NEXT_PUBLIC_USE_NEW_API === 'true');
 
     const handleFileChange = (e) => {
         setImageFile(e.target.files[0]);
-        setImageUrl('');
+        setImageUrl(''); // Disable URL if file is chosen
     };
+
+    const handleRemoveFile = () => {
+        setImageFile(null);
+        // Also clear the file input value
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
+    // Ref for file input to clear it programmatically
+    const fileInputRef = React.useRef();
 
     const handleUrlChange = (e) => {
         setImageUrl(e.target.value);
-        setImageFile(null); // Clear file if URL is entered
+        setImageFile(null); // Disable file if URL is entered
     };
 
     const handleSubmit = async (event) => {
@@ -33,67 +45,36 @@ const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy = '', erro
         try {
             const token = localStorage.getItem('authToken');
             let image_url = imageUrl;
-            const base = isNewApi() ? 'new' : 'old';
-            if (isNewApi()) {
-                // New API logic: file upload or URL
-                if (imageFile) {
-                    // 1. Upload image
-                    await apiCall('uploadImage', {
-                        body: { file: imageFile },
-                        token,
-                        base
-                    });
-                    // 2. Get presigned URLs
-                    const imagesRes = await apiCall('getImages', {
-                        token,
-                        base
-                    });
-                    // 3. Find the most recent image with a presigned_url
-                    if (imagesRes && Array.isArray(imagesRes.images) && imagesRes.images.length > 0) {
-                        const lastImage = imagesRes.images[imagesRes.images.length - 1];
-                        image_url = lastImage.presigned_url || lastImage.url || lastImage.image_url;
-                    } else {
-                        throw new Error('Image upload succeeded but no presigned URL found.');
-                    }
+            const base = isNewApi ? 'new' : 'old';
+            if (isNewApi && imageFile) {
+                // Upload image and use image_url from response
+                const uploadRes = await apiCall('uploadImage', {
+                    body: { file: imageFile },
+                    token,
+                    base
+                });
+                if (uploadRes && uploadRes.image_url) {
+                    image_url = uploadRes.image_url;
+                } else {
+                    throw new Error('Image upload succeeded but no image_url returned.');
                 }
-                // 4. Create ad (new API)
-                const adData = {
-                    title,
-                    image_url,
-                    description,
-                    posted_by: postedBy,
-                    active: true,
-                    max_views: maxViews,
-                    region,
-                    token_reward: tokenReward
-                };
-                await apiCall('createAd', {
-                    body: adData,
-                    token,
-                    base
-                });
-                if (onSubmit) await onSubmit(adData);
-                closeModal();
-            } else {
-                // Old API logic: just post ad data as JSON, ignore file
-                const adData = {
-                    title,
-                    image_url: imageUrl, // Only use URL, not file
-                    description,
-                    posted_by: postedBy,
-                    active: true,
-                    max_views: maxViews,
-                    region,
-                    token_reward: tokenReward
-                };
-                await apiCall('createAd', {
-                    body: adData,
-                    token,
-                    base
-                });
-                if (onSubmit) await onSubmit(adData);
-                closeModal();
             }
+            // Always send correct fields for new API
+            const adData = {
+                title,
+                image_url,
+                description,
+                region,
+                budget: Number(budget),
+                reward_per_view: Number(rewardPerView)
+            };
+            await apiCall('createAd', {
+                body: adData,
+                token,
+                base
+            });
+            if (onSubmit) await onSubmit(adData);
+            closeModal();
         } catch (err) {
             setError(err.message || 'Error creating ad.');
         }
@@ -115,16 +96,35 @@ const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy = '', erro
                                 required
                             />
                         </div>
-                        {isNewApi() ? (
+                        {isNewApi ? (
                             <>
                                 <div className="mb-4">
                                     <label className="block text-gray-100">Image File:</label>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleFileChange}
-                                        className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
-                                    />
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleFileChange}
+                                            className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
+                                            disabled={!!imageUrl}
+                                            ref={fileInputRef}
+                                        />
+                                        {imageFile && (
+                                            <button
+                                                type="button"
+                                                onClick={handleRemoveFile}
+                                                className="ml-2 text-red-500 text-lg font-bold focus:outline-none"
+                                                title="Remove file"
+                                            >
+                                                ×
+                                            </button>
+                                        )}
+                                    </div>
+                                    {imageFile && (
+                                        <div className="text-xs text-gray-300 mt-1 flex items-center">
+                                            <span>{imageFile.name}</span>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="mb-4">
                                     <label className="block text-gray-100">Or Image URL:</label>
@@ -134,6 +134,7 @@ const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy = '', erro
                                         onChange={handleUrlChange}
                                         className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
                                         placeholder="https://..."
+                                        disabled={!!imageFile}
                                     />
                                 </div>
                             </>
@@ -166,7 +167,27 @@ const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy = '', erro
                             <input
                                 type="text"
                                 value={postedBy}
-                                onChange={(e) => setPostedBy(e.target.value)}
+                                readOnly
+                                className="form-input mt-1 block w-full pl-2 border border-black text-black bg-gray-200 dark:bg-gray-800 dark:text-white cursor-not-allowed opacity-70"
+                                required
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-100">Budget:</label>
+                            <input
+                                type="number"
+                                value={budget}
+                                onChange={(e) => setBudget(Number(e.target.value))}
+                                className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
+                                required
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-100">Reward Per View:</label>
+                            <input
+                                type="number"
+                                value={rewardPerView}
+                                onChange={(e) => setRewardPerView(Number(e.target.value))}
                                 className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
                                 required
                             />
@@ -175,10 +196,9 @@ const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy = '', erro
                             <label className="block text-gray-100">Max Views:</label>
                             <input
                                 type="number"
-                                value={maxViews}
-                                onChange={(e) => setMaxViews(Number(e.target.value))}
-                                className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
-                                required
+                                value={rewardPerView > 0 ? Math.floor(Number(budget) / Number(rewardPerView)) : 0}
+                                readOnly
+                                className="form-input mt-1 block w-full pl-2 border border-black text-black bg-gray-200 dark:bg-gray-800 dark:text-white cursor-not-allowed opacity-70"
                             />
                         </div>
                         <div className="mb-4">
@@ -187,16 +207,6 @@ const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy = '', erro
                                 type="text"
                                 value={region}
                                 onChange={(e) => setRegion(e.target.value)}
-                                className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
-                                required
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-100">Token Reward:</label>
-                            <input
-                                type="number"
-                                value={tokenReward}
-                                onChange={(e) => setTokenReward(Number(e.target.value))}
                                 className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
                                 required
                             />
