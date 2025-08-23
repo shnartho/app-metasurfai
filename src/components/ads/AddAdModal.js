@@ -9,6 +9,8 @@ const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy: initialPo
     const [region, setRegion] = useState('');
     const [rewardPerView, setRewardPerView] = useState(0);
     const [budget, setBudget] = useState(0);
+    const [adType, setAdType] = useState('native'); // Default to native
+    const [redirectionLink, setRedirectionLink] = useState('');
     const [error, setError] = useState(propError || '');
     const userProfile = (() => { try { return JSON.parse(localStorage.getItem('userProfile')); } catch { return null; } })();
     const defaultPostedBy = userProfile?.email || initialPostedBy;
@@ -41,6 +43,10 @@ const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy: initialPo
             setError('Please provide an image file or image URL.');
             return;
         }
+        if (adType === 'redirect' && !redirectionLink) {
+            setError('Please provide a redirection link for redirect ads.');
+            return;
+        }
         setError('');
         try {
             const token = localStorage.getItem('authToken');
@@ -66,7 +72,9 @@ const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy: initialPo
                 description,
                 region,
                 budget: Number(budget),
-                reward_per_view: Number(rewardPerView)
+                reward_per_view: Number(rewardPerView),
+                type: adType,
+                redirection_link: adType === 'redirect' ? redirectionLink : null
             };
             await apiCall('createAd', {
                 body: adData,
@@ -211,6 +219,46 @@ const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy: initialPo
                                 required
                             />
                         </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-100 mb-2">Ad Type:</label>
+                            <div className="flex items-center space-x-4">
+                                <label className="inline-flex items-center">
+                                    <input
+                                        type="radio"
+                                        name="adType"
+                                        value="native"
+                                        checked={adType === 'native'}
+                                        onChange={() => setAdType('native')}
+                                        className="form-radio"
+                                    />
+                                    <span className="ml-2 text-gray-100">Native</span>
+                                </label>
+                                <label className="inline-flex items-center">
+                                    <input
+                                        type="radio"
+                                        name="adType"
+                                        value="redirect"
+                                        checked={adType === 'redirect'}
+                                        onChange={() => setAdType('redirect')}
+                                        className="form-radio"
+                                    />
+                                    <span className="ml-2 text-gray-100">Redirect</span>
+                                </label>
+                            </div>
+                        </div>
+                        {adType === 'redirect' && (
+                            <div className="mb-4">
+                                <label className="block text-gray-100">Redirection Link:</label>
+                                <input
+                                    type="text"
+                                    value={redirectionLink}
+                                    onChange={(e) => setRedirectionLink(e.target.value)}
+                                    className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
+                                    placeholder="https://..."
+                                    required={adType === 'redirect'}
+                                />
+                            </div>
+                        )}
                         <div className="flex justify-end">
                             <button type="button" onClick={closeModal} className="mr-4 px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded">Cancel</button>
                             <button type="submit" className="px-4 py-2 bg-pink-600 dark:bg-blue-600 text-white rounded">Upload</button>
