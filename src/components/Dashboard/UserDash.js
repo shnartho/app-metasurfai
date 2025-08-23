@@ -61,65 +61,7 @@ const UserDash = () => {
             : [];
         setUserAds(userAdsFiltered);
         setLoading(false);
-    }, [navigate]);
-
-    // Universal ad submit handler
-    const handleAdSubmit = async (adData) => {
-        setAdModalError('');
-        const token = localStorage.getItem('authToken');
-        if (!token || !profile) {
-            setAdModalError('Authentication required. Please login.');
-            return;
-        }
-        try {
-            let imageUrl = adData.image_url;
-            // If using new API and file is provided, upload image first
-            if (isNewApi && adData.image_file) {
-                const uploadRes = await apiCall('uploadImage', {
-                    body: { file: adData.image_file },
-                    token,
-                    base: 'new'
-                });
-                imageUrl = uploadRes.url || uploadRes.image_url;
-                if (!imageUrl) throw new Error('Image upload failed');
-            }
-            // For old API, only allow image_url
-            if (!isNewApi() && !imageUrl) {
-                setAdModalError('Image URL is required for the current API.');
-                return;
-            }
-            // Compose ad payload
-            const payload = {
-                title: adData.title,
-                image_url: imageUrl,
-                description: adData.description,
-                posted_by: profile.email,
-                max_views: parseInt(adData.max_views),
-                region: adData.region,
-                token_reward: parseFloat(adData.token_reward),
-                view_count: 0,
-                active: true
-            };
-            await apiCall('createAd', {
-                body: payload,
-                token,
-                base: isNewApi() ? 'new' : 'old'
-            });
-            alert('Ad created successfully!');
-            setShowCreateAd(false);
-            // Refresh ads from localStorage after ad creation
-            const allAds = JSON.parse(localStorage.getItem('userAds') || '[]');
-            const userAdsFiltered = Array.isArray(allAds)
-                ? allAds.filter(ad => ad.posted_by === profile.id)
-                : [];
-            setUserAds(userAdsFiltered);
-        } catch (err) {
-            setAdModalError(err.message || 'Error creating ad. Please try again.');
-        }
-    };
-
-    // fetchUserAds is no longer needed and has been removed.
-    
+    }, [navigate]); 
 
     const handleDeleteSelectedAds = async () => {
         if (selectedAds.length === 0) {
@@ -270,7 +212,7 @@ const UserDash = () => {
                                             Balance
                                         </label>
                                         <div className="mt-1 bg-gradient-to-r from-pink-500 to-blue-500 text-white px-3 py-2 rounded-md text-center font-bold">
-                                            ${profile?.localBalance?.toFixed(2) || '0.00'}
+                                            ${profile?.balance?.toFixed(2) || '0.00'}
                                         </div>
                                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                             Earned from watching ads
@@ -547,7 +489,6 @@ const UserDash = () => {
                             {showCreateAd && (
                                 <AddAdModal
                                     closeModal={() => setShowCreateAd(false)}
-                                    onSubmit={handleAdSubmit}
                                     onlyUrl={!isNewApi()}
                                     postedBy={profile?.email || ''}
                                     error={adModalError}
