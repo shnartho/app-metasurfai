@@ -130,7 +130,7 @@ const apiMapNew = {
             image_url: body.image_url, 
             description: body.description, 
             region: body.region, 
-            budget: body.max_views * body.token_reward, // Calculate budget from max_views * token_reward
+            budget: body.budget, // Calculate budget from max_views * token_reward
             reward_per_view: body.token_reward,
             type: body.type
         })
