@@ -578,7 +578,7 @@ const AdHandler = () => {
                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
                                                </svg>
                                                <span className="font-medium">Interactive Ad</span>
-                                               <span className="text-xs mt-1 text-pink-500 dark:text-blue-400">Premium Content</span>
+                                               <span className="text-xs mt-1">Click to view</span>
                                            </div>
                                        </div>
                                    ) : (
@@ -752,13 +752,7 @@ const AdHandler = () => {
                                                        
                                                        {/* Script ad specific message */}
                                                        {selectedAd.type === 'script' && timeLeft > 0 && (
-                                                           <div className="script-ad-message mt-3 p-3 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-lg text-sm text-center">
-                                                               <div className="flex items-center justify-center mb-1">
-                                                                   <svg className="w-4 h-4 mr-1 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                                                                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                                                   </svg>
-                                                                   <span className="font-semibold">Premium Interactive Content</span>
-                                                               </div>
+                                                           <div className="script-ad-message mt-3 p-2 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-lg text-sm text-center">
                                                                View for 10 seconds to earn your reward
                                                            </div>
                                                        )}

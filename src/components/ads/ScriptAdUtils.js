@@ -24,23 +24,23 @@ export const generateScriptAds = (count = 3) => {
         // Create different ad titles and descriptions for variety
         const adTypes = [
             {
-                title: "Premium Interactive Ad",
-                description: "Sponsored interactive content with rewards"
+                title: "Interactive Ad 1",
+                description: "Interactive advertisement with rewards"
             },
             {
-                title: "Featured Sponsor Content",
-                description: "Special partner advertisement with bonus rewards"
+                title: "Interactive Ad 2",
+                description: "Interactive advertisement with rewards"
             },
             {
-                title: "Promotional Showcase",
-                description: "Exclusive promotional content from our sponsors"
+                title: "Interactive Ad 3",
+                description: "Interactive advertisement with rewards"
             }
         ];
         
         // Use the predefined ad content or fallback if index is out of bounds
         const adContent = index < adTypes.length 
             ? adTypes[index] 
-            : { title: `Script Ad ${index + 1}`, description: 'Sponsored advertisement with rewards' };
+            : { title: `Interactive Ad ${index + 1}`, description: 'Interactive advertisement with rewards' };
             
         return {
             id: `script-ad-${Date.now()}-${index}`,
@@ -50,12 +50,12 @@ export const generateScriptAds = (count = 3) => {
             type: 'script',
             script: scriptAdTemplate,
             image_url: 'https://via.placeholder.com/300x250?text=Interactive+Ad',
-            token_reward: 0.5 + (Math.random() * 0.5), // Random reward between 0.5 and 1.0
+            token_reward: 0.05, // Fixed reward amount
             region: 'Global',
             posted_by: 'Advertising Network',
             view_count: Math.floor(Math.random() * 1000), // Random view count
             budget: 1000,
-            reward_per_view: 0.5
+            reward_per_view: 0.05
         };
     });
 };
