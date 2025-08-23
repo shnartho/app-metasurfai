@@ -284,24 +284,65 @@ const AdHandler = () => {
         }
 
         try {
+            // Update local UI first (optimistic)
             const newBalance = (userProfile.localBalance || 0) + selectedAd.token_reward;
             const updatedProfile = {
                 ...userProfile,
                 localBalance: newBalance
             };
-            
+
             const newWatchedAds = new Set(watchedAds);
             newWatchedAds.add(adId);
-            
+
             setUserProfile(updatedProfile);
             setWatchedAds(newWatchedAds);
-            
+
             localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
             localStorage.setItem('watchedAds', JSON.stringify([...newWatchedAds]));
-            
+
+            // Call backend to update user balance
+            try {
+                const token = localStorage.getItem('authToken') || '';
+                // apiMapNew.updateBalance expects body.amount -> will be transformed
+                const balanceResp = await apiCall('updateBalance', { body: { amount: selectedAd.token_reward }, token, base: 'new' });
+                // If backend returns a balance, sync it
+                if (balanceResp && (balanceResp.balance !== undefined || balanceResp.newBalance !== undefined)) {
+                    const serverBalance = balanceResp.balance !== undefined ? balanceResp.balance : balanceResp.newBalance;
+                    const syncedProfile = { ...updatedProfile, localBalance: parseFloat(serverBalance) };
+                    setUserProfile(syncedProfile);
+                    localStorage.setItem('userProfile', JSON.stringify(syncedProfile));
+                }
+            } catch (err) {
+                console.error('Failed to update balance on server:', err);
+                // Don't block user from receiving the local reward; optionally notify
+            }
+
+            // Call backend to increment ad view_count
+            try {
+                const token = localStorage.getItem('authToken') || '';
+                const currentViewCount = (selectedAd.view_count || selectedAd.views || 0);
+                const updates = { view_count: currentViewCount + 1 };
+                await apiCall('updateAd', { body: { id: adId, updates }, token, base: 'new' });
+
+                // Update local ads state to reflect incremented view_count
+                setAds(prev => {
+                    if (!Array.isArray(prev)) return prev;
+                    return prev.map(a => {
+                        const idA = a.id || a._id;
+                        if (idA === adId) {
+                            return { ...a, view_count: (a.view_count || a.views || 0) + 1 };
+                        }
+                        return a;
+                    });
+                });
+            } catch (err) {
+                console.error('Failed to update ad view_count on server:', err);
+                // Non-fatal
+            }
+
             // Show reward notification
             showRewardNotification(selectedAd.token_reward, newBalance);
-            
+
             // Auto-navigate to next ad after 1.5 seconds
             setTimeout(() => {
                 goToNextAd();
@@ -314,7 +355,7 @@ const AdHandler = () => {
     };
 
     // Show reward notification
-    const showRewardNotification = (reward, newBalance) => {
+    const showRewardNotification = (reward/*, newBalance - kept for compatibility */) => {
         const notification = document.createElement('div');
         notification.className = 'fixed top-4 right-4 z-[60] bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-500';
         notification.innerHTML = `
@@ -324,7 +365,6 @@ const AdHandler = () => {
                 </svg>
                 <div>
                     <div class="font-bold">+$${reward} Earned!</div>
-                    <div class="text-sm">Balance: $${newBalance.toFixed(2)}</div>
                 </div>
             </div>
         `;
