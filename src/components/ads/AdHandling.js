@@ -17,6 +17,9 @@ const AdHandler = () => {
     const countdownRef = useRef(null);
     const startTimeRef = useRef(null);
     const remainingTimeRef = useRef(10);
+    const redirectTimeoutRef = useRef(null);
+    const redirectStartTimeRef = useRef(null);
+    const wasRedirectedRef = useRef(false);
 
     // Check authentication status
     useEffect(() => {
@@ -248,7 +251,22 @@ const AdHandler = () => {
             if (countdownRef.current) {
                 clearInterval(countdownRef.current);
             }
+            if (redirectTimeoutRef.current) {
+                clearTimeout(redirectTimeoutRef.current);
+            }
             document.removeEventListener("visibilitychange", handleVisibilityChange);
+            // Extra cleanup to handle any potential redirect visibility handlers
+            const cleanupRedirectHandlers = () => {
+                const clone = document.addEventListener;
+                document.addEventListener = function(type, listener, options) {
+                    if (type === "visibilitychange" && 
+                        listener.toString().includes("wasRedirectedRef")) {
+                        document.removeEventListener(type, listener);
+                    }
+                    return clone.apply(this, arguments);
+                };
+            };
+            cleanupRedirectHandlers();
         };
     }, []);
 
@@ -382,12 +400,92 @@ const AdHandler = () => {
             }, 500);
         }, 3000);
     };
+    
+    // Show redirect notification
+    const showRedirectNotification = (message, isSuccess = true) => {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-[60] bg-gradient-to-r ${isSuccess ? 'from-blue-500 to-pink-500' : 'from-red-500 to-yellow-500'} text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-500`;
+        notification.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    ${isSuccess 
+                        ? '<path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />'
+                        : '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />'
+                    }
+                </svg>
+                <div>
+                    <div class="font-bold">${message}</div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 100);
+        
+        setTimeout(() => {
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 500);
+        }, 5000);
+    };
 
-    // Close modal
     const closeModal = () => {
         resetTimer();
         document.removeEventListener("visibilitychange", handleVisibilityChange);
         setSelectedAd(null);
+    };
+
+    // Handle redirect for redirect-type ads
+    const handleRedirect = (url) => {
+        if (!url || !selectedAd || !isAuthenticated || watchedAds.has(selectedAd.id || selectedAd._id)) {
+            return;
+        }
+
+        // Set redirect flag
+        wasRedirectedRef.current = true;
+        redirectStartTimeRef.current = Date.now();
+        
+        // Pause current timer if running
+        stopTimer();
+
+        // Open the redirect URL
+        window.open(url, '_blank');
+
+        // Show notification to user
+        showRedirectNotification('Stay on the site for 10 seconds to earn reward!', true);
+
+        // Set a visibility change handler specifically for redirect
+        const handleRedirectVisibility = () => {
+            if (!document.hidden && wasRedirectedRef.current) {
+                // User returned to the site
+                const timeSpent = Math.floor((Date.now() - redirectStartTimeRef.current) / 1000);
+                
+                if (timeSpent >= 10) {
+                    // They stayed long enough, mark as completed and reward
+                    wasRedirectedRef.current = false;
+                    document.removeEventListener("visibilitychange", handleRedirectVisibility);
+                    setTimeLeft(0);
+                    setWatchProgress(100);
+                    setTimeout(() => {
+                        claimLocalRewardAndNext();
+                    }, 500);
+                } else {
+                    // They returned too early
+                    wasRedirectedRef.current = false;
+                    document.removeEventListener("visibilitychange", handleRedirectVisibility);
+                    showRedirectNotification(`You need to stay on the site for 10 seconds to earn rewards! You only stayed for ${timeSpent} seconds.`, false);
+                    
+                    // Resume the normal timer
+                    startTimer();
+                }
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleRedirectVisibility);
     };
 
     // Add this useEffect for scroll animations
@@ -580,6 +678,18 @@ const AdHandler = () => {
                                                                Earn ${selectedAd.token_reward}
                                                            </span>
                                                        </div>
+                                                       
+                                                       {/* Redirect button for redirect-type ads */}
+                                                       {selectedAd.type === 'redirect' && selectedAd.redirection_link && timeLeft > 0 && (
+                                                           <div className="action-buttons mt-3">
+                                                               <button 
+                                                                   onClick={() => handleRedirect(selectedAd.redirection_link)}
+                                                                   className="redirect-btn bg-gradient-to-r from-pink-500 to-blue-500 text-white font-bold py-2 px-4 rounded-full w-full transition-all duration-300 hover:from-blue-500 hover:to-pink-500"
+                                                               >
+                                                                   Visit Site for 10s to Earn Reward
+                                                               </button>
+                                                           </div>
+                                                       )}
                                                        
                                                        {timeLeft === 0 && (
                                                            <div className="action-buttons">
