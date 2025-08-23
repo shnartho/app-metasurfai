@@ -651,15 +651,19 @@ const AdHandler = () => {
                                {/* Image */}
                                <div className="shorts-image-container">
                                    {selectedAd.type === 'script' ? (
-                                       <ScriptAd 
-                                           adData={selectedAd} 
-                                           onLoad={() => {
-                                               // When script ad loads, consider it as started watching
-                                               if (isAuthenticated && !isAdWatched(selectedAd)) {
-                                                   startTimer();
-                                               }
-                                           }}
-                                       />
+                                       <div className="w-full h-full flex items-center justify-center bg-black">
+                                           <div className="script-ad-wrapper" style={{ maxWidth: '100%', width: '400px', margin: '0 auto' }}>
+                                               <ScriptAd 
+                                                   adData={selectedAd} 
+                                                   onLoad={() => {
+                                                       // When script ad loads, consider it as started watching
+                                                       if (isAuthenticated && !isAdWatched(selectedAd)) {
+                                                           startTimer();
+                                                       }
+                                                   }}
+                                               />
+                                           </div>
+                                       </div>
                                    ) : (
                                        <img
                                            src={selectedAd.image_url}

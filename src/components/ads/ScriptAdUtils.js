@@ -8,6 +8,7 @@
  * @returns {Array} Array of script ad objects
  */
 export const generateScriptAds = (count = 3) => {
+    // Use the exact script code format provided - don't modify it
     const scriptAdTemplate = `<script type="text/javascript">
     atOptions = {
         'key' : '1b8a0dcbc010cae9ecd999e98b6f9809',
