@@ -103,7 +103,7 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                 {isAuthenticated && userProfile && (
                     <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full px-2 py-1 space-x-2">
                         <span className="font-medium text-gray-800 dark:text-gray-200">
-                            {userProfile.localBalance?.toFixed(2) || '0.00'}
+                            {userProfile.Balance?.toFixed(2) || '0.00'}
                         </span>
                         <div className='buttonn mbtns flex items-center justify-center transform hover:scale-110 transition-all duration-200 cursor-default'>
                             <span className="hoverEffect">
