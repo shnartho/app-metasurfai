@@ -55,13 +55,15 @@ const UserDash = () => {
         }
         const profileObj = JSON.parse(storedProfile);
         setProfile(profileObj);
-        const allAds = JSON.parse(localStorage.getItem('userAds') || '[]');
+        const allAds = JSON.parse(storedAds || '[]');
         const userAdsFiltered = Array.isArray(allAds)
-            ? allAds.filter(ad => ad.posted_by === profileObj.id)
+            ? allAds.filter(ad => {
+                return ad.posted_by === profileObj.id;
+            })
             : [];
         setUserAds(userAdsFiltered);
         setLoading(false);
-    }, [navigate]); 
+    }, [navigate]);
 
     const handleDeleteSelectedAds = async () => {
         if (selectedAds.length === 0) {
@@ -71,14 +73,68 @@ const UserDash = () => {
         if (!window.confirm(`Are you sure you want to delete ${selectedAds.length} ad(s)?`)) {
             return;
         }
-    // You may want to update localStorage here if you support ad deletion client-side
-    // For now, just remove from UI
-    const allAds = JSON.parse(localStorage.getItem('userAds') || '[]');
-    const remainingAds = allAds.filter(ad => !selectedAds.includes(ad.id || ad._id));
-    localStorage.setItem('userAds', JSON.stringify(remainingAds));
-    setUserAds(remainingAds.filter(ad => ad.posted_by === profile?.id));
-    setSelectedAds([]);
-    alert('Ads deleted from local view!');
+
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        
+        try {
+            // Delete each selected ad from the API
+            const deletePromises = selectedAds.map(async (adId) => {
+                try {
+                    const response = await apiCall('deleteAd', { id: adId }, token);
+                    console.log(`Ad ${adId} deleted successfully:`, response);
+                    return { success: true, id: adId };
+                } catch (error) {
+                    console.error(`Failed to delete ad ${adId}:`, error);
+                    return { success: false, id: adId, error };
+                }
+            });
+
+            const deleteResults = await Promise.all(deletePromises);
+            const successfulDeletes = deleteResults.filter(result => result.success);
+            const failedDeletes = deleteResults.filter(result => !result.success);
+
+            if (failedDeletes.length > 0) {
+                console.error('Some deletions failed:', failedDeletes);
+                alert(`${successfulDeletes.length} ads deleted successfully, ${failedDeletes.length} failed.`);
+            } else {
+                alert(`All ${successfulDeletes.length} ads deleted successfully!`);
+            }
+
+            // Refresh ads from API to sync localStorage
+            await refreshAdsFromApi();
+            
+        } catch (error) {
+            console.error('Error during deletion process:', error);
+            alert('Error occurred during deletion. Please try again.');
+        } finally {
+            setSelectedAds([]);
+            setLoading(false);
+        }
+    };
+
+    // Function to refresh ads from API and sync localStorage
+    const refreshAdsFromApi = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await apiCall('ads', {}, token);
+            
+            if (response && Array.isArray(response)) {
+                // Update localStorage with fresh data from API
+                localStorage.setItem('Ads', JSON.stringify(response));
+                
+                // Filter user's ads
+                const userAdsFiltered = response.filter(ad => ad.posted_by === profile?.id);
+                setUserAds(userAdsFiltered);
+                
+                console.log('Ads refreshed from API:', response.length, 'total ads');
+                console.log('User ads filtered:', userAdsFiltered.length, 'user ads');
+            }
+        } catch (error) {
+            console.error('Error refreshing ads from API:', error);
+            // If API call fails, fall back to localStorage filtering
+            handleRefreshAds();
+        }
     };
 
     const handleAdSelection = (adId) => {
@@ -103,28 +159,36 @@ const UserDash = () => {
     const handleLogout = () => {
         localStorage.removeItem('authToken');
         localStorage.removeItem('userProfile');
-        navigate('/');
         window.location.reload();
+        navigate('/');
+    };
+
+    const handleAdCreated = async () => {
+        setShowCreateAd(false);
+        await refreshAdsFromApi();
     };
 
     // Add the missing handleRefreshAds function
-    const handleRefreshAds = () => {
-        setLoading(true);
-        setError(null);
-        const storedProfile = localStorage.getItem('userProfile');
-        if (!storedProfile) {
-            setLoading(false);
-            setError('No user profile found. Please log in.');
-            return;
+    const handleRefreshAds = async () => {
+        // Try to refresh from API first, fall back to localStorage if needed
+        await refreshAdsFromApi();
+    };
+
+    // Function to update an ad via API
+    const updateAd = async (adId, updates) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await apiCall('updateAd', { id: adId, updates }, token);
+            console.log('Ad updated successfully:', response);
+            
+            // Refresh ads from API to sync localStorage
+            await refreshAdsFromApi();
+            
+            return response;
+        } catch (error) {
+            console.error('Error updating ad:', error);
+            throw error;
         }
-        const profileObj = JSON.parse(storedProfile);
-        setProfile(profileObj);
-        const allAds = JSON.parse(localStorage.getItem('userAds') || '[]');
-        const userAdsFiltered = Array.isArray(allAds)
-            ? allAds.filter(ad => ad.posted_by === profileObj.id)
-            : [];
-        setUserAds(userAdsFiltered);
-        setLoading(false);
     };
 
     if (loading) {
@@ -489,6 +553,7 @@ const UserDash = () => {
                             {showCreateAd && (
                                 <AddAdModal
                                     closeModal={() => setShowCreateAd(false)}
+                                    onAdCreated={handleAdCreated}
                                     onlyUrl={!isNewApi()}
                                     postedBy={profile?.email || ''}
                                     error={adModalError}

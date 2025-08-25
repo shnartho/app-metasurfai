@@ -9,6 +9,8 @@ const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy: initialPo
     const [region, setRegion] = useState('');
     const [rewardPerView, setRewardPerView] = useState(0);
     const [budget, setBudget] = useState(0);
+    const [adType, setAdType] = useState('native'); // Default to native
+    const [redirectionLink, setRedirectionLink] = useState('');
     const [error, setError] = useState(propError || '');
     const userProfile = (() => { try { return JSON.parse(localStorage.getItem('userProfile')); } catch { return null; } })();
     const defaultPostedBy = userProfile?.email || initialPostedBy;
@@ -41,6 +43,10 @@ const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy: initialPo
             setError('Please provide an image file or image URL.');
             return;
         }
+        if (adType === 'redirect' && !redirectionLink) {
+            setError('Please provide a redirection link for redirect ads.');
+            return;
+        }
         setError('');
         try {
             const token = localStorage.getItem('authToken');
@@ -66,7 +72,9 @@ const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy: initialPo
                 description,
                 region,
                 budget: Number(budget),
-                reward_per_view: Number(rewardPerView)
+                reward_per_view: Number(rewardPerView),
+                type: adType,
+                redirection_link: adType === 'redirect' ? redirectionLink : null
             };
             await apiCall('createAd', {
                 body: adData,
@@ -86,58 +94,73 @@ const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy: initialPo
                 <div className="p-6 rounded-lg shadow-lg w-full max-w-3xl mx-4 border-2 border-opacity-50 border-pink-600 dark:border-blue-600 bg-gray-900 text-gray-100">
                     <h2 className="text-2xl font-bold mb-4">Upload Your Ad</h2>
                     <form onSubmit={handleSubmit}>
-                        <div className="mb-4">
-                            <label className="block text-gray-100">Title:</label>
-                            <input
-                                type="text"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
-                                required
-                            />
+                        {/* Title and Posted By in one row */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label className="block text-gray-100">Title:</label>
+                                <input
+                                    type="text"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-gray-100">Posted By:</label>
+                                <input
+                                    type="text"
+                                    value={postedBy}
+                                    readOnly
+                                    className="form-input mt-1 block w-full pl-2 border border-black text-black bg-gray-200 dark:bg-gray-800 dark:text-white cursor-not-allowed opacity-70"
+                                    required
+                                />
+                            </div>
                         </div>
                         {isNewApi ? (
-                            <>
-                                <div className="mb-4">
-                                    <label className="block text-gray-100">Image File:</label>
-                                    <div className="flex items-center gap-2">
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleFileChange}
-                                            className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
-                                            disabled={!!imageUrl}
-                                            ref={fileInputRef}
-                                        />
+                            <div className="mb-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-gray-100">Image File:</label>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleFileChange}
+                                                className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
+                                                disabled={!!imageUrl}
+                                                ref={fileInputRef}
+                                            />
+                                            {imageFile && (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleRemoveFile}
+                                                    className="ml-2 text-red-500 text-lg font-bold focus:outline-none"
+                                                    title="Remove file"
+                                                >
+                                                    ×
+                                                </button>
+                                            )}
+                                        </div>
                                         {imageFile && (
-                                            <button
-                                                type="button"
-                                                onClick={handleRemoveFile}
-                                                className="ml-2 text-red-500 text-lg font-bold focus:outline-none"
-                                                title="Remove file"
-                                            >
-                                                ×
-                                            </button>
+                                            <div className="text-xs text-gray-300 mt-1 flex items-center">
+                                                <span>{imageFile.name}</span>
+                                            </div>
                                         )}
                                     </div>
-                                    {imageFile && (
-                                        <div className="text-xs text-gray-300 mt-1 flex items-center">
-                                            <span>{imageFile.name}</span>
-                                        </div>
-                                    )}
+                                    <div>
+                                        <label className="block text-gray-100">Or Image URL:</label>
+                                        <input
+                                            type="text"
+                                            value={imageUrl}
+                                            onChange={handleUrlChange}
+                                            className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
+                                            placeholder="https://..."
+                                            disabled={!!imageFile}
+                                        />
+                                    </div>
                                 </div>
-                                <div className="mb-4">
-                                    <label className="block text-gray-100">Or Image URL:</label>
-                                    <input
-                                        type="text"
-                                        value={imageUrl}
-                                        onChange={handleUrlChange}
-                                        className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
-                                        placeholder="https://..."
-                                        disabled={!!imageFile}
-                                    />
-                                </div>
-                            </>
+                            </div>
                         ) : (
                             <div className="mb-4">
                                 <label className="block text-gray-100">Image URL:</label>
@@ -162,56 +185,94 @@ const AddAdModal = ({ closeModal, onSubmit, onlyUrl = false, postedBy: initialPo
                                 required
                             />
                         </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-100">Posted By:</label>
-                            <input
-                                type="text"
-                                value={postedBy}
-                                readOnly
-                                className="form-input mt-1 block w-full pl-2 border border-black text-black bg-gray-200 dark:bg-gray-800 dark:text-white cursor-not-allowed opacity-70"
-                                required
-                            />
+                        
+                        {/* Budget, Reward and Max Views in one row */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label className="block text-gray-100">Budget:</label>
+                                <input
+                                    type="number"
+                                    value={budget}
+                                    onChange={(e) => setBudget(Number(e.target.value))}
+                                    className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-gray-100">Reward Per View:</label>
+                                <input
+                                    type="number"
+                                    value={rewardPerView}
+                                    onChange={(e) => setRewardPerView(Number(e.target.value))}
+                                    className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-gray-100">Max Views:</label>
+                                <input
+                                    type="number"
+                                    value={rewardPerView > 0 ? Math.floor(Number(budget) / Number(rewardPerView)) : 0}
+                                    readOnly
+                                    className="form-input mt-1 block w-full pl-2 border border-black text-black bg-gray-200 dark:bg-gray-800 dark:text-white cursor-not-allowed opacity-70"
+                                />
+                            </div>
                         </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-100">Budget:</label>
-                            <input
-                                type="number"
-                                value={budget}
-                                onChange={(e) => setBudget(Number(e.target.value))}
-                                className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
-                                required
-                            />
+                        
+                        {/* Region and Ad Type in one row */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label className="block text-gray-100">Region:</label>
+                                <input
+                                    type="text"
+                                    value={region}
+                                    onChange={(e) => setRegion(e.target.value)}
+                                    className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-gray-100 mb-2">Ad Type:</label>
+                                <div className="flex items-center space-x-4">
+                                    <label className="inline-flex items-center">
+                                        <input
+                                            type="radio"
+                                            name="adType"
+                                            value="native"
+                                            checked={adType === 'native'}
+                                            onChange={() => setAdType('native')}
+                                            className="form-radio"
+                                        />
+                                        <span className="ml-2 text-gray-100">Native</span>
+                                    </label>
+                                    <label className="inline-flex items-center">
+                                        <input
+                                            type="radio"
+                                            name="adType"
+                                            value="redirect"
+                                            checked={adType === 'redirect'}
+                                            onChange={() => setAdType('redirect')}
+                                            className="form-radio"
+                                        />
+                                        <span className="ml-2 text-gray-100">Redirect</span>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-100">Reward Per View:</label>
-                            <input
-                                type="number"
-                                value={rewardPerView}
-                                onChange={(e) => setRewardPerView(Number(e.target.value))}
-                                className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
-                                required
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-100">Max Views:</label>
-                            <input
-                                type="number"
-                                value={rewardPerView > 0 ? Math.floor(Number(budget) / Number(rewardPerView)) : 0}
-                                readOnly
-                                className="form-input mt-1 block w-full pl-2 border border-black text-black bg-gray-200 dark:bg-gray-800 dark:text-white cursor-not-allowed opacity-70"
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-100">Region:</label>
-                            <input
-                                type="text"
-                                value={region}
-                                onChange={(e) => setRegion(e.target.value)}
-                                className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
-                                required
-                            />
-                        </div>
-                        <div className="flex justify-end">
+                        {adType === 'redirect' && (
+                            <div className="mb-4">
+                                <label className="block text-gray-100">Redirection Link:</label>
+                                <input
+                                    type="text"
+                                    value={redirectionLink}
+                                    onChange={(e) => setRedirectionLink(e.target.value)}
+                                    className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
+                                    placeholder="https://..."
+                                    required={adType === 'redirect'}
+                                />
+                            </div>
+                        )}
+                        <div className="flex justify-end mt-6">
                             <button type="button" onClick={closeModal} className="mr-4 px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded">Cancel</button>
                             <button type="submit" className="px-4 py-2 bg-pink-600 dark:bg-blue-600 text-white rounded">Upload</button>
                         </div>

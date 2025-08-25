@@ -17,6 +17,9 @@ const AdHandler = () => {
     const countdownRef = useRef(null);
     const startTimeRef = useRef(null);
     const remainingTimeRef = useRef(10);
+    const redirectTimeoutRef = useRef(null);
+    const redirectStartTimeRef = useRef(null);
+    const wasRedirectedRef = useRef(false);
 
     // Check authentication status
     useEffect(() => {
@@ -27,12 +30,6 @@ const AdHandler = () => {
             setIsAuthenticated(true);
             const parsedProfile = JSON.parse(profile);
             setUserProfile(parsedProfile);
-            
-            if (!parsedProfile.localBalance) {
-                const updatedProfile = { ...parsedProfile, localBalance: 0 };
-                setUserProfile(updatedProfile);
-                localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
-            }
             
             const watchedAdsData = localStorage.getItem('watchedAds');
             if (watchedAdsData) {
@@ -54,12 +51,14 @@ const AdHandler = () => {
                 if (Array.isArray(adsData)) {
                     const sortedAds = adsData.sort((a, b) => b.reward_per_view - a.reward_per_view);
                     setAds(sortedAds);
-                    localStorage.setItem('Ads', JSON.stringify(adsData));
+                    localStorage.setItem('Ads', JSON.stringify(sortedAds));
                 } else {
                     setAds([]);
+                    localStorage.setItem('Ads', JSON.stringify([]));
                 }
             } catch (error) {
                 setAds([]);
+                localStorage.setItem('Ads', JSON.stringify([]));
                 console.error("Error fetching ads:", error);
             }
         };
@@ -105,23 +104,36 @@ const AdHandler = () => {
             countdownRef.current = null;
         }
 
+        // Ensure time left is set to the current remaining time
+        setTimeLeft(remainingTimeRef.current);
+        
+        // Set the start time for calculating elapsed time
         startTimeRef.current = Date.now();
+        
+        // Use a more precise interval for smoother progress
         countdownRef.current = setInterval(() => {
             const currentTime = Date.now();
-            const elapsedTime = Math.floor((currentTime - startTimeRef.current) / 1000);
-            const newTimeLeft = Math.max(0, remainingTimeRef.current - elapsedTime);
-            setTimeLeft(newTimeLeft);
+            const elapsedSeconds = (currentTime - startTimeRef.current) / 1000;
+            const newTimeLeft = Math.max(0, Math.ceil(remainingTimeRef.current - elapsedSeconds));
             
-            const progress = ((10 - newTimeLeft) / 10) * 100;
-            setWatchProgress(progress);
+            // Only update UI state if the value changed
+            if (newTimeLeft !== timeLeft) {
+                setTimeLeft(newTimeLeft);
+            }
+            
+            // Calculate progress as a percentage
+            const progress = 100 - ((newTimeLeft / 10) * 100);
+            setWatchProgress(Math.min(100, Math.max(0, progress)));
 
-            if (remainingTimeRef.current - elapsedTime <= 0) {
+            // Check if timer is complete
+            if (newTimeLeft <= 0) {
                 clearInterval(countdownRef.current);
                 countdownRef.current = null;
                 setTimeLeft(0);
                 setWatchProgress(100);
+                remainingTimeRef.current = 0;
             }
-        }, 100);
+        }, 100); // Update 10 times per second for smoother animation
     };
     
     const stopTimer = () => {
@@ -136,22 +148,49 @@ const AdHandler = () => {
 
     const resetTimer = () => {
         // Complete reset of timer
-        if (countdownRef.current) {
-            clearInterval(countdownRef.current);
-            countdownRef.current = null;
+        try {
+            if (countdownRef.current) {
+                clearInterval(countdownRef.current);
+                countdownRef.current = null;
+            }
+        } catch (e) {
+            console.warn('Error clearing timer interval:', e);
         }
+        
         startTimeRef.current = null;
         remainingTimeRef.current = 10;
+        
+        // Update UI state
         setTimeLeft(10);
         setWatchProgress(0);
+        
+        // Also reset any redirect timers
+        try {
+            if (redirectTimeoutRef.current) {
+                clearTimeout(redirectTimeoutRef.current);
+                redirectTimeoutRef.current = null;
+            }
+            wasRedirectedRef.current = false;
+        } catch (e) {
+            console.warn('Error clearing redirect timer:', e);
+        }
     };
     
     const handleVisibilityChange = () => {
-        if (document.hidden) {
-            stopTimer();
-        } else {
-            if (remainingTimeRef.current > 0) {
-                startTimer();
+        try {
+            if (document.hidden) {
+                stopTimer();
+            } else {
+                if (remainingTimeRef.current > 0) {
+                    startTimer();
+                }
+            }
+        } catch (e) {
+            console.warn('Error in visibility change handler:', e);
+            // If there's an error, make sure timers are cleaned up
+            if (countdownRef.current) {
+                clearInterval(countdownRef.current);
+                countdownRef.current = null;
             }
         }
     };
@@ -171,14 +210,24 @@ const AdHandler = () => {
         // Check if next ad is already watched
         const nextAd = ads[nextIndex];
         if (isAuthenticated && !isAdWatched(nextAd)) {
-            // Start fresh timer for unwatched ads
-            setTimeout(() => {
-                remainingTimeRef.current = 10;
-                setTimeLeft(10);
-                setWatchProgress(0);
-                startTimer();
-                document.addEventListener("visibilitychange", handleVisibilityChange);
-            }, 100);
+            // For redirect ads, don't start timer automatically
+            if (nextAd.type === 'redirect') {
+                setTimeout(() => {
+                    remainingTimeRef.current = 10;
+                    setTimeLeft(10);
+                    setWatchProgress(0);
+                    // Don't start timer automatically for redirect ads
+                }, 100);
+            } else {
+                // Start fresh timer for unwatched regular ads
+                setTimeout(() => {
+                    remainingTimeRef.current = 10;
+                    setTimeLeft(10);
+                    setWatchProgress(0);
+                    startTimer();
+                    document.addEventListener("visibilitychange", handleVisibilityChange);
+                }, 100);
+            }
         } else {
             // Already watched or not authenticated - show as complete
             setTimeLeft(0);
@@ -201,14 +250,24 @@ const AdHandler = () => {
         // Check if previous ad is already watched
         const prevAd = ads[prevIndex];
         if (isAuthenticated && !isAdWatched(prevAd)) {
-            // Start fresh timer for unwatched ads
-            setTimeout(() => {
-                remainingTimeRef.current = 10;
-                setTimeLeft(10);
-                setWatchProgress(0);
-                startTimer();
-                document.addEventListener("visibilitychange", handleVisibilityChange);
-            }, 100);
+            // For redirect ads, don't start timer automatically
+            if (prevAd.type === 'redirect') {
+                setTimeout(() => {
+                    remainingTimeRef.current = 10;
+                    setTimeLeft(10);
+                    setWatchProgress(0);
+                    // Don't start timer automatically for redirect ads
+                }, 100);
+            } else {
+                // Start fresh timer for unwatched regular ads
+                setTimeout(() => {
+                    remainingTimeRef.current = 10;
+                    setTimeLeft(10);
+                    setWatchProgress(0);
+                    startTimer();
+                    document.addEventListener("visibilitychange", handleVisibilityChange);
+                }, 100);
+            }
         } else {
             // Already watched or not authenticated - show as complete
             setTimeLeft(0);
@@ -218,6 +277,8 @@ const AdHandler = () => {
 
     // Handle ad click
     const handleAdClick = (ad) => {
+        if (!ad) return;
+        
         // Complete cleanup of any existing timer
         resetTimer();
         document.removeEventListener("visibilitychange", handleVisibilityChange);
@@ -227,14 +288,24 @@ const AdHandler = () => {
         setSelectedAd(ad);
         
         if (isAuthenticated && !isAdWatched(ad)) {
-            // Start timer for unwatched ads
-            setTimeout(() => {
-                remainingTimeRef.current = 10;
-                setTimeLeft(10);
-                setWatchProgress(0);
-                startTimer();
-                document.addEventListener("visibilitychange", handleVisibilityChange);
-            }, 100);
+            // For redirect ads, don't start timer automatically - wait for user to click redirect
+            if (ad.type === 'redirect') {
+                setTimeout(() => {
+                    remainingTimeRef.current = 10;
+                    setTimeLeft(10);
+                    setWatchProgress(0);
+                    // Don't start timer automatically for redirect ads
+                }, 100);
+            } else {
+                // Start timer for regular ads
+                setTimeout(() => {
+                    remainingTimeRef.current = 10;
+                    setTimeLeft(10);
+                    setWatchProgress(0);
+                    startTimer();
+                    document.addEventListener("visibilitychange", handleVisibilityChange);
+                }, 100);
+            }
         } else {
             // Already watched or not authenticated - show appropriate state
             setTimeLeft(0);
@@ -244,11 +315,79 @@ const AdHandler = () => {
 
     // Cleanup timer when component unmounts or modal closes
     useEffect(() => {
+        // Create a function to safely remove event listeners
+        const safeRemoveEventListener = (type, listener) => {
+            try {
+                document.removeEventListener(type, listener);
+            } catch (err) {
+                console.warn('Error removing event listener:', err);
+            }
+        };
+
+        // Function to cleanup any notifications that might be in the DOM
+        const cleanupNotifications = () => {
+            try {
+                // Find all notifications that our component might have created
+                const notifications = document.querySelectorAll('.reward-notification, [class*="fixed top-4 right-4 z-[60]"]');
+                
+                notifications.forEach(notification => {
+                    try {
+                        // Clear any timeouts associated with this notification
+                        const showTimeoutId = notification.dataset.showTimeoutId;
+                        const hideTimeoutId = notification.dataset.hideTimeoutId; 
+                        const removeTimeoutId = notification.dataset.removeTimeoutId;
+                        
+                        if (showTimeoutId) clearTimeout(parseInt(showTimeoutId));
+                        if (hideTimeoutId) clearTimeout(parseInt(hideTimeoutId));
+                        if (removeTimeoutId) clearTimeout(parseInt(removeTimeoutId));
+                        
+                        // If notification is still in the DOM, remove it
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    } catch (e) {
+                        console.warn('Error cleaning up notification:', e);
+                    }
+                });
+            } catch (e) {
+                console.warn('Error in notification cleanup:', e);
+            }
+        };
+
         return () => {
+            // Cleanup all timers
             if (countdownRef.current) {
                 clearInterval(countdownRef.current);
+                countdownRef.current = null;
             }
-            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            if (redirectTimeoutRef.current) {
+                clearTimeout(redirectTimeoutRef.current);
+                redirectTimeoutRef.current = null;
+            }
+            
+            // Safely remove event listeners
+            safeRemoveEventListener("visibilitychange", handleVisibilityChange);
+            
+            // Check if getEventListeners is available (Chrome DevTools)
+            if (typeof getEventListeners === 'function') {
+                try {
+                    const allEventListeners = getEventListeners(document);
+                    if (allEventListeners && allEventListeners.visibilitychange) {
+                        allEventListeners.visibilitychange.forEach(entry => {
+                            if (entry.listener.toString().includes('wasRedirectedRef') || 
+                                entry.listener.toString().includes('redirectStartTimeRef') ||
+                                entry.listener.toString().includes('handleRedirect')) {
+                                safeRemoveEventListener("visibilitychange", entry.listener);
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.warn('Error cleaning up event listeners:', e);
+                }
+            }
+            
+            // Clean up any notifications
+            cleanupNotifications();
         };
     }, []);
 
@@ -284,24 +423,75 @@ const AdHandler = () => {
         }
 
         try {
-            const newBalance = (userProfile.localBalance || 0) + selectedAd.token_reward;
+            // Use reward_per_view for the reward amount
+            const rewardAmount = selectedAd.reward_per_view || selectedAd.token_reward || 0;
+            
+            // Update local UI first (optimistic)
+            const currentBalance = userProfile.balance || 0;
+            const newBalance = currentBalance + rewardAmount;
             const updatedProfile = {
                 ...userProfile,
-                localBalance: newBalance
+                balance: newBalance
             };
-            
+
             const newWatchedAds = new Set(watchedAds);
             newWatchedAds.add(adId);
-            
+
             setUserProfile(updatedProfile);
             setWatchedAds(newWatchedAds);
-            
+
             localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
             localStorage.setItem('watchedAds', JSON.stringify([...newWatchedAds]));
             
+            // Dispatch custom event to notify NavBar of profile update
+            window.dispatchEvent(new Event('profileUpdated'));
+
+            // Call backend to update user balance
+            try {
+                const token = localStorage.getItem('authToken') || '';
+                // apiMapNew.updateBalance expects body.amount -> will be transformed
+                const balanceResp = await apiCall('updateBalance', { body: { amount: rewardAmount }, token, base: 'new' });
+                // If backend returns a balance, sync it
+                if (balanceResp && balanceResp.balance !== undefined) {
+                    const serverBalance = parseFloat(balanceResp.balance);
+                    const syncedProfile = { ...updatedProfile, balance: serverBalance };
+                    setUserProfile(syncedProfile);
+                    localStorage.setItem('userProfile', JSON.stringify(syncedProfile));
+                    
+                    // Dispatch custom event to notify NavBar of profile update
+                    window.dispatchEvent(new Event('profileUpdated'));
+                }
+            } catch (err) {
+                console.error('Failed to update balance on server:', err);
+                // Don't block user from receiving the local reward; optionally notify
+            }
+
+            // Call backend to increment ad view_count
+            try {
+                const token = localStorage.getItem('authToken') || '';
+                const currentViewCount = (selectedAd.view_count || selectedAd.views || 0);
+                const updates = { view_count: currentViewCount + 1 };
+                await apiCall('updateAd', { body: { id: adId, updates }, token, base: 'new' });
+
+                // Update local ads state to reflect incremented view_count
+                setAds(prev => {
+                    if (!Array.isArray(prev)) return prev;
+                    return prev.map(a => {
+                        const idA = a.id || a._id;
+                        if (idA === adId) {
+                            return { ...a, view_count: (a.view_count || a.views || 0) + 1 };
+                        }
+                        return a;
+                    });
+                });
+            } catch (err) {
+                console.error('Failed to update ad view_count on server:', err);
+                // Non-fatal
+            }
+
             // Show reward notification
-            showRewardNotification(selectedAd.token_reward, newBalance);
-            
+            showRewardNotification(rewardAmount);
+
             // Auto-navigate to next ad after 1.5 seconds
             setTimeout(() => {
                 goToNextAd();
@@ -314,40 +504,281 @@ const AdHandler = () => {
     };
 
     // Show reward notification
-    const showRewardNotification = (reward, newBalance) => {
-        const notification = document.createElement('div');
-        notification.className = 'fixed top-4 right-4 z-[60] bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-500';
-        notification.innerHTML = `
-            <div class="flex items-center space-x-2">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                </svg>
-                <div>
-                    <div class="font-bold">+$${reward} Earned!</div>
-                    <div class="text-sm">Balance: $${newBalance.toFixed(2)}</div>
+    const showRewardNotification = (reward/*, newBalance - kept for compatibility */) => {
+        try {
+            // Check if document.body exists
+            if (!document || !document.body) {
+                console.warn('Document body not available for notification');
+                return;
+            }
+            
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 z-[60] bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-500';
+            notification.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    <div>
+                        <div class="font-bold">
+                            <img src="/TokenLogo.png" alt="Token" class="w-4 h-4 inline-block mr-1" />
+                            +${reward} Earned!
+                        </div>
+                    </div>
                 </div>
-            </div>
-        `;
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.style.transform = 'translateX(0)';
-        }, 100);
-        
-        setTimeout(() => {
-            notification.style.transform = 'translateX(100%)';
-            setTimeout(() => {
-                document.body.removeChild(notification);
-            }, 500);
-        }, 3000);
+            `;
+            
+            // Store timeout IDs so we can clean them up if needed
+            let showTimeoutId, hideTimeoutId, removeTimeoutId;
+            
+            // Safely append to document
+            document.body.appendChild(notification);
+            
+            // Show animation with timeout
+            showTimeoutId = setTimeout(() => {
+                if (notification) {
+                    notification.style.transform = 'translateX(0)';
+                }
+            }, 100);
+            
+            // Hide after delay
+            hideTimeoutId = setTimeout(() => {
+                if (notification) {
+                    notification.style.transform = 'translateX(100%)';
+                    
+                    // Remove after animation completes with safety check
+                    removeTimeoutId = setTimeout(() => {
+                        try {
+                            // Check if notification still exists and has a parent
+                            if (notification && notification.parentNode) {
+                                notification.parentNode.removeChild(notification);
+                            }
+                        } catch (e) {
+                            console.warn('Error removing notification:', e);
+                        }
+                    }, 500);
+                }
+            }, 3000);
+            
+            // Add data attributes to keep track of timeouts
+            notification.dataset.showTimeoutId = showTimeoutId;
+            notification.dataset.hideTimeoutId = hideTimeoutId;
+            notification.dataset.removeTimeoutId = removeTimeoutId;
+            
+            // Return the notification in case we need to clean it up externally
+            return notification;
+        } catch (error) {
+            console.error('Error showing reward notification:', error);
+        }
+    };
+    
+    // Show redirect notification
+    const showRedirectNotification = (message, isSuccess = true) => {
+        try {
+            // Check if document.body exists
+            if (!document || !document.body) {
+                console.warn('Document body not available for notification');
+                return;
+            }
+            
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-[60] bg-gradient-to-r ${isSuccess ? 'from-blue-500 to-pink-500' : 'from-red-500 to-yellow-500'} text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-500`;
+            notification.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        ${isSuccess 
+                            ? '<path fill-rule="evenodd" d="M8 4a4 4 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 001 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />'
+                            : '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />'
+                        }
+                    </svg>
+                    <div>
+                        <div class="font-bold">${message}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Store timeout IDs so we can clean them up if needed
+            let showTimeoutId, hideTimeoutId, removeTimeoutId;
+            
+            // Safely append to document
+            document.body.appendChild(notification);
+            
+            // Show animation with timeout
+            showTimeoutId = setTimeout(() => {
+                if (notification) {
+                    notification.style.transform = 'translateX(0)';
+                }
+            }, 100);
+            
+            // Hide after delay (longer for redirect notifications)
+            hideTimeoutId = setTimeout(() => {
+                if (notification) {
+                    notification.style.transform = 'translateX(100%)';
+                    
+                    // Remove after animation completes with safety check
+                    removeTimeoutId = setTimeout(() => {
+                        try {
+                            // Check if notification still exists and has a parent
+                            if (notification && notification.parentNode) {
+                                notification.parentNode.removeChild(notification);
+                            }
+                        } catch (e) {
+                            console.warn('Error removing notification:', e);
+                        }
+                    }, 500);
+                }
+            }, 5000);
+            
+            // Add data attributes to keep track of timeouts
+            notification.dataset.showTimeoutId = showTimeoutId;
+            notification.dataset.hideTimeoutId = hideTimeoutId;
+            notification.dataset.removeTimeoutId = removeTimeoutId;
+            
+            // Return the notification in case we need to clean it up externally
+            return notification;
+        } catch (error) {
+            console.error('Error showing redirect notification:', error);
+        }
     };
 
-    // Close modal
     const closeModal = () => {
         resetTimer();
         document.removeEventListener("visibilitychange", handleVisibilityChange);
         setSelectedAd(null);
+    };
+
+    // Handle redirect for redirect-type ads
+    const handleRedirect = (url) => {
+        if (!url || !selectedAd || !isAuthenticated || watchedAds.has(selectedAd.id || selectedAd._id)) {
+            return;
+        }
+
+        // Set redirect flag
+        wasRedirectedRef.current = true;
+        redirectStartTimeRef.current = Date.now();
+        
+        // For redirect ads, we want the timer to start only when they click redirect
+        const isRedirectType = selectedAd.type === 'redirect';
+        
+        if (isRedirectType) {
+            // For redirect ads, we START the timer when they click redirect
+            remainingTimeRef.current = 10; // Reset to full time for redirect
+            setTimeLeft(10);
+            setWatchProgress(0);
+            
+            // Clear any existing timer and start fresh
+            if (countdownRef.current) {
+                clearInterval(countdownRef.current);
+                countdownRef.current = null;
+            }
+            
+            // Start the timer immediately
+            startTimer();
+            
+        } else {
+            // For normal ads, pause the timer when they leave
+            stopTimer();
+        }
+
+        // Open the redirect URL
+        window.open(url, '_blank');
+
+        // Show notification to user
+        if (isRedirectType) {
+            showRedirectNotification('Stay on the external site for 10 seconds to earn reward!', true);
+        } else {
+            showRedirectNotification('Viewing external site. Timer paused.', true);
+        }
+
+        // Create a unique identifier for this redirect event
+        const redirectId = Date.now();
+        
+        // Set a visibility change handler specifically for redirect
+        const handleRedirectVisibility = () => {
+            if (document.hidden) {
+                // User left our site (went to external site)
+                if (isRedirectType) {
+                    // For redirect ads, this is good - they need to be on the external site
+                    // Timer keeps running
+                } else {
+                    // For regular ads, pause the timer
+                    stopTimer();
+                }
+            } else {
+                // User returned to our site
+                if (isRedirectType) {
+                    // For redirect ads, check if they stayed long enough
+                    const timeSpent = Math.floor((Date.now() - redirectStartTimeRef.current) / 1000);
+                    
+                    if (timeSpent >= 10) {
+                        // They stayed long enough, mark as completed and reward
+                        wasRedirectedRef.current = false;
+                        try {
+                            document.removeEventListener("visibilitychange", handleRedirectVisibility);
+                        } catch (e) {
+                            console.warn('Error removing event listener:', e);
+                        }
+                        
+                        // Stop the timer and show completion
+                        if (countdownRef.current) {
+                            clearInterval(countdownRef.current);
+                            countdownRef.current = null;
+                        }
+                        setTimeLeft(0);
+                        setWatchProgress(100);
+                        
+                        setTimeout(() => {
+                            claimLocalRewardAndNext();
+                        }, 500);
+                    } else {
+                        // They returned too early
+                        wasRedirectedRef.current = false;
+                        try {
+                            document.removeEventListener("visibilitychange", handleRedirectVisibility);
+                        } catch (e) {
+                            console.warn('Error removing event listener:', e);
+                        }
+                        showRedirectNotification(`You need to stay on the external site for 10 seconds to earn rewards! You only stayed for ${timeSpent} seconds.`, false);
+                        
+                        // No reward, reset timer
+                        resetTimer();
+                    }
+                } else {
+                    // For normal ads, resume the timer
+                    if (remainingTimeRef.current > 0) {
+                        startTimer();
+                    }
+                }
+            }
+        };
+
+        // Add the event listener
+        document.addEventListener("visibilitychange", handleRedirectVisibility);
+        
+        // Set a cleanup timeout to make sure we remove the listener after a reasonable time
+        // (e.g., 2 minutes) even if the user never returns to the site
+        redirectTimeoutRef.current = setTimeout(() => {
+            try {
+                document.removeEventListener("visibilitychange", handleRedirectVisibility);
+            } catch (e) {
+                console.warn('Error removing event listener in timeout cleanup:', e);
+            }
+            wasRedirectedRef.current = false;
+        }, 120000); // 2 minutes
+        
+        // Return a cleanup function
+        return () => {
+            try {
+                document.removeEventListener("visibilitychange", handleRedirectVisibility);
+            } catch (e) {
+                console.warn('Error removing event listener in cleanup function:', e);
+            }
+            if (redirectTimeoutRef.current) {
+                clearTimeout(redirectTimeoutRef.current);
+                redirectTimeoutRef.current = null;
+            }
+            wasRedirectedRef.current = false;
+        };
     };
 
     // Add this useEffect for scroll animations
@@ -404,12 +835,20 @@ const AdHandler = () => {
                                        alt={ad.title}
                                        loading="lazy"
                                    />
-                                   {/* Gradient Overlay */}
+                                   
+                                   {/* Gradient overlay */}
                                    <div className="ad-overlay"></div>
+                                   
                                    {/* Token Reward Badge */}
                                    <div className={`token-badge ${isAdWatched(ad) ? 'watched' : ''}`}>
-                                       <span>${ad.token_reward}</span>
+                                       <img 
+                                           src="/TokenLogo.png" 
+                                           alt="Token" 
+                                           className="w-4 h-4 inline-block mr-1"
+                                       />
+                                       <span>{ad.reward_per_view}</span>
                                    </div>
+                                   
                                    {/* Watch Status Overlay */}
                                    {!isAuthenticated ? (
                                        <div className="status-overlay">
@@ -433,9 +872,6 @@ const AdHandler = () => {
                                </div>
                                {/* YouTube Shorts Style Info */}
                                <div className="ad-info">
-                                   <div className="ad-creator">
-                                       <span className="creator-name">{ad.posted_by || 'Anonymous'}</span>
-                                   </div>
                                    <h3 className="ad-title">{ad.title}</h3>
                                    <p className="ad-description">{ad.description}</p>
                                    <div className="ad-stats">
@@ -512,7 +948,7 @@ const AdHandler = () => {
                                                            </svg>
                                                        </div>
                                                        <span className="completed-text">Reward Earned!</span>
-                                                       <button onClick={goToNextAd} className="next-ad-btn">
+                                                       <button onClick={goToNextAd} className="next-ad-btn mt-3">
                                                            Next Ad
                                                        </button>
                                                    </div>
@@ -537,23 +973,45 @@ const AdHandler = () => {
                                                                {Math.round(watchProgress)}% watched
                                                            </span>
                                                            <span className="reward-amount">
-                                                               Earn ${selectedAd.token_reward}
+                                                               <img 
+                                                                   src="/TokenLogo.png" 
+                                                                   alt="Token" 
+                                                                   className="w-4 h-4 inline-block mr-1"
+                                                               />
+                                                               Earn {selectedAd.reward_per_view}
                                                            </span>
                                                        </div>
                                                        
+                                                       {/* Redirect button for redirect-type ads */}
+                                                       {selectedAd.type === 'redirect' && selectedAd.redirection_link && timeLeft > 0 && (
+                                                           <div className="action-buttons mt-3">
+                                                               <button 
+                                                                   onClick={() => handleRedirect(selectedAd.redirection_link)}
+                                                                   className="redirect-btn bg-gradient-to-r from-pink-500 to-blue-500 text-white font-bold py-2 px-4 rounded-full w-full transition-all duration-300 hover:from-blue-500 hover:to-pink-500"
+                                                               >
+                                                                   Visit Site for 10s to Earn Reward
+                                                               </button>
+                                                           </div>
+                                                       )}
+                                                       
                                                        {timeLeft === 0 && (
-                                                           <div className="action-buttons">
+                                                           <div className="action-buttons mt-4 space-y-3">
                                                                <button 
                                                                    onClick={claimLocalRewardAndNext}
-                                                                   className="claim-btn"
+                                                                   className="claim-btn w-full"
                                                                >
-                                                                   Claim ${selectedAd.token_reward}
+                                                                   <img 
+                                                                       src="/TokenLogo.png" 
+                                                                       alt="Token" 
+                                                                       className="w-4 h-4 inline-block mr-1"
+                                                                   />
+                                                                   Claim {selectedAd.reward_per_view}
                                                                </button>
                                                                <button 
                                                                    onClick={goToNextAd}
-                                                                   className="skip-btn"
+                                                                   className="skip-btn w-full"
                                                                >
-                                                                   Skip
+                                                                   Skip to Next Ad
                                                                </button>
                                                            </div>
                                                        )}
@@ -567,7 +1025,14 @@ const AdHandler = () => {
                                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                                                    </svg>
                                                </div>
-                                               <h4 className="login-title">Want to Earn ${selectedAd.token_reward}?</h4>
+                                               <h4 className="login-title">
+                                                   <img 
+                                                       src="/TokenLogo.png" 
+                                                       alt="Token" 
+                                                       className="w-4 h-4 inline-block mr-1"
+                                                   />
+                                                   Want to Earn {selectedAd.reward_per_view}?
+                                               </h4>
                                                <p className="login-subtitle">Login to start earning rewards!</p>
                                                <div className="login-buttons">
                                                    <button 

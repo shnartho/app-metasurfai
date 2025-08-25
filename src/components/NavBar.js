@@ -21,6 +21,21 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
             setIsAuthenticated(true);
             setUserProfile(JSON.parse(profile));
         }
+
+        // Listen for localStorage changes to update balance in real-time
+        const handleStorageChange = () => {
+            const updatedProfile = localStorage.getItem('userProfile');
+            if (updatedProfile) {
+                setUserProfile(JSON.parse(updatedProfile));
+            }
+        };
+
+        // Custom event listener for when we manually update localStorage
+        window.addEventListener('profileUpdated', handleStorageChange);
+        
+        return () => {
+            window.removeEventListener('profileUpdated', handleStorageChange);
+        };
     }, []);
 
     const handleLogout = () => {
@@ -28,6 +43,7 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
         localStorage.removeItem('userProfile');
         setIsAuthenticated(false);
         setUserProfile(null);
+        window.location.reload();
         navigate('/');
     };
 
@@ -103,7 +119,7 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                 {isAuthenticated && userProfile && (
                     <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full px-2 py-1 space-x-2">
                         <span className="font-medium text-gray-800 dark:text-gray-200">
-                            {userProfile.localBalance?.toFixed(2) || '0.00'}
+                            {userProfile.balance?.toFixed(2) || '0.00'}
                         </span>
                         <div className='buttonn mbtns flex items-center justify-center transform hover:scale-110 transition-all duration-200 cursor-default'>
                             <span className="hoverEffect">
