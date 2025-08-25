@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { apiCall } from "../../utils/api";
-import ScriptAd from "./ScriptAd";
 
 const AdHandler = () => {
     const [ads, setAds] = useState([]);
@@ -48,73 +47,18 @@ const AdHandler = () => {
             try {
                 // Always use old API for ads
                 const adsData = await apiCall("ads", { base: 'new' });
-                
-                // Create one script ad
-                const scriptAd = {
-                    id: `script-ad-${Date.now()}`,
-                    _id: `script-ad-${Date.now()}`,
-                    title: "Interactive Advertisement",
-                    description: "Interactive advertisement with rewards",
-                    type: 'script',
-                    script: `<script type="text/javascript">
-    atOptions = {
-        'key' : '1b8a0dcbc010cae9ecd999e98b6f9809',
-        'format' : 'iframe',
-        'height' : 250,
-        'width' : 300,
-        'params' : {}
-    };
-</script>
-<script type="text/javascript" src="//www.highperformanceformat.com/1b8a0dcbc010cae9ecd999e98b6f9809/invoke.js"></script>`,
-                    image_url: 'https://via.placeholder.com/300x250?text=Interactive+Ad',
-                    token_reward: 0.05,
-                    reward_per_view: 0.05,
-                    region: 'Global',
-                    posted_by: 'Advertising Network',
-                    view_count: Math.floor(Math.random() * 1000),
-                    budget: 1000
-                };
-                
                 // Defensive: Only set ads if response is an array
                 if (Array.isArray(adsData)) {
-                    // Add the script ad to the regular ads
-                    const combinedAds = [...adsData, scriptAd];
-                    const sortedAds = combinedAds.sort((a, b) => b.reward_per_view - a.reward_per_view);
+                    const sortedAds = adsData.sort((a, b) => b.reward_per_view - a.reward_per_view);
                     setAds(sortedAds);
                     localStorage.setItem('Ads', JSON.stringify(sortedAds));
                 } else {
-                    // If no ads from API, just show the script ad
-                    setAds([scriptAd]);
-                    localStorage.setItem('Ads', JSON.stringify([scriptAd]));
+                    setAds([]);
+                    localStorage.setItem('Ads', JSON.stringify([]));
                 }
             } catch (error) {
-                // Even on error, show the script ad
-                const scriptAd = {
-                    id: `script-ad-${Date.now()}`,
-                    _id: `script-ad-${Date.now()}`,
-                    title: "Interactive Advertisement",
-                    description: "Interactive advertisement with rewards",
-                    type: 'script',
-                    script: `<script type="text/javascript">
-    atOptions = {
-        'key' : '1b8a0dcbc010cae9ecd999e98b6f9809',
-        'format' : 'iframe',
-        'height' : 250,
-        'width' : 300,
-        'params' : {}
-    };
-</script>
-<script type="text/javascript" src="//www.highperformanceformat.com/1b8a0dcbc010cae9ecd999e98b6f9809/invoke.js"></script>`,
-                    image_url: 'https://via.placeholder.com/300x250?text=Interactive+Ad',
-                    token_reward: 0.05,
-                    reward_per_view: 0.05,
-                    region: 'Global',
-                    posted_by: 'Advertising Network',
-                    view_count: Math.floor(Math.random() * 1000),
-                    budget: 1000
-                };
-                setAds([scriptAd]);
-                localStorage.setItem('Ads', JSON.stringify([scriptAd]));
+                setAds([]);
+                localStorage.setItem('Ads', JSON.stringify([]));
                 console.error("Error fetching ads:", error);
             }
         };
@@ -266,14 +210,24 @@ const AdHandler = () => {
         // Check if next ad is already watched
         const nextAd = ads[nextIndex];
         if (isAuthenticated && !isAdWatched(nextAd)) {
-            // Start fresh timer for unwatched ads
-            setTimeout(() => {
-                remainingTimeRef.current = 10;
-                setTimeLeft(10);
-                setWatchProgress(0);
-                startTimer();
-                document.addEventListener("visibilitychange", handleVisibilityChange);
-            }, 100);
+            // For redirect ads, don't start timer automatically
+            if (nextAd.type === 'redirect') {
+                setTimeout(() => {
+                    remainingTimeRef.current = 10;
+                    setTimeLeft(10);
+                    setWatchProgress(0);
+                    // Don't start timer automatically for redirect ads
+                }, 100);
+            } else {
+                // Start fresh timer for unwatched regular ads
+                setTimeout(() => {
+                    remainingTimeRef.current = 10;
+                    setTimeLeft(10);
+                    setWatchProgress(0);
+                    startTimer();
+                    document.addEventListener("visibilitychange", handleVisibilityChange);
+                }, 100);
+            }
         } else {
             // Already watched or not authenticated - show as complete
             setTimeLeft(0);
@@ -296,14 +250,24 @@ const AdHandler = () => {
         // Check if previous ad is already watched
         const prevAd = ads[prevIndex];
         if (isAuthenticated && !isAdWatched(prevAd)) {
-            // Start fresh timer for unwatched ads
-            setTimeout(() => {
-                remainingTimeRef.current = 10;
-                setTimeLeft(10);
-                setWatchProgress(0);
-                startTimer();
-                document.addEventListener("visibilitychange", handleVisibilityChange);
-            }, 100);
+            // For redirect ads, don't start timer automatically
+            if (prevAd.type === 'redirect') {
+                setTimeout(() => {
+                    remainingTimeRef.current = 10;
+                    setTimeLeft(10);
+                    setWatchProgress(0);
+                    // Don't start timer automatically for redirect ads
+                }, 100);
+            } else {
+                // Start fresh timer for unwatched regular ads
+                setTimeout(() => {
+                    remainingTimeRef.current = 10;
+                    setTimeLeft(10);
+                    setWatchProgress(0);
+                    startTimer();
+                    document.addEventListener("visibilitychange", handleVisibilityChange);
+                }, 100);
+            }
         } else {
             // Already watched or not authenticated - show as complete
             setTimeLeft(0);
@@ -313,10 +277,7 @@ const AdHandler = () => {
 
     // Handle ad click
     const handleAdClick = (ad) => {
-        // Don't open modal for script ads - they should only display as banners
-        if (ad.type === 'script') {
-            return;
-        }
+        if (!ad) return;
         
         // Complete cleanup of any existing timer
         resetTimer();
@@ -327,14 +288,24 @@ const AdHandler = () => {
         setSelectedAd(ad);
         
         if (isAuthenticated && !isAdWatched(ad)) {
-            // Start timer for unwatched ads
-            setTimeout(() => {
-                remainingTimeRef.current = 10;
-                setTimeLeft(10);
-                setWatchProgress(0);
-                startTimer();
-                document.addEventListener("visibilitychange", handleVisibilityChange);
-            }, 100);
+            // For redirect ads, don't start timer automatically - wait for user to click redirect
+            if (ad.type === 'redirect') {
+                setTimeout(() => {
+                    remainingTimeRef.current = 10;
+                    setTimeLeft(10);
+                    setWatchProgress(0);
+                    // Don't start timer automatically for redirect ads
+                }, 100);
+            } else {
+                // Start timer for regular ads
+                setTimeout(() => {
+                    remainingTimeRef.current = 10;
+                    setTimeLeft(10);
+                    setWatchProgress(0);
+                    startTimer();
+                    document.addEventListener("visibilitychange", handleVisibilityChange);
+                }, 100);
+            }
         } else {
             // Already watched or not authenticated - show appropriate state
             setTimeLeft(0);
@@ -452,11 +423,15 @@ const AdHandler = () => {
         }
 
         try {
+            // Use reward_per_view for the reward amount
+            const rewardAmount = selectedAd.reward_per_view || selectedAd.token_reward || 0;
+            
             // Update local UI first (optimistic)
-            const newBalance = (userProfile.localBalance || 0) + selectedAd.token_reward;
+            const currentBalance = userProfile.balance || 0;
+            const newBalance = currentBalance + rewardAmount;
             const updatedProfile = {
                 ...userProfile,
-                localBalance: newBalance
+                balance: newBalance
             };
 
             const newWatchedAds = new Set(watchedAds);
@@ -467,18 +442,24 @@ const AdHandler = () => {
 
             localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
             localStorage.setItem('watchedAds', JSON.stringify([...newWatchedAds]));
+            
+            // Dispatch custom event to notify NavBar of profile update
+            window.dispatchEvent(new Event('profileUpdated'));
 
             // Call backend to update user balance
             try {
                 const token = localStorage.getItem('authToken') || '';
                 // apiMapNew.updateBalance expects body.amount -> will be transformed
-                const balanceResp = await apiCall('updateBalance', { body: { amount: selectedAd.token_reward }, token, base: 'new' });
+                const balanceResp = await apiCall('updateBalance', { body: { amount: rewardAmount }, token, base: 'new' });
                 // If backend returns a balance, sync it
-                if (balanceResp && (balanceResp.balance !== undefined || balanceResp.newBalance !== undefined)) {
-                    const serverBalance = balanceResp.balance !== undefined ? balanceResp.balance : balanceResp.newBalance;
-                    const syncedProfile = { ...updatedProfile, localBalance: parseFloat(serverBalance) };
+                if (balanceResp && balanceResp.balance !== undefined) {
+                    const serverBalance = parseFloat(balanceResp.balance);
+                    const syncedProfile = { ...updatedProfile, balance: serverBalance };
                     setUserProfile(syncedProfile);
                     localStorage.setItem('userProfile', JSON.stringify(syncedProfile));
+                    
+                    // Dispatch custom event to notify NavBar of profile update
+                    window.dispatchEvent(new Event('profileUpdated'));
                 }
             } catch (err) {
                 console.error('Failed to update balance on server:', err);
@@ -509,7 +490,7 @@ const AdHandler = () => {
             }
 
             // Show reward notification
-            showRewardNotification(selectedAd.token_reward, newBalance);
+            showRewardNotification(rewardAmount);
 
             // Auto-navigate to next ad after 1.5 seconds
             setTimeout(() => {
@@ -539,7 +520,10 @@ const AdHandler = () => {
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                     </svg>
                     <div>
-                        <div class="font-bold">+$${reward} Earned!</div>
+                        <div class="font-bold">
+                            <img src="/TokenLogo.png" alt="Token" class="w-4 h-4 inline-block mr-1" />
+                            +${reward} Earned!
+                        </div>
                     </div>
                 </div>
             `;
@@ -673,21 +657,24 @@ const AdHandler = () => {
         wasRedirectedRef.current = true;
         redirectStartTimeRef.current = Date.now();
         
-        // For redirect ads, we want the opposite behavior - timer runs when redirected
-        // and pauses when they come back to our site
+        // For redirect ads, we want the timer to start only when they click redirect
         const isRedirectType = selectedAd.type === 'redirect';
         
-        // Pause or start timer based on ad type
         if (isRedirectType) {
-            // For redirect ads, we START the timer when they leave
-            startTimeRef.current = Date.now();
+            // For redirect ads, we START the timer when they click redirect
             remainingTimeRef.current = 10; // Reset to full time for redirect
+            setTimeLeft(10);
+            setWatchProgress(0);
             
-            // Clear any existing timer
+            // Clear any existing timer and start fresh
             if (countdownRef.current) {
                 clearInterval(countdownRef.current);
                 countdownRef.current = null;
             }
+            
+            // Start the timer immediately
+            startTimer();
+            
         } else {
             // For normal ads, pause the timer when they leave
             stopTimer();
@@ -698,7 +685,7 @@ const AdHandler = () => {
 
         // Show notification to user
         if (isRedirectType) {
-            showRedirectNotification('Stay on the site for 10 seconds to earn reward!', true);
+            showRedirectNotification('Stay on the external site for 10 seconds to earn reward!', true);
         } else {
             showRedirectNotification('Viewing external site. Timer paused.', true);
         }
@@ -709,10 +696,10 @@ const AdHandler = () => {
         // Set a visibility change handler specifically for redirect
         const handleRedirectVisibility = () => {
             if (document.hidden) {
-                // User left our site
+                // User left our site (went to external site)
                 if (isRedirectType) {
                     // For redirect ads, this is good - they need to be on the external site
-                    // Do nothing, timer is already running
+                    // Timer keeps running
                 } else {
                     // For regular ads, pause the timer
                     stopTimer();
@@ -731,8 +718,15 @@ const AdHandler = () => {
                         } catch (e) {
                             console.warn('Error removing event listener:', e);
                         }
+                        
+                        // Stop the timer and show completion
+                        if (countdownRef.current) {
+                            clearInterval(countdownRef.current);
+                            countdownRef.current = null;
+                        }
                         setTimeLeft(0);
                         setWatchProgress(100);
+                        
                         setTimeout(() => {
                             claimLocalRewardAndNext();
                         }, 500);
@@ -744,7 +738,7 @@ const AdHandler = () => {
                         } catch (e) {
                             console.warn('Error removing event listener:', e);
                         }
-                        showRedirectNotification(`You need to stay on the site for 10 seconds to earn rewards! You only stayed for ${timeSpent} seconds.`, false);
+                        showRedirectNotification(`You need to stay on the external site for 10 seconds to earn rewards! You only stayed for ${timeSpent} seconds.`, false);
                         
                         // No reward, reset timer
                         resetTimer();
@@ -835,30 +829,24 @@ const AdHandler = () => {
                                }}>
                                {/* Image Container with Fixed Aspect Ratio */}
                                <div className="ad-image-container">
-                                   {ad.type === 'script' ? (
-                                       <ScriptAd 
-                                           adData={ad} 
-                                           inModal={false}
-                                           onLoad={() => {
-                                               // Optional: Handle when script ad loads
-                                               console.log('Script ad loaded in grid');
-                                           }}
-                                       />
-                                   ) : (
-                                       <img
-                                           className="ad-image"
-                                           src={ad.image_url}
-                                           alt={ad.title}
-                                           loading="lazy"
-                                       />
-                                   )}
+                                   <img
+                                       className="ad-image"
+                                       src={ad.image_url}
+                                       alt={ad.title}
+                                       loading="lazy"
+                                   />
                                    
                                    {/* Gradient overlay */}
                                    <div className="ad-overlay"></div>
                                    
                                    {/* Token Reward Badge */}
                                    <div className={`token-badge ${isAdWatched(ad) ? 'watched' : ''}`}>
-                                       <span>${ad.token_reward}</span>
+                                       <img 
+                                           src="/TokenLogo.png" 
+                                           alt="Token" 
+                                           className="w-4 h-4 inline-block mr-1"
+                                       />
+                                       <span>{ad.reward_per_view}</span>
                                    </div>
                                    
                                    {/* Watch Status Overlay */}
@@ -884,9 +872,6 @@ const AdHandler = () => {
                                </div>
                                {/* YouTube Shorts Style Info */}
                                <div className="ad-info">
-                                   <div className="ad-creator">
-                                       <span className="creator-name">{ad.posted_by || 'Anonymous'}</span>
-                                   </div>
                                    <h3 className="ad-title">{ad.title}</h3>
                                    <p className="ad-description">{ad.description}</p>
                                    <div className="ad-stats">
@@ -901,8 +886,8 @@ const AdHandler = () => {
                    )}
                </div>
 
-               {/* YouTube Shorts Style Modal - Only for non-script ads */}
-               {selectedAd && selectedAd.type !== 'script' && (
+               {/* YouTube Shorts Style Modal */}
+               {selectedAd && (
                    <div className="shorts-modal">
                        <div className="shorts-container">
                            {/* Close Button */}
@@ -963,7 +948,7 @@ const AdHandler = () => {
                                                            </svg>
                                                        </div>
                                                        <span className="completed-text">Reward Earned!</span>
-                                                       <button onClick={goToNextAd} className="next-ad-btn">
+                                                       <button onClick={goToNextAd} className="next-ad-btn mt-3">
                                                            Next Ad
                                                        </button>
                                                    </div>
@@ -988,7 +973,12 @@ const AdHandler = () => {
                                                                {Math.round(watchProgress)}% watched
                                                            </span>
                                                            <span className="reward-amount">
-                                                               Earn ${selectedAd.token_reward}
+                                                               <img 
+                                                                   src="/TokenLogo.png" 
+                                                                   alt="Token" 
+                                                                   className="w-4 h-4 inline-block mr-1"
+                                                               />
+                                                               Earn {selectedAd.reward_per_view}
                                                            </span>
                                                        </div>
                                                        
@@ -1005,18 +995,23 @@ const AdHandler = () => {
                                                        )}
                                                        
                                                        {timeLeft === 0 && (
-                                                           <div className="action-buttons">
+                                                           <div className="action-buttons mt-4 space-y-3">
                                                                <button 
                                                                    onClick={claimLocalRewardAndNext}
-                                                                   className="claim-btn"
+                                                                   className="claim-btn w-full"
                                                                >
-                                                                   Claim ${selectedAd.token_reward}
+                                                                   <img 
+                                                                       src="/TokenLogo.png" 
+                                                                       alt="Token" 
+                                                                       className="w-4 h-4 inline-block mr-1"
+                                                                   />
+                                                                   Claim {selectedAd.reward_per_view}
                                                                </button>
                                                                <button 
                                                                    onClick={goToNextAd}
-                                                                   className="skip-btn"
+                                                                   className="skip-btn w-full"
                                                                >
-                                                                   Skip
+                                                                   Skip to Next Ad
                                                                </button>
                                                            </div>
                                                        )}
@@ -1030,7 +1025,14 @@ const AdHandler = () => {
                                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                                                    </svg>
                                                </div>
-                                               <h4 className="login-title">Want to Earn ${selectedAd.token_reward}?</h4>
+                                               <h4 className="login-title">
+                                                   <img 
+                                                       src="/TokenLogo.png" 
+                                                       alt="Token" 
+                                                       className="w-4 h-4 inline-block mr-1"
+                                                   />
+                                                   Want to Earn {selectedAd.reward_per_view}?
+                                               </h4>
                                                <p className="login-subtitle">Login to start earning rewards!</p>
                                                <div className="login-buttons">
                                                    <button 
