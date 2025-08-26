@@ -1,101 +1,101 @@
 // Regional data organized by continent/region
 export const REGIONS = {
   'North America': {
-    'US': 'United States',
     'CA': 'Canada',
-    'MX': 'Mexico'
+    'MX': 'Mexico',
+    'US': 'United States'
   },
   'Europe': {
-    'UK': 'United Kingdom',
-    'FR': 'France',
-    'DE': 'Germany',
-    'ES': 'Spain',
-    'IT': 'Italy',
-    'PT': 'Portugal',
-    'NL': 'Netherlands',
-    'BE': 'Belgium',
-    'CH': 'Switzerland',
     'AT': 'Austria',
-    'IE': 'Ireland',
-    'SE': 'Sweden',
-    'NO': 'Norway',
-    'DK': 'Denmark',
-    'FI': 'Finland',
-    'PL': 'Poland',
-    'CZ': 'Czech Republic',
-    'HU': 'Hungary',
-    'GR': 'Greece',
-    'RO': 'Romania',
+    'BE': 'Belgium',
     'BG': 'Bulgaria',
     'HR': 'Croatia',
-    'SK': 'Slovakia',
-    'SI': 'Slovenia',
+    'CY': 'Cyprus',
+    'CZ': 'Czech Republic',
+    'DK': 'Denmark',
+    'EE': 'Estonia',
+    'FI': 'Finland',
+    'FR': 'France',
+    'DE': 'Germany',
+    'GR': 'Greece',
+    'HU': 'Hungary',
+    'IE': 'Ireland',
+    'IT': 'Italy',
+    'LV': 'Latvia',
+    'LT': 'Lithuania',
     'LU': 'Luxembourg',
     'MT': 'Malta',
-    'CY': 'Cyprus',
-    'EE': 'Estonia',
-    'LV': 'Latvia',
-    'LT': 'Lithuania'
+    'NL': 'Netherlands',
+    'NO': 'Norway',
+    'PL': 'Poland',
+    'PT': 'Portugal',
+    'RO': 'Romania',
+    'SK': 'Slovakia',
+    'SI': 'Slovenia',
+    'ES': 'Spain',
+    'SE': 'Sweden',
+    'CH': 'Switzerland',
+    'UK': 'United Kingdom'
   },
   'Asia-Pacific': {
-    'JP': 'Japan',
-    'CN': 'China',
-    'KR': 'South Korea',
-    'IN': 'India',
     'AU': 'Australia',
-    'NZ': 'New Zealand',
-    'SG': 'Singapore',
+    'BD': 'Bangladesh',
+    'CN': 'China',
     'HK': 'Hong Kong',
+    'IN': 'India',
+    'ID': 'Indonesia',
+    'JP': 'Japan',
+    'MY': 'Malaysia',
+    'NZ': 'New Zealand',
+    'PK': 'Pakistan',
+    'PH': 'Philippines',
+    'SG': 'Singapore',
+    'KR': 'South Korea',
+    'LK': 'Sri Lanka',
     'TW': 'Taiwan',
     'TH': 'Thailand',
-    'MY': 'Malaysia',
-    'PH': 'Philippines',
-    'ID': 'Indonesia',
-    'VN': 'Vietnam',
-    'BD': 'Bangladesh',
-    'PK': 'Pakistan',
-    'LK': 'Sri Lanka'
+    'VN': 'Vietnam'
   },
   'Middle East & Africa': {
-    'QA': 'Qatar',
-    'AE': 'United Arab Emirates',
-    'SA': 'Saudi Arabia',
-    'KW': 'Kuwait',
     'BH': 'Bahrain',
-    'OM': 'Oman',
-    'IL': 'Israel',
-    'TR': 'Turkey',
     'EG': 'Egypt',
-    'ZA': 'South Africa',
-    'NG': 'Nigeria',
-    'KE': 'Kenya',
-    'MA': 'Morocco',
-    'TN': 'Tunisia',
-    'GH': 'Ghana',
     'ET': 'Ethiopia',
+    'GH': 'Ghana',
+    'IL': 'Israel',
+    'KE': 'Kenya',
+    'KW': 'Kuwait',
+    'MA': 'Morocco',
+    'NG': 'Nigeria',
+    'OM': 'Oman',
+    'QA': 'Qatar',
+    'SA': 'Saudi Arabia',
+    'ZA': 'South Africa',
+    'TZ': 'Tanzania',
+    'TN': 'Tunisia',
+    'TR': 'Turkey',
     'UG': 'Uganda',
-    'TZ': 'Tanzania'
+    'AE': 'United Arab Emirates'
   },
   'Latin America': {
-    'BR': 'Brazil',
     'AR': 'Argentina',
+    'BO': 'Bolivia',
+    'BR': 'Brazil',
     'CL': 'Chile',
     'CO': 'Colombia',
-    'PE': 'Peru',
-    'VE': 'Venezuela',
-    'EC': 'Ecuador',
-    'UY': 'Uruguay',
-    'PY': 'Paraguay',
-    'BO': 'Bolivia',
     'CR': 'Costa Rica',
-    'PA': 'Panama',
+    'CU': 'Cuba',
+    'DO': 'Dominican Republic',
+    'EC': 'Ecuador',
+    'SV': 'El Salvador',
     'GT': 'Guatemala',
     'HN': 'Honduras',
+    'JM': 'Jamaica',
     'NI': 'Nicaragua',
-    'SV': 'El Salvador',
-    'DO': 'Dominican Republic',
-    'CU': 'Cuba',
-    'JM': 'Jamaica'
+    'PA': 'Panama',
+    'PY': 'Paraguay',
+    'PE': 'Peru',
+    'UY': 'Uruguay',
+    'VE': 'Venezuela'
   },
   'Global': {
     'GLOBAL': 'Global (All Regions)',
@@ -116,12 +116,15 @@ export const getAllRegions = () => {
 
 // Get regions by continent
 export const getRegionsByContinent = (continent) => {
-  return REGIONS[continent] || {};
+  const countries = REGIONS[continent] || {};
+  return Object.entries(countries)
+    .map(([code, name]) => ({ code, name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 };
 
 // Get continent list
 export const getContinents = () => {
-  return Object.keys(REGIONS);
+  return Object.keys(REGIONS) || [];
 };
 
 // Find region by code
