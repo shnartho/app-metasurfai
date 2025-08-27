@@ -11,10 +11,13 @@ const UserDash = () => {
     const navigate = useNavigate();
     const storedProfile = localStorage.getItem('userProfile');
     const storedAds = localStorage.getItem('Ads');
+    const token = localStorage.getItem('authToken');
     const [profile, setProfile] = useState(storedProfile ? JSON.parse(storedProfile) : null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showCreateAd, setShowCreateAd] = useState(false);
+    const [showEditAd, setShowEditAd] = useState(false);
+    const [editingAd, setEditingAd] = useState(null);
     const [userAds, setUserAds] = useState([]);
     const [adModalError, setAdModalError] = useState('');
     const [selectedAds, setSelectedAds] = useState([]);
@@ -75,14 +78,16 @@ const UserDash = () => {
         }
 
         setLoading(true);
-        const token = localStorage.getItem('token');
         
         try {
             // Delete each selected ad from the API
             const deletePromises = selectedAds.map(async (adId) => {
                 try {
-                    const response = await apiCall('deleteAd', { id: adId }, token);
-                    console.log(`Ad ${adId} deleted successfully:`, response);
+                    const response = await apiCall('deleteAd', {
+                        body: { id: adId },
+                        token,
+                        base: isNewApi() ? 'new' : 'old'
+                    });
                     return { success: true, id: adId };
                 } catch (error) {
                     console.error(`Failed to delete ad ${adId}:`, error);
@@ -116,8 +121,11 @@ const UserDash = () => {
     // Function to refresh ads from API and sync localStorage
     const refreshAdsFromApi = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await apiCall('ads', {}, token);
+            const response = await apiCall('ads', {
+                body: {},
+                token,
+                base: isNewApi() ? 'new' : 'old'
+            });
             
             if (response && Array.isArray(response)) {
                 // Update localStorage with fresh data from API
@@ -127,8 +135,6 @@ const UserDash = () => {
                 const userAdsFiltered = response.filter(ad => ad.posted_by === profile?.id);
                 setUserAds(userAdsFiltered);
                 
-                console.log('Ads refreshed from API:', response.length, 'total ads');
-                console.log('User ads filtered:', userAdsFiltered.length, 'user ads');
             }
         } catch (error) {
             console.error('Error refreshing ads from API:', error);
@@ -159,13 +165,24 @@ const UserDash = () => {
     const handleLogout = () => {
         localStorage.removeItem('authToken');
         localStorage.removeItem('userProfile');
-        window.location.reload();
         navigate('/');
+        window.location.reload();
     };
 
     const handleAdCreated = async () => {
         setShowCreateAd(false);
         await refreshAdsFromApi();
+    };
+
+    const handleAdUpdated = async () => {
+        setShowEditAd(false);
+        setEditingAd(null);
+        await refreshAdsFromApi();
+    };
+
+    const handleEditAd = (ad) => {
+        setEditingAd(ad);
+        setShowEditAd(true);
     };
 
     // Add the missing handleRefreshAds function
@@ -177,11 +194,19 @@ const UserDash = () => {
     // Function to update an ad via API
     const updateAd = async (adId, updates) => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await apiCall('updateAd', { id: adId, updates }, token);
-            console.log('Ad updated successfully:', response);
+            // Create flat structure: merge id with updates at the same level
+            const requestBody = {
+                id: adId,
+                ...updates
+            };
             
-            // Refresh ads from API to sync localStorage
+            
+            const response = await apiCall('updateAd', {
+                body: requestBody,
+                token,
+                base: isNewApi() ? 'new' : 'old'
+            });
+                        
             await refreshAdsFromApi();
             
             return response;
@@ -496,6 +521,17 @@ const UserDash = () => {
                                         >
                                             Refresh
                                         </button>
+                                        {selectedAds.length === 1 && (
+                                            <button
+                                                onClick={() => {
+                                                    const adToEdit = userAds.find(ad => (ad.id || ad._id) === selectedAds[0]);
+                                                    handleEditAd(adToEdit);
+                                                }}
+                                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
+                                            >
+                                                Edit Selected
+                                            </button>
+                                        )}
                                         {selectedAds.length > 0 && (
                                             <button
                                                 onClick={handleDeleteSelectedAds}
@@ -561,6 +597,61 @@ const UserDash = () => {
                             )}
                         </ReactModal>
 
+                        {/* Edit Ad Modal */}
+                        <ReactModal
+                            isOpen={showEditAd}
+                            onRequestClose={() => {
+                                setShowEditAd(false);
+                                setEditingAd(null);
+                            }}
+                            contentLabel="Edit Ad Modal"
+                            style={{
+                                overlay: {
+                                    position: 'fixed',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                                    zIndex: 1002
+                                },
+                                content: {
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+                                    right: 'auto',
+                                    bottom: 'auto',
+                                    marginRight: '-50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    background: 'none',
+                                    border: 'none',
+                                    boxShadow: 'none',
+                                    overflow: 'visible',
+                                    WebkitOverflowScrolling: 'touch',
+                                    borderRadius: '0px',
+                                    outline: 'none',
+                                    padding: 0,
+                                    zIndex: 1003
+                                }
+                            }}
+                        >
+                            {showEditAd && editingAd && (
+                                <AddAdModal
+                                    closeModal={() => {
+                                        setShowEditAd(false);
+                                        setEditingAd(null);
+                                    }}
+                                    onAdCreated={handleAdUpdated}
+                                    onlyUrl={!isNewApi()}
+                                    postedBy={profile?.email || ''}
+                                    error={adModalError}
+                                    editMode={true}
+                                    adData={editingAd}
+                                    updateAd={updateAd}
+                                />
+                            )}
+                        </ReactModal>
+
                         {/* Ads List */}
                         <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
                             <div className="px-6 py-4">
@@ -591,9 +682,9 @@ const UserDash = () => {
                                                         <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                                                             <p>Views: {ad.view_count || 0} / {ad.max_views}</p>
                                                             <p>Region: {ad.region}</p>
-                                                            <p>Reward: ${ad.token_reward}</p>
+                                                            <p>Reward: ${ad.reward_per_view || ad.token_reward}</p>
                                                             <p>Status: {ad.active ? 'Active' : 'Inactive'}</p>
-                                                            <p>ID: {ad.id || ad._id}</p>
+                                                            <p>Budget: ${ad.budget || 0}</p>
                                                         </div>
                                                     </div>
                                                 </div>
