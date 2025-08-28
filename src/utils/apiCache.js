@@ -11,6 +11,9 @@ class ApiCache {
             images: 60 * 60 * 1000,    // 1 hour for image lists
             settings: 30 * 60 * 1000   // 30 minutes for settings
         };
+        
+        // Track pending requests to prevent duplicate API calls
+        this.pendingRequests = new Map();
     }
 
     // Get current user ID for multi-user caching
@@ -203,12 +206,44 @@ class ApiCache {
 
         return stats;
     }
+
+    // Pending request management to prevent duplicate API calls
+    getPendingKey(action, options) {
+        const userId = this.getCurrentUserId();
+        const optionsStr = JSON.stringify(options || {});
+        return `${userId}_${action}_${optionsStr}`;
+    }
+
+    // Check if request is already pending
+    isPending(action, options) {
+        const key = this.getPendingKey(action, options);
+        return this.pendingRequests.has(key);
+    }
+
+    // Set a request as pending and return the promise
+    setPending(action, options, promise) {
+        const key = this.getPendingKey(action, options);
+        this.pendingRequests.set(key, promise);
+        
+        // Clean up when promise resolves/rejects
+        promise.finally(() => {
+            this.pendingRequests.delete(key);
+        });
+        
+        return promise;
+    }
+
+    // Get existing pending request
+    getPending(action, options) {
+        const key = this.getPendingKey(action, options);
+        return this.pendingRequests.get(key);
+    }
 }
 
 // Create global cache instance
 export const apiCache = new ApiCache();
 
-// Enhanced API call wrapper with intelligent caching
+// Enhanced API call wrapper with intelligent caching and duplicate prevention
 export const cachedApiCall = async (action, options = {}, forceRefresh = false) => {
     const { body = {}, token = '', headers = {}, base, cacheKey = action, skipCache = false } = options;
     
@@ -220,41 +255,54 @@ export const cachedApiCall = async (action, options = {}, forceRefresh = false) 
     if (shouldCache && !forceRefresh) {
         const cached = apiCache.get(cacheKey);
         if (cached !== null) {
+            console.log(`[CachedApiCall] Cache HIT for ${action}`);
             return cached;
+        }
+    }
+    
+    // Check if the same request is already pending to prevent duplicates
+    if (shouldCache && !forceRefresh) {
+        const pendingRequest = apiCache.getPending(action, { body, token, base });
+        if (pendingRequest) {
+            console.log(`[CachedApiCall] Request already pending for ${action}, waiting for result...`);
+            return await pendingRequest;
         }
     }
     
     // Import apiCall to avoid circular dependency
     const { apiCall } = await import('./api');
     
-    try {
-        console.log(`[CachedApiCall] Making API call: ${action} (cache: ${shouldCache ? 'enabled' : 'disabled'})`);
-        const result = await apiCall(action, { body, token, headers, base });
-        
-        // Cache successful read operations
-        if (shouldCache && result) {
-            // Special handling for different data types
-            if (action === 'ads') {
-                apiCache.set('ads', result);
-            } else if (action === 'profile') {
-                apiCache.set('profile', result);
-            } else {
-                apiCache.set(cacheKey, result);
+    // Create the API call promise
+    const apiCallPromise = (async () => {
+        try {
+            console.log(`[CachedApiCall] Making API call: ${action} (cache: ${shouldCache ? 'enabled' : 'disabled'})`);
+            const result = await apiCall(action, { body, token, headers, base });
+            
+            // Cache successful read operations
+            if (shouldCache && result) {
+                // Special handling for different data types
+                if (action === 'ads') {
+                    apiCache.set('ads', result);
+                } else if (action === 'profile') {
+                    apiCache.set('profile', result);
+                } else {
+                    apiCache.set(cacheKey, result);
+                }
             }
+            
+            return result;
+        } catch (error) {
+            console.error(`[CachedApiCall] API call failed for ${action}:`, error);
+            throw error;
         }
-        
-        return result;
-    } catch (error) {
-        // If API call fails and we have cached data, return it with a warning
-        if (shouldCache) {
-            const cached = apiCache.get(cacheKey);
-            if (cached !== null) {
-                console.warn(`[CachedApiCall] API call failed, returning cached data for ${action}:`, error.message);
-                return cached;
-            }
-        }
-        throw error;
+    })();
+    
+    // Register as pending request if cacheable
+    if (shouldCache) {
+        apiCache.setPending(action, { body, token, base }, apiCallPromise);
     }
+    
+    return await apiCallPromise;
 };
 
 // Utility functions for common patterns
@@ -279,6 +327,32 @@ export const cacheUtils = {
         localStorage.removeItem('userProfile');
         localStorage.removeItem('watchedAds');
         console.log('[CacheUtils] Cleared all cache on logout');
+    },
+
+    // Clear cache from previous user sessions (but keep current user's fresh data)
+    clearPreviousUserCache() {
+        const currentUserId = apiCache.getCurrentUserId();
+        
+        // Clear all cache entries except for the current user
+        try {
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('cache_') && !key.startsWith(`cache_${currentUserId}_`)) {
+                    keysToRemove.push(key);
+                }
+            }
+            
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+            
+            // Also clear old-style cache entries that might be from previous sessions
+            localStorage.removeItem('Ads'); // Legacy cache
+            localStorage.removeItem('watchedAds'); // Will be rebuilt for new user
+            
+            console.log(`[CacheUtils] Cleared ${keysToRemove.length} cache entries from previous users`);
+        } catch (e) {
+            console.warn('[CacheUtils] Failed to clear previous user cache:', e);
+        }
     },
 
     // Periodic cleanup (call this occasionally)
