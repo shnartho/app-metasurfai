@@ -695,7 +695,7 @@ const UserDash = () => {
                                 {userAds.length === 0 ? (
                                     <div className="text-center text-gray-400 mt-8">No ads created yet.</div>
                                 ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                         {userAds.map((ad) => (
                                             <div key={ad.id || ad._id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                                                 <div className="flex items-start space-x-3">

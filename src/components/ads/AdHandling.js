@@ -95,12 +95,12 @@ const AdHandler = () => {
     useEffect(() => {
         const updateAdsPerPage = () => {
             const width = window.innerWidth;
-            if (width >= 1024) {
-                setAdsPerPage(9); // 3x3 grid
-            } else if (width >= 600) {
-                setAdsPerPage(6); // 2x3 grid
+            if (width >= 768) {
+                setAdsPerPage(12); // 4x3 grid (4 columns, 3 rows) for desktop/tablet
+            } else if (width >= 481) {
+                setAdsPerPage(9); // 3x3 grid for smaller tablets  
             } else {
-                setAdsPerPage(3); // 1x3 grid
+                setAdsPerPage(6); // 2x3 grid for mobile
             }
         };
 
