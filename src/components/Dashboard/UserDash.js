@@ -69,6 +69,22 @@ const UserDash = () => {
         setLoading(false);
     }, [navigate]);
 
+    // Listen for profile updates (e.g., balance changes)
+    useEffect(() => {
+        const handleProfileUpdate = (event) => {
+            if (event.detail && event.detail.profile) {
+                setProfile(event.detail.profile);
+                console.log('[UserDash] Profile updated:', event.detail.profile);
+            }
+        };
+
+        window.addEventListener('profileUpdated', handleProfileUpdate);
+        
+        return () => {
+            window.removeEventListener('profileUpdated', handleProfileUpdate);
+        };
+    }, []);
+
     const handleDeleteSelectedAds = async () => {
         if (selectedAds.length === 0) {
             alert('Please select ads to delete');

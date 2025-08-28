@@ -16,7 +16,6 @@ export const useProfileData = () => {
                     const profile = JSON.parse(storedProfile);
                     setProfileData(profile);
                     setLoading(false);
-                    console.log('[useProfileData] Loaded profile from localStorage');
                 } else {
                     setLoading(false);
                 }
@@ -35,7 +34,6 @@ export const useProfileData = () => {
                 try {
                     const newProfile = JSON.parse(e.newValue);
                     setProfileData(newProfile);
-                    console.log('[useProfileData] Profile updated from storage event');
                 } catch (error) {
                     console.error('[useProfileData] Error parsing profile from storage event:', error);
                 }
@@ -60,15 +58,12 @@ export const useProfileData = () => {
     const refreshProfile = useCallback(async (forceRefresh = false) => {
         const token = localStorage.getItem('authToken');
         if (!token) {
-            console.log('[useProfileData] No auth token, skipping profile refresh');
             return null;
         }
 
         try {
             setLoading(true);
             setError(null);
-            
-            console.log(`[useProfileData] Refreshing profile (force: ${forceRefresh})`);
             
             const freshProfile = await cachedApiCall('profile', {
                 token,
@@ -82,7 +77,6 @@ export const useProfileData = () => {
                 // Dispatch update event for other components
                 window.dispatchEvent(new Event('profileUpdated'));
                 
-                console.log('[useProfileData] Profile refreshed successfully');
                 return freshProfile;
             }
         } catch (error) {
@@ -95,7 +89,6 @@ export const useProfileData = () => {
                 try {
                     const fallbackProfile = JSON.parse(storedProfile);
                     setProfileData(fallbackProfile);
-                    console.log('[useProfileData] Using fallback profile data');
                 } catch (parseError) {
                     console.error('[useProfileData] Error parsing fallback profile:', parseError);
                 }
@@ -126,8 +119,6 @@ export const useProfileData = () => {
             
             // Dispatch update event
             window.dispatchEvent(new Event('profileUpdated'));
-            
-            console.log('[useProfileData] Profile updated locally');
             
             // TODO: Add API call to sync with server if needed
             // const token = localStorage.getItem('authToken');
@@ -160,7 +151,7 @@ export const useProfileData = () => {
         getUserId,
         isAuthenticated,
         // Utility functions
-        getBalance: () => profileData?.balance || profileData?.localBalance || 0,
+        getBalance: () => profileData?.balance || 0,
         getEmail: () => profileData?.email || '',
         getName: () => profileData?.name || profileData?.username || '',
     };
@@ -181,7 +172,6 @@ export const useWatchedAds = () => {
                 if (stored) {
                     const adsArray = JSON.parse(stored);
                     setWatchedAds(new Set(adsArray));
-                    console.log(`[useWatchedAds] Loaded ${adsArray.length} watched ads for user ${userId || 'anonymous'}`);
                 }
             } catch (error) {
                 console.error('[useWatchedAds] Error loading watched ads:', error);
@@ -204,7 +194,6 @@ export const useWatchedAds = () => {
                 // Also update legacy key for backward compatibility
                 localStorage.setItem('watchedAds', JSON.stringify([...newSet]));
                 
-                console.log(`[useWatchedAds] Added watched ad ${adId} for user ${userId || 'anonymous'}`);
             } catch (error) {
                 console.error('[useWatchedAds] Error saving watched ads:', error);
             }
@@ -225,7 +214,6 @@ export const useWatchedAds = () => {
             localStorage.removeItem(key);
             localStorage.removeItem('watchedAds'); // Also clear legacy key
             
-            console.log(`[useWatchedAds] Cleared watched ads for user ${userId || 'anonymous'}`);
         } catch (error) {
             console.error('[useWatchedAds] Error clearing watched ads:', error);
         }
