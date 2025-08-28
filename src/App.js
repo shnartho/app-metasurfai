@@ -60,16 +60,16 @@ const App = () => {
           <div className="flex flex-grow">
             <SideNav isOpen={isSidebarOpen} DarkMode={DarkMode} />
             <div className={`flex-grow transition-all duration-300 ${
-                isSidebarOpen ? 'ml-60' : 'ml-20'
+                isSidebarOpen ? 'md:ml-60' : 'md:ml-20'
             }`}>
             {showFilter && (
-              <div className="fixed top-10 first-letter:left-0 right-0 z-40 pt-2 bg-white dark:bg-slate-900 shadow-sm" style={{
-                  left: isSidebarOpen ? '240px' : '80px'
-              }}>
+              <div className={`fixed top-16 md:top-12 left-0 right-0 z-40 pt-2 bg-white dark:bg-slate-900 shadow-sm transition-all duration-300 ${
+                isSidebarOpen ? 'md:left-60' : 'md:left-20'
+              }`}>
                   <Multifilter isSidebarOpen={isSidebarOpen} />
               </div>
             )}
-            <main className={`px-4 ${showFilter ? 'pt-20' : 'pt-12'}`}>       
+            <main className={`px-4 ${showFilter ? 'pt-28 md:pt-24' : 'pt-12'}`}>       
           <Routes>
             <Route path="/" element={<AdHandler />} />
             <Route path="/profile" element={<Profile />} />

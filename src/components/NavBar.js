@@ -90,7 +90,8 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
     const Connect = { link: 'Connect', Path: '/Connect' };
 
     return (
-        <div className={`navbar dark:bg-slate-900 ${DarkMode && 'Dark'} transition-all duration-300`}>
+        <>
+            <div className={`navbar dark:bg-slate-900 ${DarkMode && 'Dark'} transition-all duration-300`}>
             {/* Side menu */}
             <div className='pl-3 pr-4 nav-item sidebtn'>
                 <img 
@@ -116,6 +117,20 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                     </span>
                 </a>
             </div>
+
+            {/* Mobile Balance Display */}
+            {isAuthenticated && userProfile && (
+                <div className="md:hidden flex items-center bg-gray-100 dark:bg-gray-800 rounded-full px-2 py-1 space-x-1 mr-2">
+                    <span className="font-medium text-gray-800 dark:text-gray-200 text-sm">
+                        ${userProfile.balance?.toFixed(2) || '0.00'}
+                    </span>
+                    <img 
+                        src="/TokenLogo.png" 
+                        alt="Token" 
+                        className="w-4 h-4"                            
+                    />
+                </div>
+            )}
 
             {/* Search bar */}
             <div className="flex flex-grow lg:flex items-center relative searchbar">
@@ -237,48 +252,148 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                 </button>
             </div>
 
-            {/* Mobile menu */}
-            <div className="mobile-menu relative nav-item">
+            {/* Mobile menu button */}
+            <div className="mobile-menu nav-item">
                 <button 
-                    className="btn-sm btn-active btn-neutral transform hover:scale-105 transition-all duration-200" 
+                    className='buttonn flex items-center justify-center transform hover:scale-110 transition-all duration-200' 
                     onClick={toggleMenu}
                 >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <span className="hoverEffect">
+                        <div></div>
+                    </span>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
-                {isMenuOpen && (
-                    <div className="fixed inset-0 bg-gray-800 bg-opacity-75 z-50 flex justify-center items-center backdrop-blur-sm">
-                        <div className="bg-white dark:bg-gray-900 w-full h-full p-4 relative animate-slideIn">
-                            <button 
-                                className="absolute top-4 right-4 text-gray-400 text-3xl hover:text-red-500 transition-colors duration-200" 
-                                onClick={toggleMenu}
-                            >
-                                &times;
-                            </button>
-                            <ul className="py-1 mt-8 space-y-4">
-                                <li><a className="block px-4 py-3 text-lg text-gray-400 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200">{Connect.link}</a></li>
-                                {isAuthenticated ? (
-                                    <>
-                                        <li><a className="block px-4 py-3 text-lg text-gray-400 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200" onClick={() => { navigate('Dashboard'); toggleMenu(); }}>Dashboard</a></li>
-                                        <li><a className="block px-4 py-3 text-lg text-gray-400 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200" onClick={() => { openAddAdsForm(); toggleMenu(); }}>Create Ad</a></li>
-                                        <li><a className="block px-4 py-3 text-lg text-gray-400 hover:text-red-500 transition-colors duration-200" onClick={() => { handleLogout(); toggleMenu(); }}>Logout</a></li>
-                                    </>
-                                ) : (
-                                    <>
-                                        <li><a className="block px-4 py-3 text-lg text-gray-400 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200" onClick={() => { openLoginForm(); toggleMenu(); }}>Login</a></li>
-                                        <li><a className="block px-4 py-3 text-lg text-gray-400 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200" onClick={() => { openSignUpForm(); toggleMenu(); }}>Signup</a></li>
-                                    </>
-                                )}
-                                <li><a className='block px-4 py-3 text-lg text-gray-400 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200' onClick={() => { navigate('live'); toggleMenu(); }}>Live</a></li>
-                                <li className='block px-4 py-3 text-lg text-gray-400 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200' onClick={() => { toggleDarkMode(); toggleMenu(); }}>
-                                    Theme: {DarkMode ? 'Dark' : 'Light'}
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                )}
             </div>
+
+            </div>
+
+            {/* Mobile menu overlay - outside navbar container */}
+            {isMenuOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+                    <div className="bg-white dark:bg-gray-900 w-full h-full p-4 relative animate-slideIn overflow-y-auto">
+                        <button 
+                            className="absolute top-4 right-4 w-10 h-10 bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 rounded-full flex items-center justify-center text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-all duration-200 z-10 transform hover:scale-110" 
+                            onClick={toggleMenu}
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        <ul className="py-1 mt-8 space-y-4">
+                            {/* Navigation Links from Sidebar */}
+                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/'); toggleMenu(); }}>
+                                <img src="/home.png" alt="Home" className="w-6 h-6 mr-3 icon-dark-mode" />
+                                Home
+                            </a></li>
+                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/Live'); toggleMenu(); }}>
+                                <img src="/live.png" alt="Live" className="w-6 h-6 mr-3 icon-dark-mode" />
+                                Live
+                            </a></li>
+                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/videos'); toggleMenu(); }}>
+                                <img src="/videos.png" alt="Videos" className="w-6 h-6 mr-3 icon-dark-mode" />
+                                Videos
+                            </a></li>
+                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/markets'); toggleMenu(); }}>
+                                <img src="/markets.png" alt="Markets" className="w-6 h-6 mr-3 icon-dark-mode" />
+                                Markets
+                            </a></li>
+                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/vr'); toggleMenu(); }}>
+                                <img src="/vr.png" alt="VR" className="w-6 h-6 mr-3 icon-dark-mode" />
+                                VR
+                            </a></li>
+                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/channels'); toggleMenu(); }}>
+                                <img src="/channels.png" alt="Channels" className="w-6 h-6 mr-3 icon-dark-mode" />
+                                Channels
+                            </a></li>
+                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/stream'); toggleMenu(); }}>
+                                <img src="/stream.png" alt="Stream" className="w-6 h-6 mr-3 icon-dark-mode" />
+                                Stream
+                            </a></li>
+                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/billboards'); toggleMenu(); }}>
+                                <img src="/billboard.png" alt="Billboard" className="w-6 h-6 mr-3 icon-dark-mode" />
+                                Billboard
+                            </a></li>
+                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/radio'); toggleMenu(); }}>
+                                <img src="/radio.png" alt="Radio" className="w-6 h-6 mr-3 icon-dark-mode" />
+                                Radio
+                            </a></li>
+                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/settings'); toggleMenu(); }}>
+                                <img src="/settings.png" alt="Settings" className="w-6 h-6 mr-3 icon-dark-mode" />
+                                Settings
+                            </a></li>
+                            
+                            {/* Divider */}
+                            <li><hr className="border-gray-300 dark:border-gray-600 my-2" /></li>
+                            
+                            {/* Additional Mobile Menu Items */}
+                            <li><a href="/Connect" className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200">
+                                <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                </svg>
+                                Connect
+                            </a></li>
+                            
+                            {/* Map option for authenticated users */}
+                            {isAuthenticated && (
+                                <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { openMapModal(); toggleMenu(); }}>
+                                    <img src="/map.png" alt="Map" className="w-6 h-6 mr-3 icon-dark-mode" />
+                                    Map
+                                </a></li>
+                            )}
+                            
+                            {/* Authentication dependent options */}
+                            {isAuthenticated ? (
+                                <>
+                                    <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/Dashboard'); toggleMenu(); }}>
+                                        <svg className="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                        </svg>
+                                        Dashboard
+                                    </a></li>
+                                    <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { openAddAdsForm(); toggleMenu(); }}>
+                                        <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        Create Ad
+                                    </a></li>
+                                    <li><a className="flex items-center px-4 py-3 text-lg text-red-500 hover:text-red-600 transition-colors duration-200 cursor-pointer" onClick={() => { handleLogout(); toggleMenu(); }}>
+                                        <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                        </svg>
+                                        Logout
+                                    </a></li>
+                                </>
+                            ) : (
+                                <>
+                                    <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { openLoginForm(); toggleMenu(); }}>
+                                        <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                                        </svg>
+                                        Login
+                                    </a></li>
+                                    <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { openSignUpForm(); toggleMenu(); }}>
+                                        <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                        </svg>
+                                        Signup
+                                    </a></li>
+                                </>
+                            )}
+                            
+                            {/* Theme toggle */}
+                            <li><hr className="border-gray-300 dark:border-gray-600 my-2" /></li>
+                            <li className='flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer' onClick={() => { toggleDarkMode(); toggleMenu(); }}>
+                                <span className="w-6 h-6 mr-3 text-xl flex items-center justify-center">
+                                    {DarkMode ? '🌞' : '🌙'}
+                                </span>
+                                Theme: {DarkMode ? 'Light' : 'Dark'} Mode
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            )}
 
             {/* Render authentication modal */}
             <ReactModal
@@ -322,7 +437,7 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                 {activeForm === 'ad' && <AddAdModal isOpen={true} closeModal={() => setActiveForm(null)} />}
                 {activeForm === 'map' && <Glocation onClose={() => setActiveForm(null)} />}
             </ReactModal>
-        </div>
+        </>
     );
 };
 

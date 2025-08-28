@@ -217,6 +217,34 @@
     .content {
         margin-left: 0 !important;
     }
+    
+    /* Mobile specific fixes for all mobile devices */
+    body {
+        overflow-x: hidden;
+    }
+    
+    /* Ensure main content doesn't have sidebar margins on mobile */
+    .flex-grow {
+        margin-left: 0 !important;
+    }
+    
+    /* Filter positioning fix for mobile */
+    .fixed.top-12 {
+        left: 0 !important;
+        right: 0 !important;
+    }
+    
+    /* Navbar improvements for mobile */
+    .navbar {
+        padding: 0.5rem 1rem;
+        min-height: 3rem;
+    }
+    
+    /* Mobile menu button improvements */
+    .mobile-menu button {
+        -webkit-tap-highlight-color: transparent;
+        outline: none;
+    }
 }
 
 /* Restore sidebar visibility on larger screens */
@@ -228,8 +256,10 @@
 
 .navbar {
     position: fixed;
-    z-index: 50;
+    z-index: 60;
     background-color: white;
+    width: 100%;
+    top: 0;
 }
 
 .icon-dark-mode {
