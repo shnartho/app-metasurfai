@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiCall } from '../../utils/api';
+import { cachedApiCall, cacheUtils } from '../../utils/apiCache';
 import { REGIONS, getContinents, getRegionsByContinent, getRegionByCode } from '../../utils/regions';
 
 const AddAdModal = ({ 
@@ -178,6 +179,9 @@ const AddAdModal = ({
                 
                 // Update existing ad with only changed fields (updateAd handles the id separately)
                 await updateAd(adData.id || adData._id, changedFields);
+                
+                // Invalidate ads cache since we updated an ad
+                cacheUtils.invalidateKey('ads');
             } else {
                 // Create new ad with all fields
                 const adDataPayload = {
@@ -196,6 +200,9 @@ const AddAdModal = ({
                     token,
                     base
                 });
+                
+                // Invalidate ads cache since we created a new ad
+                cacheUtils.invalidateKey('ads');
                 
                 if (onSubmit) await onSubmit(adDataPayload);
                 if (onAdCreated) await onAdCreated(adDataPayload);

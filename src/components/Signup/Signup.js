@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import React from 'react';
 import { apiCall } from '../../utils/api';
+import { cacheUtils } from '../../utils/apiCache';
 
 const SignUpForm = ({ onSwitchToLogin }) => {
     const [email, setEmail] = useState('');
@@ -22,18 +23,31 @@ const SignUpForm = ({ onSwitchToLogin }) => {
             // Step 1: Sign up the user (old or new API)
             const base = isNewApi ? 'new' : 'old';
             await apiCall('signup', { body: userData, base });
-            setSuccess(true);
-            setError(null);
+            
             // Step 2: Automatically log in the user after successful signup
             const loginRes = await apiCall('login', { body: userData, base });
             localStorage.setItem('authToken', loginRes.token);
+            
             // Step 3: Fetch profile data
             const profileRes = await apiCall('profile', { token: loginRes.token, base });
             localStorage.setItem('userProfile', JSON.stringify(profileRes));
-            // Step 4: Reload the page to update the navbar and redirect to main page
+            
+            // Clear cache from any previous user sessions (but keep current user's data)
+            cacheUtils.clearPreviousUserCache();
+            
+            // Dispatch a custom event to notify other components of successful signup/login
+            window.dispatchEvent(new CustomEvent('userLoggedIn', { 
+                detail: { profile: profileRes, token: loginRes.token } 
+            }));
+            
+            setSuccess(true);
+            setError(null);
+            
+            // Step 4: Close modal and let app refresh naturally
             setTimeout(() => {
-                window.location.reload();
-            }, 1500);
+                if (onClose) onClose(); // Close the signup modal if provided
+                // The app will detect the new auth token and profile data automatically
+            }, 1000);
         } catch (error) {
             setError(error.message || 'Something went wrong. Please try again later.');
             setSuccess(false);

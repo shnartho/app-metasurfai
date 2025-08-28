@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useState as useReactState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiCall } from '../../utils/api';
+import { cachedApiCall, cacheUtils } from '../../utils/apiCache';
 import AddAdModal from '../ads/AddAdModal';
 import ReactModal from 'react-modal';
 const WEBHOOK_URL = process.env.NEXT_PUBLIC_WEBHOOK;
@@ -106,8 +107,9 @@ const UserDash = () => {
                 alert(`All ${successfulDeletes.length} ads deleted successfully!`);
             }
 
-            // Refresh ads from API to sync localStorage
-            await refreshAdsFromApi();
+            // Invalidate cache and refresh ads from API to sync localStorage
+            cacheUtils.invalidateUserContent();
+            await refreshAdsFromApi(true); // Force refresh after deletion
             
         } catch (error) {
             console.error('Error during deletion process:', error);
@@ -118,23 +120,24 @@ const UserDash = () => {
         }
     };
 
-    // Function to refresh ads from API and sync localStorage
-    const refreshAdsFromApi = async () => {
+    // Function to refresh ads from API and sync localStorage with caching
+    const refreshAdsFromApi = async (forceRefresh = false) => {
         try {
-            const response = await apiCall('ads', {
+            console.log(`[UserDash] Refreshing ads from API (force: ${forceRefresh})`);
+            
+            // Use cached API call - will check cache first unless forceRefresh is true
+            const response = await cachedApiCall('ads', {
                 body: {},
                 token,
                 base: isNewApi() ? 'new' : 'old'
-            });
+            }, forceRefresh);
             
             if (response && Array.isArray(response)) {
-                // Update localStorage with fresh data from API
-                localStorage.setItem('Ads', JSON.stringify(response));
-                
                 // Filter user's ads
                 const userAdsFiltered = response.filter(ad => ad.posted_by === profile?.id);
                 setUserAds(userAdsFiltered);
                 
+                console.log(`[UserDash] Loaded ${response.length} total ads, ${userAdsFiltered.length} user ads`);
             }
         } catch (error) {
             console.error('Error refreshing ads from API:', error);
@@ -171,13 +174,17 @@ const UserDash = () => {
 
     const handleAdCreated = async () => {
         setShowCreateAd(false);
-        await refreshAdsFromApi();
+        // Invalidate cache and force refresh after creating new ad
+        cacheUtils.invalidateUserContent();
+        await refreshAdsFromApi(true);
     };
 
     const handleAdUpdated = async () => {
         setShowEditAd(false);
         setEditingAd(null);
-        await refreshAdsFromApi();
+        // Invalidate cache and force refresh after updating ad
+        cacheUtils.invalidateUserContent();
+        await refreshAdsFromApi(true);
     };
 
     const handleEditAd = (ad) => {
@@ -185,10 +192,22 @@ const UserDash = () => {
         setShowEditAd(true);
     };
 
-    // Add the missing handleRefreshAds function
+    // Add the missing handleRefreshAds function with smart caching
     const handleRefreshAds = async () => {
-        // Try to refresh from API first, fall back to localStorage if needed
-        await refreshAdsFromApi();
+        // Try to refresh from API first (with cache), fall back to localStorage if needed
+        try {
+            await refreshAdsFromApi();
+        } catch (error) {
+            console.warn('API refresh failed, falling back to localStorage');
+            const storedAds = localStorage.getItem('Ads');
+            if (storedAds) {
+                const allAds = JSON.parse(storedAds);
+                const userAdsFiltered = Array.isArray(allAds)
+                    ? allAds.filter(ad => ad.posted_by === profile?.id)
+                    : [];
+                setUserAds(userAdsFiltered);
+            }
+        }
     };
 
     // Function to update an ad via API
@@ -207,7 +226,9 @@ const UserDash = () => {
                 base: isNewApi() ? 'new' : 'old'
             });
                         
-            await refreshAdsFromApi();
+            // Invalidate user content cache and refresh with updated data
+            cacheUtils.invalidateUserContent();
+            await refreshAdsFromApi(true); // Force refresh to get updated data
             
             return response;
         } catch (error) {

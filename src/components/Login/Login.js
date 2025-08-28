@@ -3,6 +3,7 @@ import React from 'react';
 import ReactModal from 'react-modal';
 import SignUpForm from '../Signup/Signup';
 import { apiCall } from '../../utils/api';
+import { cacheUtils } from '../../utils/apiCache';
 
 const LoginForm = ({ onClose, onSwitchToSignup }) => {
     const [email, setEmail] = useState('');
@@ -22,12 +23,27 @@ const LoginForm = ({ onClose, onSwitchToSignup }) => {
             const base = isNewApi ? 'new' : 'old';
             const data = await apiCall('login', { body: userData, base });
             localStorage.setItem('authToken', data.token);
+            
             // Fetch profile data via apiCall
             const profileData = await apiCall('profile', { token: data.token, base });
             localStorage.setItem('userProfile', JSON.stringify(profileData));
+            
+            // Clear cache from any previous user sessions
+            cacheUtils.clearPreviousUserCache();
+            
+            // Dispatch a custom event to notify other components of successful login
+            window.dispatchEvent(new CustomEvent('userLoggedIn', { 
+                detail: { profile: profileData, token: data.token } 
+            }));
+            
             setSuccess(true);
             setError(null);
-            setTimeout(() => { window.location.reload(); }, 1500);
+            
+            // Close the modal and let the app refresh naturally
+            setTimeout(() => { 
+                onClose(); // Close the login modal
+                // The app will detect the new auth token and profile data automatically
+            }, 1000);
         } catch (error) {
             setError(error.message || 'Something went wrong. Please try again later.');
             setSuccess(false);

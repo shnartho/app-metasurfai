@@ -5,6 +5,7 @@ import SignUpForm from './Signup/Signup';
 import { useNavigate } from "react-router-dom";
 import Glocation from '../components/Glocation';
 import AddAdModal from './ads/AddAdModal';
+import { cacheUtils } from '../utils/apiCache';
 
 const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
     const navigate = useNavigate();
@@ -30,19 +31,37 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
             }
         };
 
-        // Custom event listener for when we manually update localStorage
+        // Listen for successful login events
+        const handleUserLogin = (event) => {
+            const { profile, token } = event.detail;
+            setIsAuthenticated(true);
+            setUserProfile(profile);
+            console.log('[NavBar] User logged in, updating navbar');
+        };
+
+        // Custom event listeners
         window.addEventListener('profileUpdated', handleStorageChange);
+        window.addEventListener('userLoggedIn', handleUserLogin);
         
         return () => {
             window.removeEventListener('profileUpdated', handleStorageChange);
+            window.removeEventListener('userLoggedIn', handleUserLogin);
         };
     }, []);
 
     const handleLogout = () => {
+        // Clear authentication data
         localStorage.removeItem('authToken');
         localStorage.removeItem('userProfile');
+        
+        // Clear all cached data for current user
+        cacheUtils.clearAllOnLogout();
+        
+        // Reset state
         setIsAuthenticated(false);
         setUserProfile(null);
+        
+        // Reload and navigate
         window.location.reload();
         navigate('/');
     };
