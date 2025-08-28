@@ -41,6 +41,13 @@ const apiMapOld = {
         method: 'DELETE',
         headers: function(body, token) { return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }; },
         transform: function(body) { return { id: body.id }; }
+    },
+    billboards: {
+        base: 'old',
+        endpoint: '/billboards',
+        method: 'GET',
+        headers: function(body, token) { return { 'Content-Type': 'application/json' }; },
+        transform: function() { return {}; }
     }
 };
 
