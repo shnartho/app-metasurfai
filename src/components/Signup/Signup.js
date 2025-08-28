@@ -43,10 +43,10 @@ const SignUpForm = ({ onSwitchToLogin }) => {
             setSuccess(true);
             setError(null);
             
-            // Step 4: Close modal and let app refresh naturally
+            // Step 4: Close modal and reload for fresh state
             setTimeout(() => {
                 if (onClose) onClose(); // Close the signup modal if provided
-                // The app will detect the new auth token and profile data automatically
+                window.location.reload(); // Refresh all states
             }, 1000);
         } catch (error) {
             setError(error.message || 'Something went wrong. Please try again later.');

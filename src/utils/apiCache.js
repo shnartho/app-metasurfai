@@ -57,7 +57,6 @@ class ApiCache {
                 localStorage.setItem('userProfile', JSON.stringify(data));
             }
             
-            console.log(`[ApiCache] Cached ${key} for user ${userId}, expires in ${Math.round((expireTime - Date.now()) / 1000)}s`);
         } catch (e) {
             console.warn('[ApiCache] Failed to cache data:', e);
         }
@@ -70,7 +69,6 @@ class ApiCache {
             const cached = localStorage.getItem(cacheKey);
             
             if (!cached) {
-                console.log(`[ApiCache] No cache found for ${key}`);
                 return null;
             }
             
@@ -79,7 +77,6 @@ class ApiCache {
             
             // Check if cache is expired
             if (now > cacheData.expires) {
-                console.log(`[ApiCache] Cache expired for ${key}, expired ${Math.round((now - cacheData.expires) / 1000)}s ago`);
                 this.remove(key, userId);
                 return null;
             }
@@ -87,11 +84,9 @@ class ApiCache {
             // Check if cache is for current user
             const currentUser = userId || this.getCurrentUserId();
             if (cacheData.userId !== currentUser) {
-                console.log(`[ApiCache] Cache user mismatch for ${key}, expected ${currentUser}, got ${cacheData.userId}`);
                 return null;
             }
             
-            console.log(`[ApiCache] Cache hit for ${key}, ${Math.round((cacheData.expires - now) / 1000)}s remaining`);
             return cacheData.data;
         } catch (e) {
             console.warn('[ApiCache] Failed to get cached data:', e);
@@ -104,7 +99,6 @@ class ApiCache {
         try {
             const cacheKey = this.getCacheKey(key, userId);
             localStorage.removeItem(cacheKey);
-            console.log(`[ApiCache] Removed cache for ${key}`);
         } catch (e) {
             console.warn('[ApiCache] Failed to remove cache:', e);
         }
@@ -124,7 +118,6 @@ class ApiCache {
             }
             
             keysToRemove.forEach(key => localStorage.removeItem(key));
-            console.log(`[ApiCache] Cleared ${keysToRemove.length} cache entries for user ${user}`);
         } catch (e) {
             console.warn('[ApiCache] Failed to clear user cache:', e);
         }
@@ -153,9 +146,6 @@ class ApiCache {
             }
             
             keysToRemove.forEach(key => localStorage.removeItem(key));
-            if (keysToRemove.length > 0) {
-                console.log(`[ApiCache] Cleaned up ${keysToRemove.length} expired cache entries`);
-            }
         } catch (e) {
             console.warn('[ApiCache] Failed to clear expired cache:', e);
         }
@@ -255,7 +245,6 @@ export const cachedApiCall = async (action, options = {}, forceRefresh = false) 
     if (shouldCache && !forceRefresh) {
         const cached = apiCache.get(cacheKey);
         if (cached !== null) {
-            console.log(`[CachedApiCall] Cache HIT for ${action}`);
             return cached;
         }
     }
@@ -264,7 +253,6 @@ export const cachedApiCall = async (action, options = {}, forceRefresh = false) 
     if (shouldCache && !forceRefresh) {
         const pendingRequest = apiCache.getPending(action, { body, token, base });
         if (pendingRequest) {
-            console.log(`[CachedApiCall] Request already pending for ${action}, waiting for result...`);
             return await pendingRequest;
         }
     }
@@ -275,7 +263,6 @@ export const cachedApiCall = async (action, options = {}, forceRefresh = false) 
     // Create the API call promise
     const apiCallPromise = (async () => {
         try {
-            console.log(`[CachedApiCall] Making API call: ${action} (cache: ${shouldCache ? 'enabled' : 'disabled'})`);
             const result = await apiCall(action, { body, token, headers, base });
             
             // Cache successful read operations
@@ -311,13 +298,11 @@ export const cacheUtils = {
     invalidateUserContent() {
         apiCache.remove('ads');
         apiCache.remove('userAds');
-        console.log('[CacheUtils] Invalidated user content cache');
     },
 
     // Invalidate profile cache when balance or profile updates
     invalidateProfile() {
         apiCache.remove('profile');
-        console.log('[CacheUtils] Invalidated profile cache');
     },
 
     // Clear all cache when user logs out
@@ -326,7 +311,6 @@ export const cacheUtils = {
         localStorage.removeItem('Ads');
         localStorage.removeItem('userProfile');
         localStorage.removeItem('watchedAds');
-        console.log('[CacheUtils] Cleared all cache on logout');
     },
 
     // Clear cache from previous user sessions (but keep current user's fresh data)
@@ -349,7 +333,6 @@ export const cacheUtils = {
             localStorage.removeItem('Ads'); // Legacy cache
             localStorage.removeItem('watchedAds'); // Will be rebuilt for new user
             
-            console.log(`[CacheUtils] Cleared ${keysToRemove.length} cache entries from previous users`);
         } catch (e) {
             console.warn('[CacheUtils] Failed to clear previous user cache:', e);
         }

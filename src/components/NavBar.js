@@ -36,7 +36,8 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
             const { profile, token } = event.detail;
             setIsAuthenticated(true);
             setUserProfile(profile);
-            console.log('[NavBar] User logged in, updating navbar');
+            // Reload page to refresh all states and components
+            window.location.reload();
         };
 
         // Custom event listeners

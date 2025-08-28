@@ -46,8 +46,6 @@ const AdHandler = () => {
     useEffect(() => {
         const fetchAds = async () => {
             try {
-                console.log('[AdHandling] Fetching ads with caching');
-                
                 // Use cached API call - will use cache if valid, otherwise make API call
                 const adsData = await cachedApiCall("ads", { 
                     base: 'new' 
@@ -57,14 +55,11 @@ const AdHandler = () => {
                 if (Array.isArray(adsData)) {
                     const sortedAds = adsData.sort((a, b) => b.reward_per_view - a.reward_per_view);
                     setAds(sortedAds);
-                    console.log(`[AdHandling] Loaded ${sortedAds.length} ads from ${cachedApiCall.lastSource || 'API/cache'}`);
                 } else {
                     setAds([]);
-                    console.warn('[AdHandling] Invalid ads data received');
                 }
             } catch (error) {
                 setAds([]);
-                console.error("Error fetching ads:", error);
                 
                 // Fallback to localStorage if API fails
                 try {
@@ -73,11 +68,9 @@ const AdHandler = () => {
                         const parsedAds = JSON.parse(cachedAds);
                         if (Array.isArray(parsedAds)) {
                             setAds(parsedAds);
-                            console.log('[AdHandling] Fallback to localStorage successful');
                         }
                     }
                 } catch (fallbackError) {
-                    console.error('Fallback to localStorage failed:', fallbackError);
                 }
             }
         };
@@ -490,13 +483,10 @@ const AdHandler = () => {
                         // Dispatch custom event to notify NavBar of profile update
                         window.dispatchEvent(new Event('profileUpdated'));
                         
-                        console.log(`[AdHandling] Balance synced with server: ${serverBalance}`);
                     }
                 } else {
-                    console.log('[AdHandling] Skipping balance update - no token or zero reward');
                 }
             } catch (err) {
-                console.error('Failed to update balance on server:', err);
                 // Continue with local update even if server sync fails
             }
 
