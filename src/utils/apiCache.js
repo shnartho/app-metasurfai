@@ -305,6 +305,11 @@ export const cacheUtils = {
         apiCache.remove('profile');
     },
 
+    // Invalidate specific cache key (for backward compatibility)
+    invalidateKey(key) {
+        apiCache.remove(key);
+    },
+
     // Clear all cache when user logs out
     clearAllOnLogout() {
         apiCache.clearUserCache();
