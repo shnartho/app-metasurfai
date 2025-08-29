@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { apiCall } from '../../utils/api';
 
 const Billboards = () => {
     const [Billboards, setBillboards] = useState([]);
@@ -11,12 +12,13 @@ const Billboards = () => {
     useEffect(() => {
         const fetchBillboards = async () => {
             try {
-                const response = await fetch("https://metasurfai-public-api.fly.dev/v2/billboards");
-                const data = await response.json();
+                const data = await apiCall('billboards', { 
+                    base: 'old' 
+                });
                 const sortedBillboards = data.sort((a, b) => b.token_reward - a.token_reward); // Sort by token_reward descending
                 setBillboards(sortedBillboards);
             } catch (error) {
-                console.error("Error fetching ads:", error);
+                console.error("Error fetching billboards:", error);
             }
         };
 
@@ -82,7 +84,7 @@ const Billboards = () => {
         <div className='pt-10'>
             <div className="px-4 ads-container flex-grow grid gap-4 overflow-y-auto" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(250px, 1fr))` }}>
                          {Billboards.map((Billboard) => (
-                                <div className="rounded-3xl bg-white dark:bg-slate-900 shadow-lg dark:shadow-sm dark:shadow-zinc-500 p-4 mb-4">
+                                <div key={Billboard.id} className="rounded-3xl bg-white dark:bg-slate-900 shadow-lg dark:shadow-sm dark:shadow-zinc-500 p-4 mb-4">
                                     <img
                                         className="object-cover w-full h-48 rounded-t-3xl"
                                         src={Billboard.image_url}
