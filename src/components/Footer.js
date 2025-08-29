@@ -49,16 +49,16 @@ const Footer = ({ DarkMode, isOpen }) => {
                     <div className="space-y-1">
                     <h2 className="text-black dark:text-white font-semibold mb-1 text-xs">Follow Us</h2>
                     <div className=" icon-dark-mode grid grid-cols-2">
-                        <a href='#'><DiscordIcon className={`w-6 h-6 ${
+                        <a href='/'><DiscordIcon className={`w-6 h-6 ${
                             DarkMode ? 'text-gray-400 hover:text-blue-600' : 'text-black hover:text-pink-600'
                         }`} /> </a>
-                        <a href='#'><TwitterIcon className={`w-6 h-6 ${
+                        <a href='/'><TwitterIcon className={`w-6 h-6 ${
                             DarkMode ? 'text-gray-400 hover:text-blue-600' : 'text-black hover:text-pink-600'
                         }`} /></a>
-                        <a href='#'><GithubIcon className={`w-6 h-6 ${
+                        <a href='https://github.com/shnartho/app-metasurfai'><GithubIcon className={`w-6 h-6 ${
                             DarkMode ? 'text-gray-400 hover:text-blue-600' : 'text-black hover:text-pink-600'
                         }`} /></a>
-                        <a href='#'><LinkedinIcon className={`w-6 h-6 ${
+                        <a href='https://www.linkedin.com/company/metasurfai'><LinkedinIcon className={`w-6 h-6 ${
                             DarkMode ? 'text-gray-400 hover:text-blue-600' : 'text-black hover:text-pink-600'
                         }`} /></a>
                     </div>
