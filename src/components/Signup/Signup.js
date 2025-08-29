@@ -57,11 +57,7 @@ const SignUpForm = ({ onSwitchToLogin }) => {
     };
 
     const handleMouseDown = () => {
-        setShowPassword(true);
-    };
-
-    const handleMouseUp = () => {
-        setShowPassword(false);
+        setShowPassword(!showPassword);
     };
 
     return (
@@ -94,11 +90,9 @@ const SignUpForm = ({ onSwitchToLogin }) => {
                         />
                         <span
                             className="absolute inset-y-0 right-0 pr-3 pt-6 flex items-center cursor-pointer"
-                            onMouseDown={handleMouseDown}
-                            onMouseUp={handleMouseUp}
-                            onMouseLeave={handleMouseUp}
+                            onClick={handleMouseDown}
                         >
-                            <img src="/show-password.png" alt="Show Password" className="h-5 w-5" />
+                            <img src="/show-password.png" alt={showPassword ? "Hide Password" : "Show Password"} className="h-5 w-5" />
                         </span>
                     </div>
                     <div className="flex justify-center mt-4">
