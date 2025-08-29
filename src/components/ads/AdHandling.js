@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { apiCall } from "../../utils/api";
+import { cachedApiCall, cacheUtils } from "../../utils/apiCache";
 
 const AdHandler = () => {
     const [ads, setAds] = useState([]);
@@ -41,25 +42,36 @@ const AdHandler = () => {
         }
     }, []);
 
-    // const isNewApi = () => process.env.USE_NEW_API === 'true';
+    // Fetch ads with caching - reduce API calls
     useEffect(() => {
         const fetchAds = async () => {
             try {
-                // Always use old API for ads
-                const adsData = await apiCall("ads", { base: 'new' });
+                // Use cached API call - will use cache if valid, otherwise make API call
+                const adsData = await cachedApiCall("ads", { 
+                    base: 'new' 
+                });
+                
                 // Defensive: Only set ads if response is an array
                 if (Array.isArray(adsData)) {
                     const sortedAds = adsData.sort((a, b) => b.reward_per_view - a.reward_per_view);
                     setAds(sortedAds);
-                    localStorage.setItem('Ads', JSON.stringify(sortedAds));
                 } else {
                     setAds([]);
-                    localStorage.setItem('Ads', JSON.stringify([]));
                 }
             } catch (error) {
                 setAds([]);
-                localStorage.setItem('Ads', JSON.stringify([]));
-                console.error("Error fetching ads:", error);
+                
+                // Fallback to localStorage if API fails
+                try {
+                    const cachedAds = localStorage.getItem('Ads');
+                    if (cachedAds) {
+                        const parsedAds = JSON.parse(cachedAds);
+                        if (Array.isArray(parsedAds)) {
+                            setAds(parsedAds);
+                        }
+                    }
+                } catch (fallbackError) {
+                }
             }
         };
         fetchAds();
@@ -83,12 +95,12 @@ const AdHandler = () => {
     useEffect(() => {
         const updateAdsPerPage = () => {
             const width = window.innerWidth;
-            if (width >= 1024) {
-                setAdsPerPage(9); // 3x3 grid
-            } else if (width >= 600) {
-                setAdsPerPage(6); // 2x3 grid
+            if (width >= 768) {
+                setAdsPerPage(12); // 4x3 grid (4 columns, 3 rows) for desktop/tablet
+            } else if (width >= 481) {
+                setAdsPerPage(9); // 3x3 grid for smaller tablets  
             } else {
-                setAdsPerPage(3); // 1x3 grid
+                setAdsPerPage(6); // 2x3 grid for mobile
             }
         };
 
@@ -446,24 +458,36 @@ const AdHandler = () => {
             // Dispatch custom event to notify NavBar of profile update
             window.dispatchEvent(new Event('profileUpdated'));
 
-            // Call backend to update user balance
+            // Call backend to update user balance with optimized API calls
             try {
                 const token = localStorage.getItem('authToken') || '';
-                // apiMapNew.updateBalance expects body.amount -> will be transformed
-                const balanceResp = await apiCall('updateBalance', { body: { amount: rewardAmount }, token, base: 'new' });
-                // If backend returns a balance, sync it
-                if (balanceResp && balanceResp.balance !== undefined) {
-                    const serverBalance = parseFloat(balanceResp.balance);
-                    const syncedProfile = { ...updatedProfile, balance: serverBalance };
-                    setUserProfile(syncedProfile);
-                    localStorage.setItem('userProfile', JSON.stringify(syncedProfile));
+                
+                // Only call API if we have a valid token and the amount is meaningful
+                if (token && rewardAmount > 0) {
+                    const balanceResp = await apiCall('updateBalance', { 
+                        body: { amount: rewardAmount }, 
+                        token, 
+                        base: 'new' 
+                    });
                     
-                    // Dispatch custom event to notify NavBar of profile update
-                    window.dispatchEvent(new Event('profileUpdated'));
+                    // If backend returns a balance, sync it
+                    if (balanceResp && balanceResp.balance !== undefined) {
+                        const serverBalance = parseFloat(balanceResp.balance);
+                        const syncedProfile = { ...updatedProfile, balance: serverBalance };
+                        setUserProfile(syncedProfile);
+                        localStorage.setItem('userProfile', JSON.stringify(syncedProfile));
+                        
+                        // Invalidate profile cache since balance changed
+                        cacheUtils.invalidateProfile();
+                        
+                        // Dispatch custom event to notify NavBar of profile update
+                        window.dispatchEvent(new Event('profileUpdated'));
+                        
+                    }
+                } else {
                 }
             } catch (err) {
-                console.error('Failed to update balance on server:', err);
-                // Don't block user from receiving the local reward; optionally notify
+                // Continue with local update even if server sync fails
             }
 
             // Call backend to increment ad view_count

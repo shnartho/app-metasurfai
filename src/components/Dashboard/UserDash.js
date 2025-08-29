@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useState as useReactState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiCall } from '../../utils/api';
+import { cachedApiCall, cacheUtils } from '../../utils/apiCache';
 import AddAdModal from '../ads/AddAdModal';
 import ReactModal from 'react-modal';
 const WEBHOOK_URL = process.env.NEXT_PUBLIC_WEBHOOK;
@@ -11,10 +12,13 @@ const UserDash = () => {
     const navigate = useNavigate();
     const storedProfile = localStorage.getItem('userProfile');
     const storedAds = localStorage.getItem('Ads');
+    const token = localStorage.getItem('authToken');
     const [profile, setProfile] = useState(storedProfile ? JSON.parse(storedProfile) : null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showCreateAd, setShowCreateAd] = useState(false);
+    const [showEditAd, setShowEditAd] = useState(false);
+    const [editingAd, setEditingAd] = useState(null);
     const [userAds, setUserAds] = useState([]);
     const [adModalError, setAdModalError] = useState('');
     const [selectedAds, setSelectedAds] = useState([]);
@@ -65,6 +69,22 @@ const UserDash = () => {
         setLoading(false);
     }, [navigate]);
 
+    // Listen for profile updates (e.g., balance changes)
+    useEffect(() => {
+        const handleProfileUpdate = (event) => {
+            if (event.detail && event.detail.profile) {
+                setProfile(event.detail.profile);
+                console.log('[UserDash] Profile updated:', event.detail.profile);
+            }
+        };
+
+        window.addEventListener('profileUpdated', handleProfileUpdate);
+        
+        return () => {
+            window.removeEventListener('profileUpdated', handleProfileUpdate);
+        };
+    }, []);
+
     const handleDeleteSelectedAds = async () => {
         if (selectedAds.length === 0) {
             alert('Please select ads to delete');
@@ -75,14 +95,16 @@ const UserDash = () => {
         }
 
         setLoading(true);
-        const token = localStorage.getItem('token');
         
         try {
             // Delete each selected ad from the API
             const deletePromises = selectedAds.map(async (adId) => {
                 try {
-                    const response = await apiCall('deleteAd', { id: adId }, token);
-                    console.log(`Ad ${adId} deleted successfully:`, response);
+                    const response = await apiCall('deleteAd', {
+                        body: { id: adId },
+                        token,
+                        base: isNewApi() ? 'new' : 'old'
+                    });
                     return { success: true, id: adId };
                 } catch (error) {
                     console.error(`Failed to delete ad ${adId}:`, error);
@@ -101,8 +123,9 @@ const UserDash = () => {
                 alert(`All ${successfulDeletes.length} ads deleted successfully!`);
             }
 
-            // Refresh ads from API to sync localStorage
-            await refreshAdsFromApi();
+            // Invalidate cache and refresh ads from API to sync localStorage
+            cacheUtils.invalidateUserContent();
+            await refreshAdsFromApi(true); // Force refresh after deletion
             
         } catch (error) {
             console.error('Error during deletion process:', error);
@@ -113,22 +136,24 @@ const UserDash = () => {
         }
     };
 
-    // Function to refresh ads from API and sync localStorage
-    const refreshAdsFromApi = async () => {
+    // Function to refresh ads from API and sync localStorage with caching
+    const refreshAdsFromApi = async (forceRefresh = false) => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await apiCall('ads', {}, token);
+            console.log(`[UserDash] Refreshing ads from API (force: ${forceRefresh})`);
+            
+            // Use cached API call - will check cache first unless forceRefresh is true
+            const response = await cachedApiCall('ads', {
+                body: {},
+                token,
+                base: isNewApi() ? 'new' : 'old'
+            }, forceRefresh);
             
             if (response && Array.isArray(response)) {
-                // Update localStorage with fresh data from API
-                localStorage.setItem('Ads', JSON.stringify(response));
-                
                 // Filter user's ads
                 const userAdsFiltered = response.filter(ad => ad.posted_by === profile?.id);
                 setUserAds(userAdsFiltered);
                 
-                console.log('Ads refreshed from API:', response.length, 'total ads');
-                console.log('User ads filtered:', userAdsFiltered.length, 'user ads');
+                console.log(`[UserDash] Loaded ${response.length} total ads, ${userAdsFiltered.length} user ads`);
             }
         } catch (error) {
             console.error('Error refreshing ads from API:', error);
@@ -159,30 +184,67 @@ const UserDash = () => {
     const handleLogout = () => {
         localStorage.removeItem('authToken');
         localStorage.removeItem('userProfile');
-        window.location.reload();
         navigate('/');
+        window.location.reload();
     };
 
     const handleAdCreated = async () => {
         setShowCreateAd(false);
-        await refreshAdsFromApi();
+        // Invalidate cache and force refresh after creating new ad
+        cacheUtils.invalidateUserContent();
+        await refreshAdsFromApi(true);
     };
 
-    // Add the missing handleRefreshAds function
+    const handleAdUpdated = async () => {
+        setShowEditAd(false);
+        setEditingAd(null);
+        // Invalidate cache and force refresh after updating ad
+        cacheUtils.invalidateUserContent();
+        await refreshAdsFromApi(true);
+    };
+
+    const handleEditAd = (ad) => {
+        setEditingAd(ad);
+        setShowEditAd(true);
+    };
+
+    // Add the missing handleRefreshAds function with smart caching
     const handleRefreshAds = async () => {
-        // Try to refresh from API first, fall back to localStorage if needed
-        await refreshAdsFromApi();
+        // Try to refresh from API first (with cache), fall back to localStorage if needed
+        try {
+            await refreshAdsFromApi();
+        } catch (error) {
+            console.warn('API refresh failed, falling back to localStorage');
+            const storedAds = localStorage.getItem('Ads');
+            if (storedAds) {
+                const allAds = JSON.parse(storedAds);
+                const userAdsFiltered = Array.isArray(allAds)
+                    ? allAds.filter(ad => ad.posted_by === profile?.id)
+                    : [];
+                setUserAds(userAdsFiltered);
+            }
+        }
     };
 
     // Function to update an ad via API
     const updateAd = async (adId, updates) => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await apiCall('updateAd', { id: adId, updates }, token);
-            console.log('Ad updated successfully:', response);
+            // Create flat structure: merge id with updates at the same level
+            const requestBody = {
+                id: adId,
+                ...updates
+            };
             
-            // Refresh ads from API to sync localStorage
-            await refreshAdsFromApi();
+            
+            const response = await apiCall('updateAd', {
+                body: requestBody,
+                token,
+                base: isNewApi() ? 'new' : 'old'
+            });
+                        
+            // Invalidate user content cache and refresh with updated data
+            cacheUtils.invalidateUserContent();
+            await refreshAdsFromApi(true); // Force refresh to get updated data
             
             return response;
         } catch (error) {
@@ -496,6 +558,17 @@ const UserDash = () => {
                                         >
                                             Refresh
                                         </button>
+                                        {selectedAds.length === 1 && (
+                                            <button
+                                                onClick={() => {
+                                                    const adToEdit = userAds.find(ad => (ad.id || ad._id) === selectedAds[0]);
+                                                    handleEditAd(adToEdit);
+                                                }}
+                                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
+                                            >
+                                                Edit Selected
+                                            </button>
+                                        )}
                                         {selectedAds.length > 0 && (
                                             <button
                                                 onClick={handleDeleteSelectedAds}
@@ -561,13 +634,68 @@ const UserDash = () => {
                             )}
                         </ReactModal>
 
+                        {/* Edit Ad Modal */}
+                        <ReactModal
+                            isOpen={showEditAd}
+                            onRequestClose={() => {
+                                setShowEditAd(false);
+                                setEditingAd(null);
+                            }}
+                            contentLabel="Edit Ad Modal"
+                            style={{
+                                overlay: {
+                                    position: 'fixed',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                                    zIndex: 1002
+                                },
+                                content: {
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+                                    right: 'auto',
+                                    bottom: 'auto',
+                                    marginRight: '-50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    background: 'none',
+                                    border: 'none',
+                                    boxShadow: 'none',
+                                    overflow: 'visible',
+                                    WebkitOverflowScrolling: 'touch',
+                                    borderRadius: '0px',
+                                    outline: 'none',
+                                    padding: 0,
+                                    zIndex: 1003
+                                }
+                            }}
+                        >
+                            {showEditAd && editingAd && (
+                                <AddAdModal
+                                    closeModal={() => {
+                                        setShowEditAd(false);
+                                        setEditingAd(null);
+                                    }}
+                                    onAdCreated={handleAdUpdated}
+                                    onlyUrl={!isNewApi()}
+                                    postedBy={profile?.email || ''}
+                                    error={adModalError}
+                                    editMode={true}
+                                    adData={editingAd}
+                                    updateAd={updateAd}
+                                />
+                            )}
+                        </ReactModal>
+
                         {/* Ads List */}
                         <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
                             <div className="px-6 py-4">
                                 {userAds.length === 0 ? (
                                     <div className="text-center text-gray-400 mt-8">No ads created yet.</div>
                                 ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                         {userAds.map((ad) => (
                                             <div key={ad.id || ad._id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                                                 <div className="flex items-start space-x-3">
@@ -591,9 +719,9 @@ const UserDash = () => {
                                                         <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                                                             <p>Views: {ad.view_count || 0} / {ad.max_views}</p>
                                                             <p>Region: {ad.region}</p>
-                                                            <p>Reward: ${ad.token_reward}</p>
+                                                            <p>Reward: ${ad.reward_per_view || ad.token_reward}</p>
                                                             <p>Status: {ad.active ? 'Active' : 'Inactive'}</p>
-                                                            <p>ID: {ad.id || ad._id}</p>
+                                                            <p>Budget: ${ad.budget || 0}</p>
                                                         </div>
                                                     </div>
                                                 </div>

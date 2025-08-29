@@ -4,14 +4,16 @@ const VR = () => {
 
     return (
         <div className='pt-10'>
-            <div className="vr-games-container" style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
+            <div className="px-4 ads-container flex-grow grid gap-4 overflow-y-auto" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(250px, 1fr))` }}>
                 {VRV.map((game, index) => (
-                    <div key={index} className="vr-game-item" style={{ flex: '0 1 calc(33.333% - 20px)', border: '1px solid #ccc', borderRadius: '10px', overflow: 'hidden', textAlign: 'left', padding: '20px' }}>
-                        <h2 style={{ fontSize: '24px', marginBottom: '10px' }}>{game.title}</h2>
-                        <p style={{ marginBottom: '10px' }}>{game.description}</p>
-                        {game.Path && game.Path.endsWith('.jpg') && <img src={game.Path} alt={game.title} style={{ width: '100%', height: 'auto', marginBottom: '10px' }} />}
+                    <div key={index} className="rounded-3xl bg-white dark:bg-slate-900 shadow-lg dark:shadow-sm dark:shadow-zinc-500 p-4 mb-4">
+                        <h2 className="text-2xl font-bold mb-2 dark:text-white">{game.title}</h2>
+                        <p className="mb-2 text-gray-700 dark:text-gray-300">{game.description}</p>
+                        {game.Path && game.Path.endsWith('.jpg') && (
+                            <img src={game.Path} alt={game.title} className="w-full h-auto mb-2 rounded-lg" />
+                        )}
                         {game.Path && game.Path.endsWith('.mp4') && (
-                            <video width="100%" height="auto" controls style={{ marginBottom: '10px' }}>
+                            <video width="100%" height="auto" controls className="mb-2 rounded-lg">
                                 <source src={game.Path} type="video/mp4" />
                                 Your browser does not support the video tag.
                             </video>

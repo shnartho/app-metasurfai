@@ -147,13 +147,7 @@ const apiMapNew = {
             'x-api-key': API_KEY 
         }),
         transform: (body) => {
-            const result = { id: body.id };
-            // Include optional fields if provided
-            if (body.updates?.view_count !== undefined) result.view_count = body.updates.view_count;
-            if (body.updates?.description !== undefined) result.description = body.updates.description;
-            if (body.updates?.title !== undefined) result.title = body.updates.title;
-            if (body.updates?.active !== undefined) result.active = body.updates.active;
-            return result;
+            return body;
         }
     },
     

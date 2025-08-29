@@ -47,27 +47,34 @@
 .ads-container {
     display: grid;
     gap: 1rem; /* Adjust gap as needed */
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Ensures flexibility */
+    grid-template-columns: repeat(4, 1fr); /* 4 columns for desktop by default */
 }
 
-/* 3x3 grid for screens wider than 1024px */
+/* 4 columns for large desktop screens (1024px+) */
 @media (min-width: 1024px) {
+    .ads-container {
+        grid-template-columns: repeat(4, 1fr); /* 4 columns */
+    }
+}
+
+/* 4 columns for medium desktop screens (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .ads-container {
+        grid-template-columns: repeat(4, 1fr); /* 4 columns */
+    }
+}
+
+/* 3 columns for tablet screens (481px - 767px) */
+@media (min-width: 481px) and (max-width: 767px) {
     .ads-container {
         grid-template-columns: repeat(3, 1fr); /* 3 columns */
     }
 }
 
-/* 2x3 grid for screens between 600px and 1023px */
-@media (min-width: 600px) and (max-width: 1023px) {
+/* 2 columns for mobile screens (480px and below) */
+@media (max-width: 480px) {
     .ads-container {
         grid-template-columns: repeat(2, 1fr); /* 2 columns */
-    }
-}
-
-/* 1x3 grid for screens under 600px */
-@media (max-width: 599px) {
-    .ads-container {
-        grid-template-columns: repeat(1, 1fr); /* 1 column */
     }
 }
 
@@ -210,6 +217,34 @@
     .content {
         margin-left: 0 !important;
     }
+    
+    /* Mobile specific fixes for all mobile devices */
+    body {
+        overflow-x: hidden;
+    }
+    
+    /* Ensure main content doesn't have sidebar margins on mobile */
+    .flex-grow {
+        margin-left: 0 !important;
+    }
+    
+    /* Filter positioning fix for mobile */
+    .fixed.top-12 {
+        left: 0 !important;
+        right: 0 !important;
+    }
+    
+    /* Navbar improvements for mobile */
+    .navbar {
+        padding: 0.5rem 1rem;
+        min-height: 3rem;
+    }
+    
+    /* Mobile menu button improvements */
+    .mobile-menu button {
+        -webkit-tap-highlight-color: transparent;
+        outline: none;
+    }
 }
 
 /* Restore sidebar visibility on larger screens */
@@ -221,8 +256,10 @@
 
 .navbar {
     position: fixed;
-    z-index: 50;
+    z-index: 60;
     background-color: white;
+    width: 100%;
+    top: 0;
 }
 
 .icon-dark-mode {
@@ -813,22 +850,48 @@
 /* YouTube Shorts Style Grid */
 .ads-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(4, 1fr); /* 4 ads per row for desktop */
     gap: 1rem;
     padding: 1rem 0;
 }
 
 /* Responsive grid adjustments */
-@media (max-width: 768px) {
+/* Large desktop screens (1400px+) - 4 columns */
+@media (min-width: 1400px) {
     .ads-grid {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.25rem;
+    }
+}
+
+/* Standard desktop screens (1024px - 1399px) - 4 columns */
+@media (min-width: 1024px) and (max-width: 1399px) {
+    .ads-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+    }
+}
+
+/* Medium desktop/laptop screens (768px - 1023px) - 4 columns still fit */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .ads-grid {
+        grid-template-columns: repeat(4, 1fr);
         gap: 0.75rem;
     }
 }
 
+/* Tablet screens (481px - 767px) - 3 columns */
+@media (min-width: 481px) and (max-width: 767px) {
+    .ads-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+    }
+}
+
+/* Mobile screens (480px and below) - 2 columns */
 @media (max-width: 480px) {
     .ads-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, 1fr);
         gap: 0.5rem;
     }
 }

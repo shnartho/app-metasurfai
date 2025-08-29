@@ -5,26 +5,28 @@ const Radio = () => {
 
 
     return (
-        <div className='pt-10' style={{ textAlign: 'center', marginTop: '50px' }}>
-            <div className="radio-container" style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
+        <div className='pt-10'>
+            <div className="px-4 ads-container flex-grow grid gap-4 overflow-y-auto" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(250px, 1fr))` }}>
                 {RadioFrequencies.map((station, index) => (
-                    <div key={index} className="station-item" style={{ flex: '0 1 calc(33.333% - 20px)', position: 'relative', border: '1px solid #ccc', borderRadius: '10px', overflow: 'hidden' }}>
-                        <span style={{ position: 'absolute', top: '10px', left: '10px', backgroundColor: 'grey', color: 'white', padding: '5px 10px', borderRadius: '5px', zIndex: 2 }}>Radio</span>
-                        {station.Path && station.Path.endsWith('.jpg') && <img src={station.Path} alt={station.title} style={{ width: '100%', height: 'auto', marginBottom: '10px' }} />}
+                    <div key={index} className="rounded-3xl bg-white dark:bg-slate-900 shadow-lg dark:shadow-sm dark:shadow-zinc-500 p-4 mb-4 relative">
+                        <span className="absolute top-2 left-2 bg-gray-500 text-white px-2 py-1 rounded text-sm z-10">Radio</span>
+                        {station.Path && station.Path.endsWith('.jpg') && (
+                            <img src={station.Path} alt={station.title} className="w-full h-auto mb-2 rounded-lg" />
+                        )}
                         {station.Path && station.Path.endsWith('.mp4') && (
-                            <video width="100%" height="auto" autoPlay muted loop style={{ marginBottom: '10px' }}>
+                            <video width="100%" height="auto" autoPlay muted loop className="mb-2 rounded-lg">
                                 <source src={station.Path} type="video/mp4" />
                                 Your browser does not support the video tag.
                             </video>
                         )}
-                        <div style={{ padding: '10px', textAlign: 'left' }}>
-                            <h3 style={{ fontSize: '18px', margin: '10px 0' }}>{station.name}</h3>
-                            <p style={{ fontSize: '14px', margin: '10px 0' }}>{station.description}</p>
+                        <div className="text-left">
+                            <h3 className="text-lg font-bold my-2 dark:text-white">{station.name}</h3>
+                            <p className="text-sm my-2 text-gray-700 dark:text-gray-300">{station.description}</p>
                             {station.action && (
-                                <button className="buttonn px-4 py-2 text-white border-none rounded ">
-                                <span className="hoverEffect">
-                                <div></div>
-                                </span>
+                                <button className="buttonn px-4 py-2 text-white border-none rounded">
+                                    <span className="hoverEffect">
+                                        <div></div>
+                                    </span>
                                     {station.action}
                                 </button>
                             )}
