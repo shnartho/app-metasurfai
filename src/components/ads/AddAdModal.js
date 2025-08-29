@@ -36,7 +36,7 @@ const AddAdModal = ({
     const token = localStorage.getItem('authToken');
     
     // Get user's current balance for budget validation
-    const userBalance = userProfile?.balance || 0;
+    const userBalance = userProfile?.balance || userProfile?.localBalance || 0;
 
     const isNewApi = (process.env.NEXT_PUBLIC_USE_NEW_API === 'true');
 
@@ -295,7 +295,7 @@ const AddAdModal = ({
                 });
                 
                 // Deduct budget from user's balance after successful ad creation
-                const currentBalance = userProfile?.balance || userProfile?.localBalance || 0;
+                const currentBalance = userProfile?.balance || 0;
                 const updatedBalance = currentBalance - Number(budget);
                 const updatedProfile = {
                     ...userProfile,
@@ -326,13 +326,19 @@ const AddAdModal = ({
     };
 
     return (
-        <div className="flex justify-center items-center">
-            <div className="p-0 rounded-lg shadow-lg backdrop-blur-md border-0">
-                <div className="p-6 rounded-lg shadow-lg w-full max-w-3xl mx-4 border-2 border-opacity-50 border-pink-600 dark:border-blue-600 bg-gray-900 text-gray-100">
-                    <h2 className="text-2xl font-bold mb-4">
-                        {editMode ? 'Edit Your Ad' : 'Upload Your Ad'}
-                    </h2>
-                    <form onSubmit={handleSubmit}>
+        <div className="flex justify-center items-start min-h-screen p-4 overflow-y-auto">
+            <div className="p-0 rounded-lg shadow-lg backdrop-blur-md border-0 w-full max-w-3xl">
+                <div className="relative p-6 rounded-lg shadow-lg w-full mx-auto border-2 border-opacity-50 border-pink-600 dark:border-blue-600 bg-gray-900 text-gray-100 max-h-[90vh]">
+                    {/* Fixed Title */}
+                    <div className="absolute top-0 left-0 right-0 bg-gray-900 rounded-t-lg p-6 pb-4 border-b border-gray-700 z-20">
+                        <h2 className="text-2xl font-bold">
+                            {editMode ? 'Edit Your Ad' : 'Upload Your Ad'}
+                        </h2>
+                    </div>
+                    
+                    {/* Scrollable Form Content */}
+                    <div className="pt-16 pb-20 overflow-y-auto max-h-[calc(90vh-8rem)]">
+                        <form id="ad-form" onSubmit={handleSubmit} className="space-y-4">
                         {/* Title and Posted By in one row */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div>
@@ -702,13 +708,18 @@ const AddAdModal = ({
                                 />
                             </div>
                         )}
-                        <div className="flex justify-end mt-6">
+                        </form>
+                    </div>
+                    
+                    {/* Fixed Buttons */}
+                    <div className="absolute bottom-0 left-0 right-0 bg-gray-900 rounded-b-lg p-6 pt-4 border-t border-gray-700 z-20">
+                        <div className="flex justify-end">
                             <button type="button" onClick={closeModal} className="mr-4 px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded">Cancel</button>
-                            <button type="submit" className="px-4 py-2 bg-pink-600 dark:bg-blue-600 text-white rounded">
+                            <button type="submit" form="ad-form" className="px-4 py-2 bg-pink-600 dark:bg-blue-600 text-white rounded">
                                 {editMode ? 'Update Ad' : 'Upload Ad'}
                             </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
