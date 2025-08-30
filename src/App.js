@@ -20,6 +20,7 @@ import Multifilter from "./components/ads/ads-filter/multifilter";
 import Settings from "./components/settings/settings";
 import Modal from 'react-modal';
 import { ToastProvider } from "./components/Toast/ToastContext";
+import { balanceUtils } from "./utils/balanceUtils";
 import "./styles/toast.css";
     
 Modal.setAppElement('#app');
@@ -45,6 +46,21 @@ const App = () => {
     }
     localStorage.setItem('DarkMode', DarkMode);
   }, [DarkMode]);
+
+  // Clean up any balance inconsistencies on app load
+  useEffect(() => {
+    const cleanup = () => {
+      try {
+        balanceUtils.forceCleanup();
+      } catch (error) {
+        console.warn('[App] Balance cleanup failed:', error);
+      }
+    };
+    
+    // Run cleanup after a short delay to allow other components to initialize
+    const timer = setTimeout(cleanup, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const toggleDarkMode = () => {
     setDarkMode(!DarkMode);
