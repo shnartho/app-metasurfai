@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { apiCall } from "../../utils/api";
 import { cachedApiCall, cacheUtils } from "../../utils/apiCache";
+import { balanceUtils } from "../../utils/balanceUtils";
 
 const AdHandler = () => {
     const [ads, setAds] = useState([]);
@@ -438,25 +439,23 @@ const AdHandler = () => {
             // Use reward_per_view for the reward amount
             const rewardAmount = selectedAd.reward_per_view || selectedAd.token_reward || 0;
             
-            // Update local UI first (optimistic)
-            const currentBalance = userProfile.balance || 0;
-            const newBalance = currentBalance + rewardAmount;
-            const updatedProfile = {
-                ...userProfile,
-                balance: newBalance
-            };
+            // Update balance using simple balance utility
+            if (!balanceUtils.addToBalance(rewardAmount, `Earned $${rewardAmount} for watching ad: ${selectedAd.title}`)) {
+                throw new Error('Failed to update balance');
+            }
 
+            // Update watched ads set
             const newWatchedAds = new Set(watchedAds);
             newWatchedAds.add(adId);
-
-            setUserProfile(updatedProfile);
             setWatchedAds(newWatchedAds);
 
-            localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+            // Store updated watched ads in localStorage
             localStorage.setItem('watchedAds', JSON.stringify([...newWatchedAds]));
+
+            // Update userProfile state to reflect new balance
+            setUserProfile(balanceUtils.getUserProfile());
             
-            // Dispatch custom event to notify NavBar of profile update
-            window.dispatchEvent(new Event('profileUpdated'));
+            // Profile update event is dispatched by balanceUtils
 
             // Call backend to update user balance with optimized API calls
             try {
@@ -470,23 +469,20 @@ const AdHandler = () => {
                         base: 'new' 
                     });
                     
-                    // If backend returns a balance, sync it
+                    // If backend returns a balance, sync it using simple utility
                     if (balanceResp && balanceResp.balance !== undefined) {
                         const serverBalance = parseFloat(balanceResp.balance);
-                        const syncedProfile = { ...updatedProfile, balance: serverBalance };
-                        setUserProfile(syncedProfile);
-                        localStorage.setItem('userProfile', JSON.stringify(syncedProfile));
+                        
+                        // Use balance utility to sync with server balance
+                        balanceUtils.updateBalance(serverBalance, 'Synced with server after reward');
+                        setUserProfile(balanceUtils.getUserProfile());
                         
                         // Invalidate profile cache since balance changed
                         cacheUtils.invalidateProfile();
-                        
-                        // Dispatch custom event to notify NavBar of profile update
-                        window.dispatchEvent(new Event('profileUpdated'));
-                        
                     }
-                } else {
                 }
             } catch (err) {
+                console.warn('[AdHandling] Server balance sync failed, using local balance:', err);
                 // Continue with local update even if server sync fails
             }
 
