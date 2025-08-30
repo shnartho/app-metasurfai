@@ -1,5 +1,6 @@
 // Simple Balance Utility
 // Provides basic balance consistency without over-engineering
+import { apiCall } from './api';
 
 export const balanceUtils = {
     // Get current user profile
@@ -60,10 +61,30 @@ export const balanceUtils = {
                 detail: { profile: updatedProfile, previousBalance: oldBalance }
             }));
             
+            // Also update balance on backend for incognito support
+            this.updateBackendBalance(parseFloat(newBalance) || 0);
+            
             return true;
         } catch (error) {
             return false;
         }
+    },
+    
+    // Simple function to update balance on backend
+    updateBackendBalance(balance) {
+        const token = localStorage.getItem('authToken');
+        if (!token) return false;
+        
+        // Fire and forget - don't wait for response
+        apiCall('updateBalance', {
+            body: { amount: balance },
+            token,
+            base: 'new'
+        }).catch(err => {
+            console.warn('[BalanceUtils] Backend update failed:', err);
+        });
+        
+        return true;
     },
 
     // Check if user has sufficient balance
@@ -96,8 +117,50 @@ export const balanceUtils = {
         if (profile) {
             const cleaned = this.cleanupProfile(profile);
             localStorage.setItem('userProfile', JSON.stringify(cleaned));
+            
+            // Also sync with backend to help with incognito mode
+            if (cleaned.balance !== undefined) {
+                this.updateBackendBalance(cleaned.balance);
+            }
+            
             return cleaned;
         }
         return null;
+    },
+    
+    // Fetch latest balance from backend (useful for incognito mode)
+    fetchBalanceFromBackend() {
+        const token = localStorage.getItem('authToken');
+        if (!token) return Promise.resolve(false);
+        
+        // Get profile from backend
+        return apiCall('getProfile', {
+            token,
+            base: 'new'
+        })
+        .then(response => {
+            if (response && response.balance !== undefined) {
+                // Update localStorage with backend balance
+                const profile = this.getUserProfile();
+                if (profile) {
+                    const updatedProfile = {
+                        ...profile,
+                        balance: parseFloat(response.balance) || 0
+                    };
+                    localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+                    
+                    // Notify other components
+                    window.dispatchEvent(new CustomEvent('profileUpdated', {
+                        detail: { profile: updatedProfile }
+                    }));
+                }
+                return true;
+            }
+            return false;
+        })
+        .catch(error => {
+            console.warn('[BalanceUtils] Error fetching backend balance:', error);
+            return false;
+        });
     }
 };

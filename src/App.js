@@ -47,19 +47,27 @@ const App = () => {
     localStorage.setItem('DarkMode', DarkMode);
   }, [DarkMode]);
 
-  // Clean up any balance inconsistencies on app load
+  // Clean up any balance inconsistencies on app load and check for incognito mode
   useEffect(() => {
-    const cleanup = () => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
       try {
-        balanceUtils.forceCleanup();
+        // Try to detect if we're in incognito mode 
+        // If localStorage is empty but token exists, we might be in incognito
+        const profile = localStorage.getItem('userProfile');
+        if (!profile || !JSON.parse(profile)?.balance) {
+          // Fetch balance from backend for incognito mode
+          balanceUtils.fetchBalanceFromBackend().catch(err => {
+            console.warn('[App] Failed to fetch balance:', err);
+          });
+        } else {
+          // For regular mode, just clean up any inconsistencies
+          balanceUtils.forceCleanup();
+        }
       } catch (error) {
-        console.warn('[App] Balance cleanup failed:', error);
+        console.warn('[App] Balance init failed:', error);
       }
-    };
-    
-    // Run cleanup after a short delay to allow other components to initialize
-    const timer = setTimeout(cleanup, 1000);
-    return () => clearTimeout(timer);
+    }
   }, []);
 
   const toggleDarkMode = () => {
