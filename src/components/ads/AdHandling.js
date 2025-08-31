@@ -968,9 +968,11 @@ const AdHandler = () => {
                                                            </svg>
                                                        </div>
                                                        <span className="completed-text">Reward Earned!</span>
-                                                       <button onClick={goToNextAd} className="next-ad-btn mt-3">
-                                                           Next Ad
-                                                       </button>
+                                                       <div className="next-button-container">
+                                                           <button onClick={goToNextAd} className="next-ad-btn">
+                                                               Next Ad
+                                                           </button>
+                                                       </div>
                                                    </div>
                                                ) : (
                                                    <div className="watch-progress">
