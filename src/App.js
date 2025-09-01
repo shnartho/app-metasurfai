@@ -20,6 +20,7 @@ import Multifilter from "./components/ads/ads-filter/multifilter";
 import Settings from "./components/settings/settings";
 import Modal from 'react-modal';
 import { ToastProvider } from "./components/Toast/ToastContext";
+import { balanceUtils } from "./utils/balanceUtils";
 import "./styles/toast.css";
     
 Modal.setAppElement('#app');
@@ -45,6 +46,29 @@ const App = () => {
     }
     localStorage.setItem('DarkMode', DarkMode);
   }, [DarkMode]);
+
+  // Clean up any balance inconsistencies on app load and check for incognito mode
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      try {
+        // Try to detect if we're in incognito mode 
+        // If localStorage is empty but token exists, we might be in incognito
+        const profile = localStorage.getItem('userProfile');
+        if (!profile || !JSON.parse(profile)?.balance) {
+          // Fetch balance from backend for incognito mode
+          balanceUtils.fetchBalanceFromBackend().catch(err => {
+            console.warn('[App] Failed to fetch balance:', err);
+          });
+        } else {
+          // For regular mode, just clean up any inconsistencies
+          balanceUtils.forceCleanup();
+        }
+      } catch (error) {
+        console.warn('[App] Balance init failed:', error);
+      }
+    }
+  }, []);
 
   const toggleDarkMode = () => {
     setDarkMode(!DarkMode);

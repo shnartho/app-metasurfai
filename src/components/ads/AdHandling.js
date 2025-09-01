@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { apiCall } from "../../utils/api";
 import { cachedApiCall, cacheUtils } from "../../utils/apiCache";
+import { balanceUtils } from "../../utils/balanceUtils";
 
 const AdHandler = () => {
     const [ads, setAds] = useState([]);
@@ -438,57 +439,23 @@ const AdHandler = () => {
             // Use reward_per_view for the reward amount
             const rewardAmount = selectedAd.reward_per_view || selectedAd.token_reward || 0;
             
-            // Update local UI first (optimistic)
-            const currentBalance = userProfile.balance || 0;
-            const newBalance = currentBalance + rewardAmount;
-            const updatedProfile = {
-                ...userProfile,
-                balance: newBalance
-            };
+            // Update balance using simple balance utility
+            if (!balanceUtils.addToBalance(rewardAmount, `Earned $${rewardAmount} for watching ad: ${selectedAd.title}`)) {
+                throw new Error('Failed to update balance');
+            }
 
+            // Update watched ads set
             const newWatchedAds = new Set(watchedAds);
             newWatchedAds.add(adId);
-
-            setUserProfile(updatedProfile);
             setWatchedAds(newWatchedAds);
 
-            localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+            // Store updated watched ads in localStorage
             localStorage.setItem('watchedAds', JSON.stringify([...newWatchedAds]));
-            
-            // Dispatch custom event to notify NavBar of profile update
-            window.dispatchEvent(new Event('profileUpdated'));
 
-            // Call backend to update user balance with optimized API calls
-            try {
-                const token = localStorage.getItem('authToken') || '';
-                
-                // Only call API if we have a valid token and the amount is meaningful
-                if (token && rewardAmount > 0) {
-                    const balanceResp = await apiCall('updateBalance', { 
-                        body: { amount: rewardAmount }, 
-                        token, 
-                        base: 'new' 
-                    });
-                    
-                    // If backend returns a balance, sync it
-                    if (balanceResp && balanceResp.balance !== undefined) {
-                        const serverBalance = parseFloat(balanceResp.balance);
-                        const syncedProfile = { ...updatedProfile, balance: serverBalance };
-                        setUserProfile(syncedProfile);
-                        localStorage.setItem('userProfile', JSON.stringify(syncedProfile));
-                        
-                        // Invalidate profile cache since balance changed
-                        cacheUtils.invalidateProfile();
-                        
-                        // Dispatch custom event to notify NavBar of profile update
-                        window.dispatchEvent(new Event('profileUpdated'));
-                        
-                    }
-                } else {
-                }
-            } catch (err) {
-                // Continue with local update even if server sync fails
-            }
+            // Update userProfile state to reflect new balance
+            setUserProfile(balanceUtils.getUserProfile());
+            
+            // Profile update event is dispatched by balanceUtils
 
             // Call backend to increment ad view_count
             try {
@@ -972,9 +939,11 @@ const AdHandler = () => {
                                                            </svg>
                                                        </div>
                                                        <span className="completed-text">Reward Earned!</span>
-                                                       <button onClick={goToNextAd} className="next-ad-btn mt-3">
-                                                           Next Ad
-                                                       </button>
+                                                       <div className="next-button-container">
+                                                           <button onClick={goToNextAd} className="next-ad-btn">
+                                                               Next Ad
+                                                           </button>
+                                                       </div>
                                                    </div>
                                                ) : (
                                                    <div className="watch-progress">

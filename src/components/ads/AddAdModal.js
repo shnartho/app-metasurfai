@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { apiCall } from '../../utils/api';
 import { cachedApiCall, cacheUtils } from '../../utils/apiCache';
 import { REGIONS, getContinents, getRegionsByContinent, getRegionByCode } from '../../utils/regions';
+import { balanceUtils } from '../../utils/balanceUtils';
 
 const AddAdModal = ({ 
     closeModal, 
@@ -30,13 +31,13 @@ const AddAdModal = ({
     // Track original values for comparison in edit mode
     const [originalData, setOriginalData] = useState({});
     
-    const userProfile = (() => { try { return JSON.parse(localStorage.getItem('userProfile')); } catch { return null; } })();
+    const userProfile = balanceUtils.getUserProfile();
     const defaultPostedBy = userProfile?.email || initialPostedBy;
     const [postedBy, setPostedBy] = useState(defaultPostedBy);
     const token = localStorage.getItem('authToken');
     
     // Get user's current balance for budget validation
-    const userBalance = userProfile?.balance || userProfile?.localBalance || 0;
+    const userBalance = balanceUtils.getCurrentBalance();
 
     const isNewApi = (process.env.NEXT_PUBLIC_USE_NEW_API === 'true');
 
@@ -121,11 +122,20 @@ const AddAdModal = ({
     // Handle budget input with validation against user's balance
     const handleBudgetChange = (e) => {
         const newBudget = Number(e.target.value);
+        const currentBalance = balanceUtils.getCurrentBalance();
         
         // In edit mode, validate against balance if increasing budget
         if (editMode) {
             const originalBudget = originalData.budget || 0;
             const budgetIncrease = newBudget - originalBudget;
+            const maxAllowedBudget = currentBalance + originalBudget;
+            
+            // Prevent typing beyond max allowed budget
+            if (newBudget > maxAllowedBudget) {
+                setBudget(maxAllowedBudget);
+                setError(`Maximum budget allowed is $${maxAllowedBudget.toFixed(2)}`);
+                return;
+            }
             
             // If decreasing or keeping same budget, allow it
             if (budgetIncrease <= 0) {
@@ -135,23 +145,29 @@ const AddAdModal = ({
             }
             
             // If increasing budget, check if user has enough balance for the increase
-            if (budgetIncrease <= userBalance) {
+            if (balanceUtils.hasSufficientBalance(budgetIncrease)) {
                 setBudget(newBudget);
                 setError(''); // Clear any previous budget error
             } else {
                 setBudget(newBudget); // Still set the value to show what they typed
-                setError(`Budget increase of $${budgetIncrease.toFixed(2)} exceeds your current balance of $${userBalance.toFixed(2)}`);
+                setError(`Budget increase of $${budgetIncrease.toFixed(2)} exceeds your current balance of $${currentBalance.toFixed(2)}`);
             }
             return;
         }
         
         // In create mode, validate against user's full balance
-        if (newBudget <= userBalance) {
+        if (newBudget > currentBalance) {
+            setBudget(currentBalance);
+            setError(`Maximum budget allowed is $${currentBalance.toFixed(2)}`);
+            return;
+        }
+        
+        if (balanceUtils.hasSufficientBalance(newBudget)) {
             setBudget(newBudget);
             setError(''); // Clear any previous budget error
         } else {
             setBudget(newBudget); // Still set the value to show what they typed
-            setError(`Budget cannot exceed your current balance of $${userBalance.toFixed(2)}`);
+            setError(`Budget cannot exceed your current balance of $${currentBalance.toFixed(2)}`);
         }
     };
 
@@ -169,7 +185,7 @@ const AddAdModal = ({
         // Validate budget against user's balance
         if (!editMode) {
             // For new ads, check full budget against balance
-            if (budget > userBalance) {
+            if (!balanceUtils.hasSufficientBalance(budget)) {
                 setError(`Budget ($${budget.toFixed(2)}) cannot exceed your current balance ($${userBalance.toFixed(2)})`);
                 return;
             }
@@ -177,7 +193,7 @@ const AddAdModal = ({
             // For edit mode, only check if budget is being increased
             const originalBudget = originalData.budget || 0;
             const budgetIncrease = budget - originalBudget;
-            if (budgetIncrease > 0 && budgetIncrease > userBalance) {
+            if (budgetIncrease > 0 && !balanceUtils.hasSufficientBalance(budgetIncrease)) {
                 setError(`Budget increase of $${budgetIncrease.toFixed(2)} exceeds your current balance of $${userBalance.toFixed(2)}`);
                 return;
             }
@@ -197,6 +213,13 @@ const AddAdModal = ({
         
         setError('');
         try {
+            // Double-check balance right before processing (in case it changed)
+            const currentBalance = balanceUtils.getCurrentBalance();
+            if (!editMode && budget > currentBalance) {
+                setError(`Insufficient balance. Current: $${currentBalance.toFixed(2)}, Required: $${budget.toFixed(2)}`);
+                return;
+            }
+            
             let image_url = imageUrl;
             const base = isNewApi ? 'new' : 'old';
             
@@ -253,24 +276,10 @@ const AddAdModal = ({
                 // If budget was increased, deduct the increase from user's balance
                 if (changedFields.budget && Number(changedFields.budget) > Number(originalData.budget)) {
                     const budgetIncrease = Number(changedFields.budget) - Number(originalData.budget);
-                    const currentBalance = userProfile?.balance || userProfile?.localBalance || 0;
-                    const updatedBalance = currentBalance - budgetIncrease;
                     
-                    const updatedProfile = {
-                        ...userProfile,
-                        balance: updatedBalance,
-                        localBalance: updatedBalance // Keep both for compatibility
-                    };
-                    
-                    // Update localStorage with new balance
-                    localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
-                    
-                    // Dispatch event to notify other components of balance update
-                    window.dispatchEvent(new CustomEvent('profileUpdated', { 
-                        detail: { profile: updatedProfile } 
-                    }));
-                    
-                    console.log(`[AddAdModal] Deducted $${budgetIncrease} budget increase from balance. New balance: $${updatedBalance.toFixed(2)}`);
+                    if (!balanceUtils.subtractFromBalance(budgetIncrease, `Deducted $${budgetIncrease} budget increase for ad update.`)) {
+                        throw new Error('Failed to update balance for budget increase');
+                    }
                 }
                 
                 // Invalidate ads cache since we updated an ad
@@ -288,30 +297,28 @@ const AddAdModal = ({
                     redirection_link: adType === 'redirect' ? redirectionLink : null
                 };
                 
-                await apiCall('createAd', {
+                // Create the ad first - only deduct balance if successful
+                const createResult = await apiCall('createAd', {
                     body: adDataPayload,
                     token,
                     base
                 });
                 
-                // Deduct budget from user's balance after successful ad creation
-                const currentBalance = userProfile?.balance || 0;
-                const updatedBalance = currentBalance - Number(budget);
-                const updatedProfile = {
-                    ...userProfile,
-                    balance: updatedBalance,
-                    localBalance: updatedBalance // Keep both for compatibility
-                };
+                // Validate the response from ad creation
+                if (!createResult) {
+                    throw new Error('Ad creation returned no result');
+                }
                 
-                // Update localStorage with new balance
-                localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+                // Check for successful response indicators
+                if (createResult.error) {
+                    throw new Error(createResult.error || 'Ad creation failed');
+                }
                 
-                // Dispatch event to notify other components of balance update
-                window.dispatchEvent(new CustomEvent('profileUpdated', { 
-                    detail: { profile: updatedProfile } 
-                }));
-                
-                console.log(`[AddAdModal] Deducted $${budget} from balance. New balance: $${updatedBalance.toFixed(2)}`);
+                // Only deduct budget from user's balance after confirmed successful ad creation
+                if (!balanceUtils.subtractFromBalance(budget, `Deducted $${budget} for ad creation.`)) {
+                    // This shouldn't happen since we validated balance earlier, but handle it
+                    throw new Error('Failed to update balance after ad creation');
+                }
                 
                 // Invalidate ads cache since we created a new ad
                 cacheUtils.invalidateKey('ads');
@@ -319,9 +326,25 @@ const AddAdModal = ({
                 if (onSubmit) await onSubmit(adDataPayload);
                 if (onAdCreated) await onAdCreated(adDataPayload);
             }
+            
+            // Force balance cleanup to ensure consistency
+            balanceUtils.forceCleanup();
+            
             closeModal();
         } catch (err) {
-            setError(err.message || 'Error saving ad.');
+            // Set user-friendly error message
+            let errorMessage = err.message || 'Error saving ad. Please try again.';
+            
+            // Handle specific error cases
+            if (err.message && err.message.includes('invalidKey')) {
+                errorMessage = 'Authentication error. Please try logging out and back in.';
+            } else if (err.message && err.message.includes('balance')) {
+                errorMessage = 'Balance update failed. Please refresh the page and try again.';
+            } else if (err.message && err.message.includes('Network')) {
+                errorMessage = 'Network error. Please check your connection and try again.';
+            }
+            
+            setError(errorMessage);
         }
     };
 
@@ -332,7 +355,7 @@ const AddAdModal = ({
                     {/* Fixed Title */}
                     <div className="absolute top-0 left-0 right-0 bg-gray-900 rounded-t-lg p-6 pb-4 border-b border-gray-700 z-20">
                         <h2 className="text-2xl font-bold">
-                            {editMode ? 'Edit Your Ad' : 'Upload Your Ad'}
+                            {editMode ? 'Edit Your Ad' : 'Create Your Ad'}
                         </h2>
                     </div>
                     
@@ -505,11 +528,12 @@ const AddAdModal = ({
                                         type="number"
                                         value={budget}
                                         onChange={handleBudgetChange}
+                                        max={userBalance + (originalData.budget || 0)}
                                         className="form-input mt-1 block w-full pl-2 border border-black text-black bg-white dark:bg-gray-800 dark:text-white"
                                         required
                                     />
                                     <div className="text-xs text-gray-400 mt-1">
-                                        Balance: ${userBalance.toFixed(2)} | Original: ${(originalData.budget || 0).toFixed(2)}
+                                        Balance: ${userBalance.toFixed(2)} | Original: ${(originalData.budget || 0).toFixed(2)} | Max: ${(userBalance + (originalData.budget || 0)).toFixed(2)}
                                     </div>
                                 </div>
                                 <div>
@@ -716,7 +740,7 @@ const AddAdModal = ({
                         <div className="flex justify-end">
                             <button type="button" onClick={closeModal} className="mr-4 px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded">Cancel</button>
                             <button type="submit" form="ad-form" className="px-4 py-2 bg-pink-600 dark:bg-blue-600 text-white rounded">
-                                {editMode ? 'Update Ad' : 'Upload Ad'}
+                                {editMode ? 'Update Ad' : 'Create Ad'}
                             </button>
                         </div>
                     </div>
