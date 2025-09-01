@@ -457,35 +457,6 @@ const AdHandler = () => {
             
             // Profile update event is dispatched by balanceUtils
 
-            // Call backend to update user balance with optimized API calls
-            try {
-                const token = localStorage.getItem('authToken') || '';
-                
-                // Only call API if we have a valid token and the amount is meaningful
-                if (token && rewardAmount > 0) {
-                    const balanceResp = await apiCall('updateBalance', { 
-                        body: { amount: rewardAmount }, 
-                        token, 
-                        base: 'new' 
-                    });
-                    
-                    // If backend returns a balance, sync it using simple utility
-                    if (balanceResp && balanceResp.balance !== undefined) {
-                        const serverBalance = parseFloat(balanceResp.balance);
-                        
-                        // Use balance utility to sync with server balance
-                        balanceUtils.updateBalance(serverBalance, 'Synced with server after reward');
-                        setUserProfile(balanceUtils.getUserProfile());
-                        
-                        // Invalidate profile cache since balance changed
-                        cacheUtils.invalidateProfile();
-                    }
-                }
-            } catch (err) {
-                console.warn('[AdHandling] Server balance sync failed, using local balance:', err);
-                // Continue with local update even if server sync fails
-            }
-
             // Call backend to increment ad view_count
             try {
                 const token = localStorage.getItem('authToken') || '';
