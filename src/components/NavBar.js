@@ -288,7 +288,7 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                                 Home
                             </a></li>
                             <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/Live'); toggleMenu(); }}>
-                                <img src="/live.png" alt="Live" className="w-6 h-6 mr-3 icon-dark-mode" />
+                                <img src="/stream.png" alt="Live" className="w-6 h-6 mr-3 icon-dark-mode" />
                                 Live
                             </a></li>
                             <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/videos'); toggleMenu(); }}>
@@ -306,10 +306,6 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                             <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/channels'); toggleMenu(); }}>
                                 <img src="/channels.png" alt="Channels" className="w-6 h-6 mr-3 icon-dark-mode" />
                                 Channels
-                            </a></li>
-                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/stream'); toggleMenu(); }}>
-                                <img src="/stream.png" alt="Stream" className="w-6 h-6 mr-3 icon-dark-mode" />
-                                Stream
                             </a></li>
                             <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/billboards'); toggleMenu(); }}>
                                 <img src="/billboard.png" alt="Billboard" className="w-6 h-6 mr-3 icon-dark-mode" />

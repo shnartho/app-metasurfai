@@ -7,12 +7,11 @@ const SideNav = ({ isOpen, DarkMode }) => {
     
     const menuItems = [
         { name: 'Home', icon: '/home.png', path: '/' },
-        { name: 'Live', icon: '/live.png', path: '/Live' },
+        { name: 'Live', icon: '/stream.png', path: '/Live' },
         { name: 'Videos', icon: '/videos.png', path: '/videos' },
         { name: 'Markets', icon: '/markets.png', path: '/markets' },
         { name: 'VR', icon: '/vr.png', path: '/vr' },
         { name: 'Channels', icon: '/channels.png', path: '/channels' },
-        { name: 'Stream', icon: '/stream.png', path: '/stream' },
         { name: 'Billboard', icon: '/billboard.png', path: '/billboards' },
         { name: 'Radio', icon: '/radio.png', path: '/radio' }
     ];
