@@ -25,6 +25,23 @@ import "./styles/toast.css";
     
 Modal.setAppElement('#app');
 
+// Maintenance page component
+function MaintenancePage() {
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+      height: '100vh', background: '#18181b', color: '#fff', fontFamily: 'sans-serif', margin: 0
+    }}>
+      <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>🚧 Under Maintenance 🚧</h1>
+      <p style={{ fontSize: '1.25rem', maxWidth: 400, textAlign: 'center' }}>
+        Our site is currently undergoing scheduled maintenance or is temporarily unavailable.<br />
+        <br />
+        Please check back soon.
+      </p>
+    </div>
+  );
+}
+
 const App = () => {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -76,6 +93,10 @@ const App = () => {
 
   // Only show filter on main page
   const showFilter = location.pathname === '/';
+
+  if (process.env.NEXT_PUBLIC_UNDER_MAINTENANCE === 'true') {
+    return <MaintenancePage />;
+  }
 
   return (
     <ToastProvider>

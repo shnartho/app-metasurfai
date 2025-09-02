@@ -84,6 +84,8 @@ module.exports = {
         new webpack.DefinePlugin({
             'process.env.NEXT_PUBLIC_USE_NEW_API': JSON.stringify(process.env.NEXT_PUBLIC_USE_NEW_API),
             'process.env.NEXT_PUBLIC_WEBHOOK': JSON.stringify(process.env.NEXT_PUBLIC_WEBHOOK),
+            'process.env.NEXT_PUBLIC_UNDER_MAINTENANCE': JSON.stringify(process.env.NEXT_PUBLIC_UNDER_MAINTENANCE),
+
         }),
     ],
     performance: {
