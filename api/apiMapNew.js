@@ -8,7 +8,6 @@ if (!API_KEY) {
 }
 
 const apiMapNew = {
-    // Status check (no auth required)
     status: {
         base: 'new',
         endpoint: '/status',
@@ -17,7 +16,6 @@ const apiMapNew = {
         transform: () => ({})
     },
     
-    // Authentication endpoints
     signup: {
         base: 'new',
         endpoint: '/auth/signup',
@@ -27,7 +25,7 @@ const apiMapNew = {
             email: body.email, 
             password: body.password, 
             region: body.region,
-            balance: body.balance || 0 // Optional initial balance
+            balance: body.balance || 0 
         })
     },
     
@@ -39,7 +37,6 @@ const apiMapNew = {
         transform: (body) => ({ email: body.email, password: body.password })
     },
     
-    // User profile endpoints
     profile: {
         base: 'new',
         endpoint: '/user/profile',
@@ -64,7 +61,6 @@ const apiMapNew = {
         transform: (body) => ({ balance: parseFloat(body.amount) })
     },
     
-    // Image handling endpoints
     uploadImage: {
         base: 'new',
         endpoint: '/images/user',
@@ -77,7 +73,7 @@ const apiMapNew = {
             if (body && body.file && body.file.type) headers['Content-Type'] = body.file.type;
             return headers;
         },
-        transform: (body) => body // Pass through the file directly
+        transform: (body) => body 
     },
     
     getImages: {
@@ -163,7 +159,18 @@ const apiMapNew = {
         transform: (body) => ({ id: body.id })
     },
     
-    // For backward compatibility with existing code
+    watchedAd: {
+        base: 'new',
+        endpoint: '/user/watched/ads',
+        method: 'POST',
+        headers: (body, token) => ({ 
+            'Content-Type': 'text/plain', 
+            'Authorization': token ? `Bearer ${token}` : '', 
+            'x-api-key': API_KEY 
+        }),
+        transform: (body) => ({ id: body.id })
+    },
+    
     requestUploadUrl: {
         base: 'new',
         endpoint: '/images/user', // We'll now use the direct image upload endpoint
