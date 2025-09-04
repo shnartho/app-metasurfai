@@ -18,6 +18,9 @@ import Channels from "./components/Channels/Channels";
 import SideNav from "./components/SideNav";
 import Multifilter from "./components/ads/ads-filter/multifilter";
 import Settings from "./components/settings/settings";
+import Metaverse from "./components/Metaverse/metaverse";
+import Games from "./components/Game/games";
+import Duet from "./components/Duet/duet";
 import Modal from 'react-modal';
 import { ToastProvider } from "./components/Toast/ToastContext";
 import { balanceUtils } from "./utils/balanceUtils";
@@ -131,6 +134,9 @@ const App = () => {
             <Route path="/billboards" element={<Billboard />} />
             <Route path="/channels" element={<Channels />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/metaverse" element={<Metaverse />} />
+            <Route path="/game" element={<Games />} />
+            <Route path="/duet" element={<Duet />} />
           </Routes>
         </main>
       </div>
