@@ -76,9 +76,6 @@ export const balanceUtils = {
         const token = localStorage.getItem('authToken');
         if (!token) return false;
 
-        // Add logging to debug multiple calls
-        console.log('[BalanceUtils] Sending delta to backend:', delta);
-
         // Fire and forget - send only the delta (change)
         apiCall('updateBalance', {
             body: { amount: delta },
@@ -147,7 +144,7 @@ export const balanceUtils = {
         if (!token) return Promise.resolve(false);
         
         // Get profile from backend
-        return apiCall('getProfile', {
+        return apiCall('profile', {
             token,
             base: 'new'
         })
@@ -158,7 +155,8 @@ export const balanceUtils = {
                 if (profile) {
                     const updatedProfile = {
                         ...profile,
-                        balance: parseFloat(response.balance) || 0
+                        balance: parseFloat(response.balance) || 0,
+                        watched_ads: response.watched_ads || profile.watched_ads || []
                     };
                     localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
                     
@@ -175,5 +173,64 @@ export const balanceUtils = {
             console.warn('[BalanceUtils] Error fetching backend balance:', error);
             return false;
         });
+    },
+
+    // New function: Handle watched ad - calls API and updates local profile
+    async handleWatchedAd(adId) {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            console.warn('[BalanceUtils] No auth token for watched ad');
+            return false;
+        }
+
+        try {
+            // Call the new watched ads API
+            const response = await apiCall('watchedAd', {
+                body: { id: adId },
+                token,
+                base: 'new'
+            });
+
+            // If the API returns updated profile data, use it
+            if (response && response.balance !== undefined) {
+                const updatedProfile = {
+                    ...this.getUserProfile(),
+                    balance: parseFloat(response.balance) || 0,
+                    watched_ads: response.watched_ads || []
+                };
+                localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+                window.dispatchEvent(new CustomEvent('profileUpdated', {
+                    detail: { profile: updatedProfile }
+                }));
+                if (typeof window !== 'undefined' && window.apiCache) {
+                    window.apiCache.set('profile', updatedProfile);
+                }
+                return true;
+            } else if (response && response.message && response.message.startsWith('Success')) {
+                // If only a success message, refetch profile from backend
+                await this.fetchBalanceFromBackend();
+                return true;
+            } else {
+                console.warn('[BalanceUtils] Watched ad API did not return profile data');
+                return false;
+            }
+        } catch (error) {
+            console.error('[BalanceUtils] Error calling watched ad API:', error);
+            return false;
+        }
+    },
+
+    // Check if user has already watched a specific ad
+    hasWatchedAd(adId) {
+        const profile = this.getUserProfile();
+        const watchedAds = profile?.watched_ads || [];
+        return watchedAds.includes(adId);
+    },
+
+    // Filter ads to exclude already watched ones
+    filterUnwatchedAds(ads) {
+        const profile = this.getUserProfile();
+        const watchedAds = profile?.watched_ads || [];
+        return ads.filter(ad => !watchedAds.includes(ad.id));
     }
 };

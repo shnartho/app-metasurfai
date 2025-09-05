@@ -154,60 +154,67 @@ export const useProfileData = () => {
         getBalance: () => profileData?.balance || 0,
         getEmail: () => profileData?.email || '',
         getName: () => profileData?.name || profileData?.username || '',
+        getWatchedAds: () => profileData?.watched_ads || [],
+        hasWatchedAd: (adId) => (profileData?.watched_ads || []).includes(adId),
+        filterUnwatchedAds: (ads) => {
+            const watchedAds = profileData?.watched_ads || [];
+            return ads.filter(ad => !watchedAds.includes(ad.id));
+        }
     };
 };
 
 // Hook for managing watched ads with user isolation
+// NOTE: This is now legacy - use useProfileData().getWatchedAds() instead
+// The watched_ads array is now managed by the profile from the API
 export const useWatchedAds = () => {
-    const [watchedAds, setWatchedAds] = useState(new Set());
-    const { getUserId } = useProfileData();
+    const { profileData, getUserId } = useProfileData();
+    const [localWatchedAds, setLocalWatchedAds] = useState(new Set());
 
     useEffect(() => {
-        const loadWatchedAds = () => {
-            try {
-                const userId = getUserId();
-                const key = userId ? `watchedAds_${userId}` : 'watchedAds';
-                const stored = localStorage.getItem(key);
-                
-                if (stored) {
-                    const adsArray = JSON.parse(stored);
-                    setWatchedAds(new Set(adsArray));
+        // Sync with profile data if available
+        if (profileData?.watched_ads) {
+            setLocalWatchedAds(new Set(profileData.watched_ads));
+        } else {
+            // Fallback to localStorage for backward compatibility
+            const loadWatchedAds = () => {
+                try {
+                    const userId = getUserId();
+                    const key = userId ? `watchedAds_${userId}` : 'watchedAds';
+                    const stored = localStorage.getItem(key);
+                    
+                    if (stored) {
+                        const adsArray = JSON.parse(stored);
+                        setLocalWatchedAds(new Set(adsArray));
+                    }
+                } catch (error) {
+                    console.error('[useWatchedAds] Error loading watched ads:', error);
                 }
-            } catch (error) {
-                console.error('[useWatchedAds] Error loading watched ads:', error);
-            }
-        };
-
-        loadWatchedAds();
-    }, [getUserId]);
+            };
+            loadWatchedAds();
+        }
+    }, [profileData?.watched_ads, getUserId]);
 
     const addWatchedAd = useCallback((adId) => {
-        setWatchedAds(prev => {
+        // This is now handled by the API - this function is for backward compatibility
+        console.warn('[useWatchedAds] addWatchedAd is deprecated - use balanceUtils.handleWatchedAd() instead');
+        
+        setLocalWatchedAds(prev => {
             const newSet = new Set(prev);
             newSet.add(adId);
-            
-            try {
-                const userId = getUserId();
-                const key = userId ? `watchedAds_${userId}` : 'watchedAds';
-                localStorage.setItem(key, JSON.stringify([...newSet]));
-                
-                // Also update legacy key for backward compatibility
-                localStorage.setItem('watchedAds', JSON.stringify([...newSet]));
-                
-            } catch (error) {
-                console.error('[useWatchedAds] Error saving watched ads:', error);
-            }
-            
             return newSet;
         });
-    }, [getUserId]);
+    }, []);
 
     const isAdWatched = useCallback((adId) => {
-        return watchedAds.has(adId);
-    }, [watchedAds]);
+        // Check profile data first, then local state
+        if (profileData?.watched_ads) {
+            return profileData.watched_ads.includes(adId);
+        }
+        return localWatchedAds.has(adId);
+    }, [profileData?.watched_ads, localWatchedAds]);
 
     const clearWatchedAds = useCallback(() => {
-        setWatchedAds(new Set());
+        setLocalWatchedAds(new Set());
         try {
             const userId = getUserId();
             const key = userId ? `watchedAds_${userId}` : 'watchedAds';
@@ -220,10 +227,10 @@ export const useWatchedAds = () => {
     }, [getUserId]);
 
     return {
-        watchedAds,
+        watchedAds: profileData?.watched_ads ? new Set(profileData.watched_ads) : localWatchedAds,
         addWatchedAd,
         isAdWatched,
         clearWatchedAds,
-        watchedCount: watchedAds.size
+        watchedCount: (profileData?.watched_ads ? profileData.watched_ads.length : localWatchedAds.size)
     };
 };
