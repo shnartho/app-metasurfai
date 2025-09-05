@@ -73,7 +73,7 @@ const apiMapNew = {
             if (body && body.file && body.file.type) headers['Content-Type'] = body.file.type;
             return headers;
         },
-        transform: (body) => body 
+        transform: (body) => body
     },
     
     getImages: {
@@ -162,10 +162,10 @@ const apiMapNew = {
     watchedAd: {
         base: 'new',
         endpoint: '/user/watched/ads',
-        method: 'POST',
+        method: 'PATCH',
         headers: (body, token) => ({ 
             'Content-Type': 'text/plain', 
-            'Authorization': token ? `Bearer ${token}` : '', 
+            'Authorization': token ? `Bearer ${token}` : '',
             'x-api-key': API_KEY 
         }),
         transform: (body) => ({ id: body.id })
@@ -173,7 +173,7 @@ const apiMapNew = {
     
     requestUploadUrl: {
         base: 'new',
-        endpoint: '/images/user', // We'll now use the direct image upload endpoint
+        endpoint: '/images/user',
         method: 'PUT',
         headers: (body, token) => {
             const headers = { 'x-api-key': API_KEY };
