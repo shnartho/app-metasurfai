@@ -33,9 +33,15 @@ const AdHandler = () => {
             const parsedProfile = JSON.parse(profile);
             setUserProfile(parsedProfile);
             
-            const watchedAdsData = localStorage.getItem('watchedAds');
-            if (watchedAdsData) {
-                setWatchedAds(new Set(JSON.parse(watchedAdsData)));
+            // Initialize watched ads from profile data if available
+            if (parsedProfile.watched_ads && Array.isArray(parsedProfile.watched_ads)) {
+                setWatchedAds(new Set(parsedProfile.watched_ads));
+            } else {
+                // Fallback to legacy localStorage for backward compatibility
+                const watchedAdsData = localStorage.getItem('watchedAds');
+                if (watchedAdsData) {
+                    setWatchedAds(new Set(JSON.parse(watchedAdsData)));
+                }
             }
         } else {
             setIsAuthenticated(false);
@@ -430,63 +436,40 @@ const AdHandler = () => {
 
         const adId = selectedAd.id || selectedAd._id;
         
-        if (watchedAds.has(adId)) {
+        // Check if already watched using profile data
+        if (balanceUtils.hasWatchedAd(adId)) {
             alert('You have already earned a reward for this ad!');
             return;
         }
 
         try {
-            // Use reward_per_view for the reward amount
-            const rewardAmount = selectedAd.reward_per_view || selectedAd.token_reward || 0;
+            // Use the new watched ad API that handles everything
+            const success = await balanceUtils.handleWatchedAd(adId);
             
-            // Update balance using simple balance utility
-            if (!balanceUtils.addToBalance(rewardAmount, `Earned $${rewardAmount} for watching ad: ${selectedAd.title}`)) {
-                throw new Error('Failed to update balance');
+            if (success) {
+                // Update local state to reflect the changes
+                setUserProfile(balanceUtils.getUserProfile());
+                
+                // Update local watched ads state for immediate UI feedback
+                const newWatchedAds = new Set(watchedAds);
+                newWatchedAds.add(adId);
+                setWatchedAds(newWatchedAds);
+
+                // Show reward notification
+                const rewardAmount = selectedAd.reward_per_view || selectedAd.token_reward || 0;
+                showRewardNotification(rewardAmount);
+
+                // Invalidate cache to get fresh data
+                cacheUtils.invalidateProfile();
+                cacheUtils.invalidateUserContent();
+
+                // Auto-navigate to next ad after 1.5 seconds
+                setTimeout(() => {
+                    goToNextAd();
+                }, 1500);
+            } else {
+                throw new Error('Failed to process watched ad');
             }
-
-            // Update watched ads set
-            const newWatchedAds = new Set(watchedAds);
-            newWatchedAds.add(adId);
-            setWatchedAds(newWatchedAds);
-
-            // Store updated watched ads in localStorage
-            localStorage.setItem('watchedAds', JSON.stringify([...newWatchedAds]));
-
-            // Update userProfile state to reflect new balance
-            setUserProfile(balanceUtils.getUserProfile());
-            
-            // Profile update event is dispatched by balanceUtils
-
-            // Call backend to increment ad view_count
-            try {
-                const token = localStorage.getItem('authToken') || '';
-                const currentViewCount = (selectedAd.view_count || selectedAd.views || 0);
-                const updates = { view_count: currentViewCount + 1 };
-                await apiCall('updateAd', { body: { id: adId, updates }, token, base: 'new' });
-
-                // Update local ads state to reflect incremented view_count
-                setAds(prev => {
-                    if (!Array.isArray(prev)) return prev;
-                    return prev.map(a => {
-                        const idA = a.id || a._id;
-                        if (idA === adId) {
-                            return { ...a, view_count: (a.view_count || a.views || 0) + 1 };
-                        }
-                        return a;
-                    });
-                });
-            } catch (err) {
-                console.error('Failed to update ad view_count on server:', err);
-                // Non-fatal
-            }
-
-            // Show reward notification
-            showRewardNotification(rewardAmount);
-
-            // Auto-navigate to next ad after 1.5 seconds
-            setTimeout(() => {
-                goToNextAd();
-            }, 1500);
 
         } catch (error) {
             console.error('Error claiming reward:', error);
@@ -800,6 +783,13 @@ const AdHandler = () => {
 
     const isAdWatched = (ad) => {
         const adId = ad.id || ad._id;
+        
+        // Check profile data first (from API), then fallback to local state
+        if (balanceUtils.hasWatchedAd(adId)) {
+            return true;
+        }
+        
+        // Fallback to local watchedAds state for immediate UI feedback
         return watchedAds.has(adId);
     };
 
