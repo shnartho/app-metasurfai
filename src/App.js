@@ -19,7 +19,7 @@ import SideNav from "./components/SideNav";
 import Multifilter from "./components/ads/ads-filter/multifilter";
 import Settings from "./components/settings/settings";
 import Metaverse from "./components/Metaverse/metaverse";
-import Games from "./components/Game/games";
+import Games from "./components/GameT/games";
 import Duet from "./components/Duet/duet";
 import Modal from 'react-modal';
 import { ToastProvider } from "./components/Toast/ToastContext";
