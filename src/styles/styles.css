@@ -6,6 +6,104 @@
     @apply transition-colors duration-200;
 }
 
+/* Live pulse animation for market videos */
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Stream/Live video container styles */
+.stream-container {
+    padding: 0.5rem; /* Reduced padding */
+    max-width: 100vw; /* Ensure it doesn't exceed viewport width */
+    overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+.stream-container .video-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 columns */
+    gap: 0.5rem; /* Reduced gap */
+    max-width: 95vw; /* Smaller max width */
+    margin: 0 auto;
+    padding: 0 0.5rem; /* Add some padding */
+}
+
+.stream-container .video-item {
+    width: 100%;
+    max-width: 45vw; /* Limit individual video width */
+    transition: transform 0.3s ease, z-index 0.3s ease;
+    aspect-ratio: 16/9; /* Horizontal landscape aspect ratio */
+}
+
+@media (max-width: 1024px) {
+    .stream-container .video-container {
+        grid-template-columns: repeat(2, 1fr); /* Keep 2 columns on tablets */
+        gap: 0.4rem;
+        max-width: 98vw;
+    }
+    
+    .stream-container .video-item {
+        max-width: 48vw;
+    }
+}
+
+@media (max-width: 768px) {
+    .stream-container .video-container {
+        grid-template-columns: repeat(2, 1fr); /* Keep 2 columns on small tablets */
+        gap: 0.3rem;
+    }
+    
+    .stream-container .video-item {
+        max-width: 48vw;
+    }
+}
+
+@media (max-width: 480px) {
+    .stream-container .video-container {
+        grid-template-columns: 1fr; /* Single column on mobile */
+        max-width: 95vw;
+    }
+    
+    .stream-container .video-item {
+        max-width: 90vw;
+    }
+}
+
+/* Platform logo styles */
+.platform-logo {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.platform-youtube {
+    background-color: #FF0000;
+    color: white;
+}
+
+.platform-twitch {
+    background-color: #9146FF;
+    color: white;
+}
+
+.platform-kick {
+    background-color: #53FC18;
+    color: black;
+}
+
 
 
 @media (max-width: 900px) {
@@ -290,6 +388,40 @@
 
 @media (max-width: 480px) {
     .video-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Market video container styles for mobile vertical view */
+.market-video-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.market-video-item {
+    width: 100%;
+    transition: transform 0.3s ease, z-index 0.3s ease;
+    aspect-ratio: 9/16; /* Mobile vertical aspect ratio */
+}
+
+@media (max-width: 1024px) {
+    .market-video-container {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.8rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .market-video-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .market-video-container {
         grid-template-columns: 1fr;
     }
 }
