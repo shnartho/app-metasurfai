@@ -238,7 +238,7 @@ export const cachedApiCall = async (action, options = {}, forceRefresh = false) 
     const { body = {}, token = '', headers = {}, base, cacheKey = action, skipCache = false } = options;
     
     // Don't cache write operations or sensitive data
-    const nonCacheableActions = ['login', 'signup', 'createAd', 'updateAd', 'deleteAd', 'updateBalance', 'uploadImage'];
+    const nonCacheableActions = ['login', 'signup', 'createAd', 'updateAd', 'deleteAd', 'updateBalance', 'uploadImage', 'watchedAd'];
     const shouldCache = !skipCache && !nonCacheableActions.includes(action);
     
     // For read operations, try cache first

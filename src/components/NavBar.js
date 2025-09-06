@@ -319,6 +319,18 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                                 <img src="/radio.png" alt="Radio" className="w-6 h-6 mr-3 icon-dark-mode" />
                                 Radio
                             </a></li>
+                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/metaverse'); toggleMenu(); }}>
+                                <img src="/metaverse.png" alt="Metaverse" className="w-6 h-6 mr-3 icon-dark-mode" />
+                                Metaverse
+                            </a></li>
+                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/game'); toggleMenu(); }}>
+                                <img src="/game.png" alt="Game" className="w-6 h-6 mr-3 icon-dark-mode" />
+                                Game
+                            </a></li>
+                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/duet'); toggleMenu(); }}>
+                                <img src="/duet.png" alt="Duet" className="w-6 h-6 mr-3 icon-dark-mode" />
+                                Duet
+                            </a></li>
                             <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/settings'); toggleMenu(); }}>
                                 <img src="/settings.png" alt="Settings" className="w-6 h-6 mr-3 icon-dark-mode" />
                                 Settings

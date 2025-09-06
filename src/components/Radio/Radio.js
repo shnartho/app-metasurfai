@@ -6,9 +6,9 @@ const Radio = () => {
 
     return (
         <div className='pt-10'>
-            <div className="px-4 ads-container flex-grow grid gap-4 overflow-y-auto" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(250px, 1fr))` }}>
+            <div className="px-4 w-full flex flex-wrap gap-6 justify-center items-stretch">
                 {RadioFrequencies.map((station, index) => (
-                    <div key={index} className="rounded-3xl bg-white dark:bg-slate-900 shadow-lg dark:shadow-sm dark:shadow-zinc-500 p-4 mb-4 relative">
+                    <div key={index} className="rounded-3xl bg-white dark:bg-slate-900 shadow-lg dark:shadow-sm dark:shadow-zinc-500 p-4 mb-4 relative" style={{flex: '0 1 calc(33.333% - 32px)', minWidth: 280, maxWidth: 420}}>
                         <span className="absolute top-2 left-2 bg-gray-500 text-white px-2 py-1 rounded text-sm z-10">Radio</span>
                         {station.Path && station.Path.endsWith('.jpg') && (
                             <img src={station.Path} alt={station.title} className="w-full h-auto mb-2 rounded-lg" />

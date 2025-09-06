@@ -74,7 +74,6 @@ const UserDash = () => {
         const handleProfileUpdate = (event) => {
             if (event.detail && event.detail.profile) {
                 setProfile(event.detail.profile);
-                console.log('[UserDash] Profile updated:', event.detail.profile);
             }
         };
 
@@ -138,9 +137,7 @@ const UserDash = () => {
 
     // Function to refresh ads from API and sync localStorage with caching
     const refreshAdsFromApi = async (forceRefresh = false) => {
-        try {
-            console.log(`[UserDash] Refreshing ads from API (force: ${forceRefresh})`);
-            
+        try {            
             // Use cached API call - will check cache first unless forceRefresh is true
             const response = await cachedApiCall('ads', {
                 body: {},
@@ -152,8 +149,6 @@ const UserDash = () => {
                 // Filter user's ads
                 const userAdsFiltered = response.filter(ad => ad.posted_by === profile?.id);
                 setUserAds(userAdsFiltered);
-                
-                console.log(`[UserDash] Loaded ${response.length} total ads, ${userAdsFiltered.length} user ads`);
             }
         } catch (error) {
             console.error('Error refreshing ads from API:', error);
@@ -179,13 +174,6 @@ const UserDash = () => {
             hour: '2-digit',
             minute: '2-digit'
         });
-    };
-
-    const handleLogout = () => {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userProfile');
-        navigate('/');
-        window.location.reload();
     };
 
     const handleAdCreated = async () => {
@@ -279,12 +267,6 @@ const UserDash = () => {
                             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                                 User Dashboard
                             </h1>
-                            <button
-                                onClick={handleLogout}
-                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors"
-                            >
-                                Logout
-                            </button>
                         </div>
                     </div>
                 </div>
