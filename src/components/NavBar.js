@@ -2,17 +2,34 @@ import React, { useState, useEffect } from 'react';
 import ReactModal from 'react-modal';
 import LoginForm from './Login/Login';
 import SignUpForm from './Signup/Signup';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Glocation from '../components/Glocation';
 import AddAdModal from './ads/AddAdModal';
 import { cacheUtils } from '../utils/apiCache';
 
 const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [activeForm, setActiveForm] = useState(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userProfile, setUserProfile] = useState(null);
+
+    // Helper function to check if a path is active
+    const isActivePath = (path) => {
+        if (path === '/') {
+            return location.pathname === '/';
+        }
+        return location.pathname === path;
+    };
+
+    // Helper function to get active classes for navigation items
+    const getActiveClasses = (path) => {
+        if (isActivePath(path)) {
+            return 'bg-pink-100 dark:bg-blue-900 text-pink-600 dark:text-blue-400 border-pink-300 dark:border-blue-500';
+        }
+        return 'hover:text-pink-500 dark:hover:text-blue-500';
+    };
 
     useEffect(() => {
         const token = localStorage.getItem('authToken');
@@ -283,55 +300,107 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                         </button>
                         <ul className="py-1 mt-8 space-y-4">
                             {/* Navigation Links from Sidebar */}
-                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/'); toggleMenu(); }}>
+                            <li><a className={`flex items-center px-4 py-3 text-lg transition-colors duration-200 cursor-pointer rounded-lg mx-2 ${
+                                isActivePath('/') 
+                                    ? 'bg-pink-100 dark:bg-blue-900 text-pink-600 dark:text-blue-400 border-l-4 border-pink-500 dark:border-blue-500' 
+                                    : 'text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`} onClick={() => { navigate('/'); toggleMenu(); }}>
                                 <img src="/home.png" alt="Home" className="w-6 h-6 mr-3 icon-dark-mode" />
                                 Home
                             </a></li>
-                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/Live'); toggleMenu(); }}>
-                                <img src="/live.png" alt="Live" className="w-6 h-6 mr-3 icon-dark-mode" />
-                                Live
-                            </a></li>
-                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/videos'); toggleMenu(); }}>
-                                <img src="/videos.png" alt="Videos" className="w-6 h-6 mr-3 icon-dark-mode" />
-                                Videos
-                            </a></li>
-                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/markets'); toggleMenu(); }}>
+                            <li><a className={`flex items-center px-4 py-3 text-lg transition-colors duration-200 cursor-pointer rounded-lg mx-2 ${
+                                isActivePath('/markets') 
+                                    ? 'bg-pink-100 dark:bg-blue-900 text-pink-600 dark:text-blue-400 border-l-4 border-pink-500 dark:border-blue-500' 
+                                    : 'text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`} onClick={() => { navigate('/markets'); toggleMenu(); }}>
                                 <img src="/markets.png" alt="Markets" className="w-6 h-6 mr-3 icon-dark-mode" />
                                 Markets
                             </a></li>
-                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/vr'); toggleMenu(); }}>
+                            <li><a className={`flex items-center px-4 py-3 text-lg transition-colors duration-200 cursor-pointer rounded-lg mx-2 ${
+                                isActivePath('/live') 
+                                    ? 'bg-pink-100 dark:bg-blue-900 text-pink-600 dark:text-blue-400 border-l-4 border-pink-500 dark:border-blue-500' 
+                                    : 'text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`} onClick={() => { navigate('/Live'); toggleMenu(); }}>
+                                <img src="/live.png" alt="Live" className="w-6 h-6 mr-3 icon-dark-mode" />
+                                Live
+                            </a></li>
+                            <li><a className={`flex items-center px-4 py-3 text-lg transition-colors duration-200 cursor-pointer rounded-lg mx-2 ${
+                                isActivePath('/videos') 
+                                    ? 'bg-pink-100 dark:bg-blue-900 text-pink-600 dark:text-blue-400 border-l-4 border-pink-500 dark:border-blue-500' 
+                                    : 'text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`} onClick={() => { navigate('/videos'); toggleMenu(); }}>
+                                <img src="/videos.png" alt="Videos" className="w-6 h-6 mr-3 icon-dark-mode" />
+                                Videos
+                            </a></li>
+                            <li><a className={`flex items-center px-4 py-3 text-lg transition-colors duration-200 cursor-pointer rounded-lg mx-2 ${
+                                isActivePath('/vr') 
+                                    ? 'bg-pink-100 dark:bg-blue-900 text-pink-600 dark:text-blue-400 border-l-4 border-pink-500 dark:border-blue-500' 
+                                    : 'text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`} onClick={() => { navigate('/vr'); toggleMenu(); }}>
                                 <img src="/vr.png" alt="VR" className="w-6 h-6 mr-3 icon-dark-mode" />
                                 VR
                             </a></li>
-                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/channels'); toggleMenu(); }}>
+                            <li><a className={`flex items-center px-4 py-3 text-lg transition-colors duration-200 cursor-pointer rounded-lg mx-2 ${
+                                isActivePath('/channels') 
+                                    ? 'bg-pink-100 dark:bg-blue-900 text-pink-600 dark:text-blue-400 border-l-4 border-pink-500 dark:border-blue-500' 
+                                    : 'text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`} onClick={() => { navigate('/channels'); toggleMenu(); }}>
                                 <img src="/channels.png" alt="Channels" className="w-6 h-6 mr-3 icon-dark-mode" />
                                 Channels
                             </a></li>
-                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/stream'); toggleMenu(); }}>
+                            <li><a className={`flex items-center px-4 py-3 text-lg transition-colors duration-200 cursor-pointer rounded-lg mx-2 ${
+                                isActivePath('/stream') 
+                                    ? 'bg-pink-100 dark:bg-blue-900 text-pink-600 dark:text-blue-400 border-l-4 border-pink-500 dark:border-blue-500' 
+                                    : 'text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`} onClick={() => { navigate('/stream'); toggleMenu(); }}>
                                 <img src="/stream.png" alt="Stream" className="w-6 h-6 mr-3 icon-dark-mode" />
                                 Stream
                             </a></li>
-                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/billboards'); toggleMenu(); }}>
+                            <li><a className={`flex items-center px-4 py-3 text-lg transition-colors duration-200 cursor-pointer rounded-lg mx-2 ${
+                                isActivePath('/billboards') 
+                                    ? 'bg-pink-100 dark:bg-blue-900 text-pink-600 dark:text-blue-400 border-l-4 border-pink-500 dark:border-blue-500' 
+                                    : 'text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`} onClick={() => { navigate('/billboards'); toggleMenu(); }}>
                                 <img src="/billboard.png" alt="Billboard" className="w-6 h-6 mr-3 icon-dark-mode" />
                                 Billboard
                             </a></li>
-                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/radio'); toggleMenu(); }}>
+                            <li><a className={`flex items-center px-4 py-3 text-lg transition-colors duration-200 cursor-pointer rounded-lg mx-2 ${
+                                isActivePath('/radio') 
+                                    ? 'bg-pink-100 dark:bg-blue-900 text-pink-600 dark:text-blue-400 border-l-4 border-pink-500 dark:border-blue-500' 
+                                    : 'text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`} onClick={() => { navigate('/radio'); toggleMenu(); }}>
                                 <img src="/radio.png" alt="Radio" className="w-6 h-6 mr-3 icon-dark-mode" />
                                 Radio
                             </a></li>
-                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/metaverse'); toggleMenu(); }}>
+                            <li><a className={`flex items-center px-4 py-3 text-lg transition-colors duration-200 cursor-pointer rounded-lg mx-2 ${
+                                isActivePath('/metaverse') 
+                                    ? 'bg-pink-100 dark:bg-blue-900 text-pink-600 dark:text-blue-400 border-l-4 border-pink-500 dark:border-blue-500' 
+                                    : 'text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`} onClick={() => { navigate('/metaverse'); toggleMenu(); }}>
                                 <img src="/metaverse.png" alt="Metaverse" className="w-6 h-6 mr-3 icon-dark-mode" />
                                 Metaverse
                             </a></li>
-                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/game'); toggleMenu(); }}>
+                            <li><a className={`flex items-center px-4 py-3 text-lg transition-colors duration-200 cursor-pointer rounded-lg mx-2 ${
+                                isActivePath('/game') 
+                                    ? 'bg-pink-100 dark:bg-blue-900 text-pink-600 dark:text-blue-400 border-l-4 border-pink-500 dark:border-blue-500' 
+                                    : 'text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`} onClick={() => { navigate('/game'); toggleMenu(); }}>
                                 <img src="/game.png" alt="Game" className="w-6 h-6 mr-3 icon-dark-mode" />
                                 Game
                             </a></li>
-                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/duet'); toggleMenu(); }}>
+                            <li><a className={`flex items-center px-4 py-3 text-lg transition-colors duration-200 cursor-pointer rounded-lg mx-2 ${
+                                isActivePath('/duet') 
+                                    ? 'bg-pink-100 dark:bg-blue-900 text-pink-600 dark:text-blue-400 border-l-4 border-pink-500 dark:border-blue-500' 
+                                    : 'text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`} onClick={() => { navigate('/duet'); toggleMenu(); }}>
                                 <img src="/duet.png" alt="Duet" className="w-6 h-6 mr-3 icon-dark-mode" />
                                 Duet
                             </a></li>
-                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/settings'); toggleMenu(); }}>
+                            <li><a className={`flex items-center px-4 py-3 text-lg transition-colors duration-200 cursor-pointer rounded-lg mx-2 ${
+                                isActivePath('/settings') 
+                                    ? 'bg-pink-100 dark:bg-blue-900 text-pink-600 dark:text-blue-400 border-l-4 border-pink-500 dark:border-blue-500' 
+                                    : 'text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`} onClick={() => { navigate('/settings'); toggleMenu(); }}>
                                 <img src="/settings.png" alt="Settings" className="w-6 h-6 mr-3 icon-dark-mode" />
                                 Settings
                             </a></li>
@@ -358,7 +427,11 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                             {/* Authentication dependent options */}
                             {isAuthenticated ? (
                                 <>
-                                    <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/Dashboard'); toggleMenu(); }}>
+                                    <li><a className={`flex items-center px-4 py-3 text-lg transition-colors duration-200 cursor-pointer rounded-lg mx-2 ${
+                                        isActivePath('/Dashboard') 
+                                            ? 'bg-pink-100 dark:bg-blue-900 text-pink-600 dark:text-blue-400 border-l-4 border-pink-500 dark:border-blue-500' 
+                                            : 'text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                    }`} onClick={() => { navigate('/Dashboard'); toggleMenu(); }}>
                                         <svg className="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                                         </svg>
@@ -407,7 +480,11 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                             <li><hr className="border-gray-300 dark:border-gray-600 my-2" /></li>
                             
                             {/* About Section */}
-                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/about'); toggleMenu(); }}>
+                            <li><a className={`flex items-center px-4 py-3 text-lg transition-colors duration-200 cursor-pointer rounded-lg mx-2 ${
+                                isActivePath('/about') 
+                                    ? 'bg-pink-100 dark:bg-blue-900 text-pink-600 dark:text-blue-400 border-l-4 border-pink-500 dark:border-blue-500' 
+                                    : 'text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`} onClick={() => { navigate('/about'); toggleMenu(); }}>
                                 <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
@@ -415,13 +492,21 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                             </a></li>
                             
                             {/* Legal Section */}
-                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/privacy'); toggleMenu(); }}>
+                            <li><a className={`flex items-center px-4 py-3 text-lg transition-colors duration-200 cursor-pointer rounded-lg mx-2 ${
+                                isActivePath('/privacy') 
+                                    ? 'bg-pink-100 dark:bg-blue-900 text-pink-600 dark:text-blue-400 border-l-4 border-pink-500 dark:border-blue-500' 
+                                    : 'text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`} onClick={() => { navigate('/privacy'); toggleMenu(); }}>
                                 <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                 </svg>
                                 Privacy Policy
                             </a></li>
-                            <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { navigate('/tos'); toggleMenu(); }}>
+                            <li><a className={`flex items-center px-4 py-3 text-lg transition-colors duration-200 cursor-pointer rounded-lg mx-2 ${
+                                isActivePath('/tos') 
+                                    ? 'bg-pink-100 dark:bg-blue-900 text-pink-600 dark:text-blue-400 border-l-4 border-pink-500 dark:border-blue-500' 
+                                    : 'text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`} onClick={() => { navigate('/tos'); toggleMenu(); }}>
                                 <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>

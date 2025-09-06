@@ -15,14 +15,12 @@ const Metaverse = () => {
           style={{ pointerEvents: 'none', userSelect: 'none', objectPosition: 'center 60%' }}
         />
       </div>
-      <div className="relative z-10 w-full flex flex-col items-center justify-center -mt-16">
-      </div>
-      <div className="fixed right-4 z-50" style={{ bottom: 32, maxWidth: '95vw' }}>
-        <ComingSoonBox
-          explanation={explanation}
-          link="https://www.metasurfai.com/#roadmap"
-        />
-      </div>
+      <ComingSoonBox
+        explanation={explanation}
+        link="https://www.metasurfai.com/#roadmap"
+        floating={true}
+        closable={true}
+      />
     </div>
   );
 };
