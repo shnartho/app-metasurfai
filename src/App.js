@@ -21,6 +21,7 @@ import Settings from "./components/settings/settings";
 import Metaverse from "./components/Metaverse/Metaverse";
 import Games from "./components/Game/Games";
 import Duet from "./components/Duet/Duet";
+import Connect from "./components/Connect/Connect";
 import Modal from 'react-modal';
 import { ToastProvider } from "./components/Toast/ToastContext";
 import { balanceUtils } from "./utils/balanceUtils";
@@ -137,6 +138,7 @@ const App = () => {
             <Route path="/metaverse" element={<Metaverse />} />
             <Route path="/game" element={<Games />} />
             <Route path="/duet" element={<Duet />} />
+            <Route path="/connect" element={<Connect />} />
           </Routes>
         </main>
       </div>

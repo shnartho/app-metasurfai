@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Glocation from '../components/Glocation';
 import AddAdModal from './ads/AddAdModal';
 import { cacheUtils } from '../utils/apiCache';
+import Connect from './Connect/Connect';
 
 const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
     const navigate = useNavigate();
@@ -104,7 +105,7 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
         setIsMenuOpen(!isMenuOpen);
     };
 
-    const Connect = { link: 'Connect', Path: '/Connect' };
+    // Remove the hardcoded Connect object since we're using the component now
 
     return (
         <>
@@ -215,14 +216,10 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                     </button>
                 )}
                 
-                <a href={Connect.Path}>
-                    <button className='buttonn mbtns transform hover:scale-105 transition-all duration-200'>
-                        <span className="hoverEffect">
-                            <div></div>
-                        </span>
-                        {Connect.link}
-                    </button>
-                </a>
+                {/* Connect Wallet Dropdown - Only for authenticated users */}
+                {isAuthenticated && (
+                    <Connect isDropdown={true} />
+                )}
 
                 {/* Show different buttons based on authentication state */}
                 {!isAuthenticated ? (
@@ -408,25 +405,23 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                             {/* Divider */}
                             <li><hr className="border-gray-300 dark:border-gray-600 my-2" /></li>
                             
-                            {/* Additional Mobile Menu Items */}
-                            <li><a href="/Connect" className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200">
-                                <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                                </svg>
-                                Connect
-                            </a></li>
-                            
-                            {/* Map option for authenticated users */}
+                            {/* Connect Wallet for authenticated users */}
                             {isAuthenticated && (
-                                <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { openMapModal(); toggleMenu(); }}>
-                                    <img src="/map.png" alt="Map" className="w-6 h-6 mr-3 icon-dark-mode" />
-                                    Map
-                                </a></li>
+                                <li className="px-4 py-3">
+                                    <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-3">Wallet Connection</h3>
+                                    <Connect />
+                                </li>
                             )}
+                            
+                            {/* Additional Mobile Menu Items */}
                             
                             {/* Authentication dependent options */}
                             {isAuthenticated ? (
                                 <>
+                                    <li><a className="flex items-center px-4 py-3 text-lg text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-blue-500 transition-colors duration-200 cursor-pointer" onClick={() => { openMapModal(); toggleMenu(); }}>
+                                        <img src="/map.png" alt="Map" className="w-6 h-6 mr-3 icon-dark-mode" />
+                                        Map
+                                    </a></li>
                                     <li><a className={`flex items-center px-4 py-3 text-lg transition-colors duration-200 cursor-pointer rounded-lg mx-2 ${
                                         isActivePath('/Dashboard') 
                                             ? 'bg-pink-100 dark:bg-blue-900 text-pink-600 dark:text-blue-400 border-l-4 border-pink-500 dark:border-blue-500' 
