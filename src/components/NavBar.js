@@ -73,6 +73,10 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
         localStorage.removeItem('authToken');
         localStorage.removeItem('userProfile');
         
+        // Disconnect wallet on logout
+        localStorage.removeItem('connectedWallet');
+        localStorage.removeItem('walletAddress');
+        
         // Clear all cached data for current user
         cacheUtils.clearAllOnLogout();
         
