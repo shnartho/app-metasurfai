@@ -215,8 +215,17 @@ const UserDash = () => {
     };
 
     // Function to update an ad via API
+    // TODO: Temporarily disabled - can be reactivated later when updateAd API is available
     const updateAd = async (adId, updates) => {
         try {
+            // Show user notification that update is not available
+            if (showToast) {
+                showToast('Ad update functionality is temporarily unavailable. Please try again later.', 'error');
+            }
+            
+            return { success: false, message: 'Update functionality temporarily unavailable' };
+            
+            /* TODO: Uncomment when updateAd API is reactivated
             // Create flat structure: merge id with updates at the same level
             const requestBody = {
                 id: adId,
@@ -235,6 +244,7 @@ const UserDash = () => {
             await refreshAdsFromApi(true); // Force refresh to get updated data
             
             return response;
+            */
         } catch (error) {
             console.error('Error updating ad:', error);
             throw error;
@@ -540,6 +550,8 @@ const UserDash = () => {
                                         >
                                             Refresh
                                         </button>
+                                        {/* TODO: Temporarily commented out - can be reactivated when updateAd API is available */}
+                                        {/* 
                                         {selectedAds.length === 1 && (
                                             <button
                                                 onClick={() => {
@@ -551,6 +563,7 @@ const UserDash = () => {
                                                 Edit Selected
                                             </button>
                                         )}
+                                        */}
                                         {selectedAds.length > 0 && (
                                             <button
                                                 onClick={handleDeleteSelectedAds}
@@ -616,7 +629,8 @@ const UserDash = () => {
                             )}
                         </ReactModal>
 
-                        {/* Edit Ad Modal */}
+                        {/* TODO: Edit Ad Modal temporarily commented out - can be reactivated when updateAd API is available */}
+                        {/*
                         <ReactModal
                             isOpen={showEditAd}
                             onRequestClose={() => {
@@ -670,6 +684,7 @@ const UserDash = () => {
                                 />
                             )}
                         </ReactModal>
+                        */}
 
                         {/* Ads List */}
                         <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
