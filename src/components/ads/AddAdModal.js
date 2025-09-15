@@ -240,6 +240,12 @@ const AddAdModal = ({
             
             // Prepare ad data
             if (editMode && adData && updateAd) {
+                // TODO: Edit mode temporarily disabled - can be reactivated later
+                setError('Ad editing is temporarily unavailable. Please try again later.');
+                setIsLoading(false);
+                return;
+                
+                /* TODO: Uncomment when updateAd API is reactivated
                 // For edit mode, only send changed fields
                 const changedFields = {};
                 
@@ -284,6 +290,7 @@ const AddAdModal = ({
                 
                 // Invalidate ads cache since we updated an ad
                 cacheUtils.invalidateKey('ads');
+                */
             } else {
                 // Create new ad with all fields
                 const adDataPayload = {
