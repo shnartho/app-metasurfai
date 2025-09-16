@@ -49,18 +49,6 @@ const apiMapNew = {
         transform: () => ({})
     },
     
-    updateBalance: {
-        base: 'new',
-        endpoint: '/user/balance',
-        method: 'PATCH',
-        headers: (body, token) => ({ 
-            'Content-Type': 'application/json', 
-            'Authorization': token ? `Bearer ${token}` : '', 
-            'x-api-key': API_KEY 
-        }),
-        transform: (body) => ({ balance: parseFloat(body.amount) })
-    },
-    
     uploadImage: {
         base: 'new',
         endpoint: '/images/user',
@@ -133,6 +121,8 @@ const apiMapNew = {
         })
     },
     
+    // TODO: Temporarily commented out - can be reactivated later
+    /*
     updateAd: {
         base: 'new',
         endpoint: '/user/ads',
@@ -146,6 +136,7 @@ const apiMapNew = {
             return body;
         }
     },
+    */
     
     deleteAd: {
         base: 'new',

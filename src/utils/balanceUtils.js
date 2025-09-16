@@ -36,7 +36,7 @@ export const balanceUtils = {
         return cleaned;
     },
 
-    // Update balance consistently
+    // Update balance consistently (local only - backend is handled by specific APIs like watchedAd)
     updateBalance(newBalance, reason = '', delta = null) {
         try {
             let profile = this.getUserProfile();
@@ -61,9 +61,8 @@ export const balanceUtils = {
                 detail: { profile: updatedProfile, previousBalance: oldBalance }
             }));
 
-            // Send only the delta to backend
-            const change = delta !== null ? delta : (parseFloat(newBalance) || 0) - oldBalance;
-            this.updateBackendBalance(change);
+            // Note: Backend balance updates are now handled by specific APIs (like watchedAd)
+            // No longer sending separate balance updates to avoid conflicts
 
             return true;
         } catch (error) {
@@ -71,23 +70,6 @@ export const balanceUtils = {
         }
     },
     
-    // Simple function to update balance on backend
-    updateBackendBalance(delta) {
-        const token = localStorage.getItem('authToken');
-        if (!token) return false;
-
-        // Fire and forget - send only the delta (change)
-        apiCall('updateBalance', {
-            body: { amount: delta },
-            token,
-            base: 'new'
-        }).catch(err => {
-            console.warn('[BalanceUtils] Backend update failed:', err);
-        });
-
-        return true;
-    },
-
     // Check if user has sufficient balance
     hasSufficientBalance(amount) {
         return this.getCurrentBalance() >= parseFloat(amount);

@@ -3,7 +3,7 @@ import React from 'react';
 import { apiCall } from '../../utils/api';
 import { cacheUtils } from '../../utils/apiCache';
 
-const SignUpForm = ({ onSwitchToLogin }) => {
+const SignUpForm = ({ onSwitchToLogin, onClose }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);

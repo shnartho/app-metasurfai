@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
+import ReactModal from 'react-modal';
 import { apiCall } from "../../utils/api";
 import { cachedApiCall, cacheUtils } from "../../utils/apiCache";
 import { balanceUtils } from "../../utils/balanceUtils";
+import LoginForm from "../Login/Login";
+import SignUpForm from "../Signup/Signup";
 
 const AdHandler = () => {
     const [ads, setAds] = useState([]);
@@ -14,6 +17,7 @@ const AdHandler = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userProfile, setUserProfile] = useState(null);
     const [watchedAds, setWatchedAds] = useState(new Set());
+    const [activeForm, setActiveForm] = useState(null);
 
     // Timer refs to persist across renders
     const countdownRef = useRef(null);
@@ -47,6 +51,27 @@ const AdHandler = () => {
             setIsAuthenticated(false);
             setUserProfile(null);
         }
+
+        // Listen for successful login/signup
+        const handleUserLoggedIn = (event) => {
+            const { profile, token } = event.detail;
+            setIsAuthenticated(true);
+            setUserProfile(profile);
+            
+            // Initialize watched ads from profile data
+            if (profile.watched_ads && Array.isArray(profile.watched_ads)) {
+                setWatchedAds(new Set(profile.watched_ads));
+            }
+            
+            // Close auth modals
+            closeAuthModals();
+        };
+
+        window.addEventListener('userLoggedIn', handleUserLoggedIn);
+        
+        return () => {
+            window.removeEventListener('userLoggedIn', handleUserLoggedIn);
+        };
     }, []);
 
     // Fetch ads with caching - reduce API calls
@@ -407,13 +432,26 @@ const AdHandler = () => {
             
             // Clean up any notifications
             cleanupNotifications();
+            
+            // Clean up auth modals state
+            setActiveForm(null);
         };
     }, []);
 
     // Keyboard navigation
     useEffect(() => {
         const handleKeyPress = (e) => {
-            if (!selectedAd) return;
+            if (e.key === 'Escape') {
+                if (activeForm) {
+                    closeAuthModals();
+                } else if (selectedAd) {
+                    closeModal();
+                }
+                return;
+            }
+            
+            // Only handle ad navigation if no auth modals are open and an ad is selected
+            if (!selectedAd || activeForm) return;
             
             if (e.key === 'ArrowUp') {
                 e.preventDefault();
@@ -421,14 +459,12 @@ const AdHandler = () => {
             } else if (e.key === 'ArrowDown') {
                 e.preventDefault();
                 goToNextAd();
-            } else if (e.key === 'Escape') {
-                closeModal();
             }
         };
 
         document.addEventListener('keydown', handleKeyPress);
         return () => document.removeEventListener('keydown', handleKeyPress);
-    }, [selectedAd, currentAdIndex, ads]);
+    }, [selectedAd, currentAdIndex, ads, activeForm]);
 
     // Function to claim local reward and auto-navigate to next ad
     const claimLocalRewardAndNext = async () => {
@@ -619,6 +655,38 @@ const AdHandler = () => {
         resetTimer();
         document.removeEventListener("visibilitychange", handleVisibilityChange);
         setSelectedAd(null);
+    };
+
+    // Handle opening login modal
+    const openLoginModal = () => {
+        // Close ad modal first to avoid overlay
+        closeModal();
+        setTimeout(() => {
+            setActiveForm('login');
+        }, 200); // Slightly longer delay for smoother transition
+    };
+
+    // Handle opening signup modal
+    const openSignupModal = () => {
+        // Close ad modal first to avoid overlay
+        closeModal();
+        setTimeout(() => {
+            setActiveForm('signup');
+        }, 200); // Slightly longer delay for smoother transition
+    };
+
+    // Handle closing auth modals
+    const closeAuthModals = () => {
+        setActiveForm(null);
+    };
+
+    // Handle switching between login and signup
+    const switchToSignup = () => {
+        setActiveForm('signup');
+    };
+
+    const switchToLogin = () => {
+        setActiveForm('login');
     };
 
     // Handle redirect for redirect-type ads
@@ -1019,13 +1087,13 @@ const AdHandler = () => {
                                                <p className="login-subtitle">Login to start earning rewards!</p>
                                                <div className="login-buttons">
                                                    <button 
-                                                       onClick={() => closeModal()}
+                                                       onClick={openLoginModal}
                                                        className="login-btn"
                                                    >
                                                        Login
                                                    </button>
                                                    <button 
-                                                       onClick={() => closeModal()}
+                                                       onClick={openSignupModal}
                                                        className="signup-btn"
                                                    >
                                                        Sign Up
@@ -1040,6 +1108,47 @@ const AdHandler = () => {
                    </div>
                )}
            </div>
+
+           {/* Authentication Modal - Same as NavBar */}
+           <ReactModal
+               isOpen={!!activeForm}
+               onRequestClose={() => setActiveForm(null)}
+               contentLabel="Authentication Modal"
+               overlayClassName="modal-overlay"
+               className="modal-content"
+               style={{
+                   overlay: {
+                       position: 'fixed',
+                       top: 0,
+                       left: 0,
+                       right: 0,
+                       bottom: 0,
+                       backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                       zIndex: 1000,
+                       backdropFilter: 'blur(8px)'
+                   },
+                   content: {
+                       position: 'absolute',
+                       top: '50%',
+                       left: '50%',
+                       right: 'auto',
+                       bottom: 'auto',
+                       marginRight: '-50%',
+                       transform: 'translate(-50%, -50%)',
+                       background: 'transparent',
+                       overflow: 'auto',
+                       WebkitOverflowScrolling: 'touch',
+                       borderRadius: '0px',
+                       outline: 'none',
+                       border: 'none',
+                       padding: '20px',
+                       zIndex: 1001
+                   }
+               }}
+           >
+               {activeForm === 'login' && <LoginForm onClose={() => setActiveForm(null)} onSwitchToSignup={() => setActiveForm('signup')} />}
+               {activeForm === 'signup' && <SignUpForm onSwitchToLogin={() => setActiveForm('login')} onClose={() => setActiveForm(null)} />}
+           </ReactModal>
         </div>
     );
 };
