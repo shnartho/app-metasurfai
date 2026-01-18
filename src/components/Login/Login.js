@@ -4,6 +4,7 @@ import ReactModal from 'react-modal';
 import SignUpForm from '../Signup/Signup';
 import { apiCall } from '../../utils/api';
 import { cacheUtils } from '../../utils/apiCache';
+import { validateEmail, validatePassword } from '../../utils/validation';
 
 const LoginForm = ({ onClose, onSwitchToSignup }) => {
     const [email, setEmail] = useState('');
@@ -13,6 +14,19 @@ const LoginForm = ({ onClose, onSwitchToSignup }) => {
     const [success, setSuccess] = useState(false);
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Validate email
+        if (!validateEmail(email)) {
+            setError('Please enter a valid email address');
+            return;
+        }
+        
+        // Validate password
+        if (!validatePassword(password)) {
+            setError('Password must be at least 8 characters');
+            return;
+        }
+        
         const userData = {
             email: email,
             password: password
