@@ -1,5 +1,7 @@
 // Enhanced API caching utility with multi-user support
 // Reduces API calls by intelligently caching data with expiration and user isolation
+import storage from './storage';
+import { STORAGE_KEYS } from '../constants';
 
 class ApiCache {
     constructor() {
@@ -18,13 +20,10 @@ class ApiCache {
 
     // Get current user ID for multi-user caching
     getCurrentUserId() {
-        try {
-            const profile = localStorage.getItem('userProfile');
-            if (profile) {
-                const parsed = JSON.parse(profile);
-                return parsed.id || parsed.user_id || 'anonymous';
-            }
-        } catch (e) {}
+        const profile = storage.getJSON(STORAGE_KEYS.USER_PROFILE);
+        if (profile) {
+            return profile.id || profile.user_id || 'anonymous';
+        }
         return 'anonymous';
     }
 
