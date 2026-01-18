@@ -2,6 +2,7 @@ import { useState } from 'react';
 import React from 'react';
 import { apiCall } from '../../utils/api';
 import { cacheUtils } from '../../utils/apiCache';
+import { validateEmail, validatePassword } from '../../utils/validation';
 
 const SignUpForm = ({ onSwitchToLogin, onClose }) => {
     const [email, setEmail] = useState('');
@@ -14,6 +15,19 @@ const SignUpForm = ({ onSwitchToLogin, onClose }) => {
     const isNewApi = (process.env.NEXT_PUBLIC_USE_NEW_API === 'true');
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Validate email
+        if (!validateEmail(email)) {
+            setError('Please enter a valid email address');
+            return;
+        }
+        
+        // Validate password
+        if (!validatePassword(password)) {
+            setError('Password must be at least 8 characters');
+            return;
+        }
+        
         setIsLoading(true);
         const userData = {
             email: email,
