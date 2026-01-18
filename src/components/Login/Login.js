@@ -4,7 +4,7 @@ import ReactModal from 'react-modal';
 import SignUpForm from '../Signup/Signup';
 import { apiCall } from '../../utils/api';
 import { cacheUtils } from '../../utils/apiCache';
-import { validateEmail, validatePassword } from '../../utils/validation';
+import { validateLoginForm } from '../../utils/validation';
 import storage from '../../utils/storage';
 import { STORAGE_KEYS } from '../../constants';
 import { handleApiError } from '../../utils/errorHandler';
@@ -18,22 +18,19 @@ const LoginForm = ({ onClose, onSwitchToSignup }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // Validate email
-        if (!validateEmail(email)) {
-            setError('Please enter a valid email address');
-            return;
-        }
-        
-        // Validate password
-        if (!validatePassword(password)) {
-            setError('Password must be at least 8 characters');
-            return;
-        }
-        
         const userData = {
             email: email,
             password: password
         };
+        
+        // Validate form data
+        const validation = validateLoginForm(userData);
+        if (!validation.isValid) {
+            // Show the first error
+            const firstError = Object.values(validation.errors)[0];
+            setError(firstError);
+            return;
+        }
         try {
             // Login via apiCall
             const isNewApi = (process.env.NEXT_PUBLIC_USE_NEW_API === 'true');

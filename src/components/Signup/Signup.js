@@ -2,7 +2,7 @@ import { useState } from 'react';
 import React from 'react';
 import { apiCall } from '../../utils/api';
 import { cacheUtils } from '../../utils/apiCache';
-import { validateEmail, validatePassword } from '../../utils/validation';
+import { validateSignupForm } from '../../utils/validation';
 import storage from '../../utils/storage';
 import { STORAGE_KEYS } from '../../constants';
 import { handleApiError } from '../../utils/errorHandler';
@@ -19,23 +19,21 @@ const SignUpForm = ({ onSwitchToLogin, onClose }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // Validate email
-        if (!validateEmail(email)) {
-            setError('Please enter a valid email address');
-            return;
-        }
-        
-        // Validate password
-        if (!validatePassword(password)) {
-            setError('Password must be at least 8 characters');
-            return;
-        }
-        
-        setIsLoading(true);
         const userData = {
             email: email,
             password: password
         };
+        
+        // Validate form data
+        const validation = validateSignupForm(userData);
+        if (!validation.isValid) {
+            // Show the first error
+            const firstError = Object.values(validation.errors)[0];
+            setError(firstError);
+            return;
+        }
+        
+        setIsLoading(true);
         try {
             // Step 1: Sign up the user (old or new API)
             const base = isNewApi ? 'new' : 'old';
