@@ -1,16 +1,13 @@
 // Simple Balance Utility
 // Provides basic balance consistency without over-engineering
 import { apiCall } from './api';
+import storage from './storage';
+import { STORAGE_KEYS } from '../constants';
 
 export const balanceUtils = {
     // Get current user profile
     getUserProfile() {
-        try {
-            const stored = localStorage.getItem('userProfile');
-            return stored ? JSON.parse(stored) : null;
-        } catch (error) {
-            return null;
-        }
+        return storage.getJSON(STORAGE_KEYS.USER_PROFILE);
     },
 
     // Get current balance (always use 'balance' field for consistency)
@@ -54,7 +51,7 @@ export const balanceUtils = {
                 balance: parseFloat(newBalance) || 0
             };
 
-            localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+            storage.setJSON(STORAGE_KEYS.USER_PROFILE, updatedProfile);
 
             // Notify other components
             window.dispatchEvent(new CustomEvent('profileUpdated', {
@@ -110,7 +107,7 @@ export const balanceUtils = {
         const profile = this.getUserProfile();
         if (profile) {
             const cleaned = this.cleanupProfile(profile);
-            localStorage.setItem('userProfile', JSON.stringify(cleaned));
+            storage.setJSON(STORAGE_KEYS.USER_PROFILE, cleaned);
             
             // Don't send to backend during cleanup to avoid unwanted balance changes
             // Only clean up local storage
@@ -122,7 +119,7 @@ export const balanceUtils = {
     
     // Fetch latest balance from backend (useful for incognito mode)
     fetchBalanceFromBackend() {
-        const token = localStorage.getItem('authToken');
+        const token = storage.get(STORAGE_KEYS.AUTH_TOKEN);
         if (!token) return Promise.resolve(false);
         
         // Get profile from backend
@@ -140,7 +137,7 @@ export const balanceUtils = {
                         balance: parseFloat(response.balance) || 0,
                         watched_ads: response.watched_ads || profile.watched_ads || []
                     };
-                    localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+                    storage.setJSON(STORAGE_KEYS.USER_PROFILE, updatedProfile);
                     
                     // Notify other components
                     window.dispatchEvent(new CustomEvent('profileUpdated', {
@@ -159,7 +156,7 @@ export const balanceUtils = {
 
     // New function: Handle watched ad - calls API and updates local profile
     async handleWatchedAd(adId) {
-        const token = localStorage.getItem('authToken');
+        const token = storage.get(STORAGE_KEYS.AUTH_TOKEN);
         if (!token) {
             console.warn('[BalanceUtils] No auth token for watched ad');
             return false;
@@ -180,7 +177,7 @@ export const balanceUtils = {
                     balance: parseFloat(response.balance) || 0,
                     watched_ads: response.watched_ads || []
                 };
-                localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+                storage.setJSON(STORAGE_KEYS.USER_PROFILE, updatedProfile);
                 window.dispatchEvent(new CustomEvent('profileUpdated', {
                     detail: { profile: updatedProfile }
                 }));

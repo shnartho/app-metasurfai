@@ -4,15 +4,17 @@ import { apiCall } from '../../utils/api';
 import { cachedApiCall, cacheUtils } from '../../utils/apiCache';
 import AddAdModal from '../ads/AddAdModal';
 import ReactModal from 'react-modal';
+import storage from '../../utils/storage';
+import { STORAGE_KEYS } from '../../constants';
 const WEBHOOK_URL = process.env.NEXT_PUBLIC_WEBHOOK;
 const isNewApi = () => process.env.NEXT_PUBLIC_USE_NEW_API === 'true';
 
 const UserDash = () => {
     const navigate = useNavigate();
-    const storedProfile = localStorage.getItem('userProfile');
-    const storedAds = localStorage.getItem('Ads');
-    const token = localStorage.getItem('authToken');
-    const [profile, setProfile] = useState(storedProfile ? JSON.parse(storedProfile) : null);
+    const storedProfile = storage.getJSON(STORAGE_KEYS.USER_PROFILE);
+    const storedAds = storage.getJSON(STORAGE_KEYS.ADS, []);
+    const token = storage.get(STORAGE_KEYS.AUTH_TOKEN);
+    const [profile, setProfile] = useState(storedProfile);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showCreateAd, setShowCreateAd] = useState(false);
@@ -45,20 +47,20 @@ const UserDash = () => {
         let campaign = 'waitlist';
         try {
             const params = new URLSearchParams(window.location.search);
-            campaign = params.get('utm_campaign') || localStorage.getItem('utm_campaign') || 'Token Waitlist';
+            campaign = params.get('utm_campaign') || storage.get(STORAGE_KEYS.UTM_CAMPAIGN) || 'Token Waitlist';
         } catch (e) {}
         setUtmCampaign(campaign);
         setLoading(true);
         setError(null);
-        const storedProfile = localStorage.getItem('userProfile');
+        const storedProfile = storage.getJSON(STORAGE_KEYS.USER_PROFILE);
         if (!storedProfile) {
             setLoading(false);
             setError('No user profile found. Please log in.');
             return;
         }
-        const profileObj = JSON.parse(storedProfile);
+        const profileObj = storedProfile;
         setProfile(profileObj);
-        const allAds = JSON.parse(storedAds || '[]');
+        const allAds = storedAds || [];
         const userAdsFiltered = Array.isArray(allAds)
             ? allAds.filter(ad => {
                 return ad.posted_by === profileObj.id;

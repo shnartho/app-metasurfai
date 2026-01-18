@@ -1,6 +1,8 @@
 // Profile data hook with intelligent caching and sync
 import { useState, useEffect, useCallback } from 'react';
 import { cachedApiCall, cacheUtils } from './apiCache';
+import storage from './storage';
+import { STORAGE_KEYS } from '../constants';
 
 export const useProfileData = () => {
     const [profileData, setProfileData] = useState(null);
@@ -11,10 +13,9 @@ export const useProfileData = () => {
     useEffect(() => {
         const loadProfileData = () => {
             try {
-                const storedProfile = localStorage.getItem('userProfile');
+                const storedProfile = storage.getJSON(STORAGE_KEYS.USER_PROFILE);
                 if (storedProfile) {
-                    const profile = JSON.parse(storedProfile);
-                    setProfileData(profile);
+                    setProfileData(storedProfile);
                     setLoading(false);
                 } else {
                     setLoading(false);
@@ -56,7 +57,7 @@ export const useProfileData = () => {
 
     // Refresh profile from API with caching
     const refreshProfile = useCallback(async (forceRefresh = false) => {
-        const token = localStorage.getItem('authToken');
+        const token = storage.get(STORAGE_KEYS.AUTH_TOKEN);
         if (!token) {
             return null;
         }
@@ -72,7 +73,7 @@ export const useProfileData = () => {
 
             if (freshProfile) {
                 setProfileData(freshProfile);
-                localStorage.setItem('userProfile', JSON.stringify(freshProfile));
+                storage.setJSON(STORAGE_KEYS.USER_PROFILE, freshProfile);
                 
                 // Dispatch update event for other components
                 window.dispatchEvent(new Event('profileUpdated'));
@@ -84,14 +85,9 @@ export const useProfileData = () => {
             setError(error);
             
             // Fall back to cached/localStorage data if API fails
-            const storedProfile = localStorage.getItem('userProfile');
+            const storedProfile = storage.getJSON(STORAGE_KEYS.USER_PROFILE);
             if (storedProfile && !profileData) {
-                try {
-                    const fallbackProfile = JSON.parse(storedProfile);
-                    setProfileData(fallbackProfile);
-                } catch (parseError) {
-                    console.error('[useProfileData] Error parsing fallback profile:', parseError);
-                }
+                setProfileData(storedProfile);
             }
         } finally {
             setLoading(false);
@@ -112,7 +108,7 @@ export const useProfileData = () => {
             
             // Update local state immediately for responsive UI
             setProfileData(updatedProfile);
-            localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+            storage.setJSON(STORAGE_KEYS.USER_PROFILE, updatedProfile);
             
             // Invalidate cache to ensure fresh data on next fetch
             cacheUtils.invalidateProfile();
@@ -121,7 +117,7 @@ export const useProfileData = () => {
             window.dispatchEvent(new Event('profileUpdated'));
             
             // TODO: Add API call to sync with server if needed
-            // const token = localStorage.getItem('authToken');
+            // const token = storage.get(STORAGE_KEYS.AUTH_TOKEN);
             // await apiCall('updateProfile', { body: updates, token });
             
             return true;
@@ -139,7 +135,7 @@ export const useProfileData = () => {
 
     // Check if user is authenticated
     const isAuthenticated = useCallback(() => {
-        return !!(localStorage.getItem('authToken') && profileData);
+        return !!(storage.get(STORAGE_KEYS.AUTH_TOKEN) && profileData);
     }, [profileData]);
 
     return {
