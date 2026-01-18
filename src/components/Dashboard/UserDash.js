@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useState as useReactState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiCall } from '../../utils/api';
 import { cachedApiCall, cacheUtils } from '../../utils/apiCache';
@@ -24,10 +23,10 @@ const UserDash = () => {
     const [selectedAds, setSelectedAds] = useState([]);
 
     // Ad creation form state
-    const [showWithdrawModal, setShowWithdrawModal] = useReactState(false);
-    const [showBuyTokenModal, setShowBuyTokenModal] = useReactState(false);
-    const [buyEmail, setBuyEmail] = useReactState('');
-    const [buySuccess, setBuySuccess] = useReactState(false);
+    const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+    const [showBuyTokenModal, setShowBuyTokenModal] = useState(false);
+    const [buyEmail, setBuyEmail] = useState('');
+    const [buySuccess, setBuySuccess] = useState(false);
     const [adForm, setAdForm] = useState({
         title: '',
         image_url: '',
