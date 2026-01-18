@@ -5,7 +5,8 @@
  * @returns {boolean}
  */
 export const isValidEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // Supports standard domains (.com, .org), country codes (.uk, .ca), and multi-level (.co.uk, .com.au)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}(\.[a-zA-Z]{2,})?$/;
   return emailRegex.test(email);
 };
 
