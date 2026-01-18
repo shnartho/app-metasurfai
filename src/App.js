@@ -1,7 +1,7 @@
 import NavBar from "./components/NavBar";
 import AdHandler from "./components/ads/AdHandling";
 import Profile from "./components/profile/profile";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Component } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import ToS from "./components/other/ToS";
 import PrivacyPolicy from "./components/other/PrivacyP";
@@ -25,9 +25,54 @@ import Connect from "./components/Connect/Connect";
 import Modal from 'react-modal';
 import { ToastProvider } from "./components/Toast/ToastContext";
 import { balanceUtils } from "./utils/balanceUtils";
+import storage from "./utils/storage";
+import { isTokenExpired } from "./utils/auth";
+import { STORAGE_KEYS } from "./constants";
 import "./styles/toast.css";
     
 Modal.setAppElement('#app');
+
+// Error Boundary Component
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Error Boundary caught:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+          height: '100vh', background: '#18181b', color: '#fff', fontFamily: 'sans-serif', padding: '20px'
+        }}>
+          <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>⚠️ Something went wrong</h1>
+          <p style={{ fontSize: '1rem', maxWidth: 500, textAlign: 'center', marginBottom: '1rem' }}>
+            We encountered an unexpected error. Please refresh the page to continue.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '10px 20px', fontSize: '1rem', background: '#3b82f6',
+              color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer'
+            }}
+          >
+            Refresh Page
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // Maintenance page component
 function MaintenancePage() {
@@ -50,7 +95,7 @@ const App = () => {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [DarkMode, setDarkMode] = useState(() => {
-    const savedDarkMode = localStorage.getItem('DarkMode');
+    const savedDarkMode = storage.get(STORAGE_KEYS.DARK_MODE);
     return savedDarkMode === 'true';
   });
 
@@ -65,18 +110,29 @@ const App = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
-    localStorage.setItem('DarkMode', DarkMode);
+    storage.set(STORAGE_KEYS.DARK_MODE, DarkMode);
   }, [DarkMode]);
+
+  // Check token expiration and auto-logout if expired
+  useEffect(() => {
+    const token = storage.get(STORAGE_KEYS.AUTH_TOKEN);
+    if (token && isTokenExpired(token)) {
+      console.warn('[App] Token expired, logging out');
+      storage.remove(STORAGE_KEYS.AUTH_TOKEN);
+      storage.remove(STORAGE_KEYS.USER_PROFILE);
+      window.location.reload();
+    }
+  }, []);
 
   // Clean up any balance inconsistencies on app load and check for incognito mode
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
+    const token = storage.get(STORAGE_KEYS.AUTH_TOKEN);
     if (token) {
       try {
         // Try to detect if we're in incognito mode 
         // If localStorage is empty but token exists, we might be in incognito
-        const profile = localStorage.getItem('userProfile');
-        if (!profile || !JSON.parse(profile)?.balance) {
+        const profile = storage.getJSON(STORAGE_KEYS.USER_PROFILE);
+        if (!profile || !profile?.balance) {
           // Fetch balance from backend for incognito mode
           balanceUtils.fetchBalanceFromBackend().catch(err => {
             console.warn('[App] Failed to fetch balance:', err);
@@ -103,48 +159,50 @@ const App = () => {
   }
 
   return (
-    <ToastProvider>
-      <div className={`flex flex-col min-h-screen bg-white dark:bg-slate-900 ${DarkMode ? 'dark' : ''}`}>
-          <NavBar DarkMode={DarkMode} toggleDarkMode={toggleDarkMode} toggleSidebar={toggleSidebar}/>
-          <div className="flex flex-grow">
-            <SideNav isOpen={isSidebarOpen} DarkMode={DarkMode} />
-            <div className={`flex-grow transition-all duration-300 ${
-                isSidebarOpen ? 'md:ml-60' : 'md:ml-20'
-            }`}>
-            {showFilter && (
-              <div className={`fixed top-16 md:top-12 left-0 right-0 z-40 pt-2 bg-white dark:bg-slate-900 shadow-sm transition-all duration-300 ${
-                isSidebarOpen ? 'md:left-60' : 'md:left-20'
+    <ErrorBoundary>
+      <ToastProvider>
+        <div className={`flex flex-col min-h-screen bg-white dark:bg-slate-900 ${DarkMode ? 'dark' : ''}`}>
+            <NavBar DarkMode={DarkMode} toggleDarkMode={toggleDarkMode} toggleSidebar={toggleSidebar}/>
+            <div className="flex flex-grow">
+              <SideNav isOpen={isSidebarOpen} DarkMode={DarkMode} />
+              <div className={`flex-grow transition-all duration-300 ${
+                  isSidebarOpen ? 'md:ml-60' : 'md:ml-20'
               }`}>
-                  <Multifilter isSidebarOpen={isSidebarOpen} />
-              </div>
-            )}
-            <main className={`px-4 ${showFilter ? 'pt-28 md:pt-24' : 'pt-12'}`}>       
-          <Routes>
-            <Route path="/" element={<AdHandler />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/tos" element={<ToS />} />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/Dashboard" element={<UserDash />} />
-            <Route path="/live" element={<LiveAds />} />
-            <Route path="/videos" element={<Videos />} />
-            <Route path="/markets" element={<Markets />} />
-            <Route path="/radio" element={<Radio />} />
-            {/* <Route path="/stream" element={<Stream />} /> */}
-            <Route path="/vr" element={<VR />} />
-            <Route path="/billboards" element={<Billboard />} />
-            <Route path="/channels" element={<Channels />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/metaverse" element={<Metaverse />} />
-            <Route path="/game" element={<Games />} />
-            <Route path="/duet" element={<Duet />} />
-            <Route path="/connect" element={<Connect />} />
-          </Routes>
-        </main>
+              {showFilter && (
+                <div className={`fixed top-16 md:top-12 left-0 right-0 z-40 pt-2 bg-white dark:bg-slate-900 shadow-sm transition-all duration-300 ${
+                  isSidebarOpen ? 'md:left-60' : 'md:left-20'
+                }`}>
+                    <Multifilter isSidebarOpen={isSidebarOpen} />
+                </div>
+              )}
+              <main className={`px-4 ${showFilter ? 'pt-28 md:pt-24' : 'pt-12'}`}>       
+            <Routes>
+              <Route path="/" element={<AdHandler />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/tos" element={<ToS />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/Dashboard" element={<UserDash />} />
+              <Route path="/live" element={<LiveAds />} />
+              <Route path="/videos" element={<Videos />} />
+              <Route path="/markets" element={<Markets />} />
+              <Route path="/radio" element={<Radio />} />
+              {/* <Route path="/stream" element={<Stream />} /> */}
+              <Route path="/vr" element={<VR />} />
+              <Route path="/billboards" element={<Billboard />} />
+              <Route path="/channels" element={<Channels />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/metaverse" element={<Metaverse />} />
+              <Route path="/game" element={<Games />} />
+              <Route path="/duet" element={<Duet />} />
+              <Route path="/connect" element={<Connect />} />
+            </Routes>
+          </main>
+        </div>
       </div>
     </div>
-  </div>
-  </ToastProvider>
+    </ToastProvider>
+    </ErrorBoundary>
   );
 };
 

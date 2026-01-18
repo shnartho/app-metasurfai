@@ -5,6 +5,9 @@ import SignUpForm from '../Signup/Signup';
 import { apiCall } from '../../utils/api';
 import { cacheUtils } from '../../utils/apiCache';
 import { validateEmail, validatePassword } from '../../utils/validation';
+import storage from '../../utils/storage';
+import { STORAGE_KEYS } from '../../constants';
+import { handleApiError } from '../../utils/errorHandler';
 
 const LoginForm = ({ onClose, onSwitchToSignup }) => {
     const [email, setEmail] = useState('');
@@ -36,11 +39,11 @@ const LoginForm = ({ onClose, onSwitchToSignup }) => {
             const isNewApi = (process.env.NEXT_PUBLIC_USE_NEW_API === 'true');
             const base = isNewApi ? 'new' : 'old';
             const data = await apiCall('login', { body: userData, base });
-            localStorage.setItem('authToken', data.token);
+            storage.set(STORAGE_KEYS.AUTH_TOKEN, data.token);
             
             // Fetch profile data via apiCall
             const profileData = await apiCall('profile', { token: data.token, base });
-            localStorage.setItem('userProfile', JSON.stringify(profileData));
+            storage.setJSON(STORAGE_KEYS.USER_PROFILE, profileData);
             
             // Clear cache from any previous user sessions
             cacheUtils.clearPreviousUserCache();
@@ -59,7 +62,7 @@ const LoginForm = ({ onClose, onSwitchToSignup }) => {
                 window.location.reload(); // Refresh all states
             }, 1000);
         } catch (error) {
-            setError(error.message || 'Something went wrong. Please try again later.');
+            setError(handleApiError(error, 'Login'));
             setSuccess(false);
         }
     };

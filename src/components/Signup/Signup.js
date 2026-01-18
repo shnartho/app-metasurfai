@@ -3,6 +3,9 @@ import React from 'react';
 import { apiCall } from '../../utils/api';
 import { cacheUtils } from '../../utils/apiCache';
 import { validateEmail, validatePassword } from '../../utils/validation';
+import storage from '../../utils/storage';
+import { STORAGE_KEYS } from '../../constants';
+import { handleApiError } from '../../utils/errorHandler';
 
 const SignUpForm = ({ onSwitchToLogin, onClose }) => {
     const [email, setEmail] = useState('');
@@ -40,11 +43,11 @@ const SignUpForm = ({ onSwitchToLogin, onClose }) => {
             
             // Step 2: Automatically log in the user after successful signup
             const loginRes = await apiCall('login', { body: userData, base });
-            localStorage.setItem('authToken', loginRes.token);
+            storage.set(STORAGE_KEYS.AUTH_TOKEN, loginRes.token);
             
             // Step 3: Fetch profile data
             const profileRes = await apiCall('profile', { token: loginRes.token, base });
-            localStorage.setItem('userProfile', JSON.stringify(profileRes));
+            storage.setJSON(STORAGE_KEYS.USER_PROFILE, profileRes);
             
             // Clear cache from any previous user sessions (but keep current user's data)
             cacheUtils.clearPreviousUserCache();
@@ -63,7 +66,7 @@ const SignUpForm = ({ onSwitchToLogin, onClose }) => {
                 window.location.reload(); // Refresh all states
             }, 1000);
         } catch (error) {
-            setError(error.message || 'Something went wrong. Please try again later.');
+            setError(handleApiError(error, 'Signup'));
             setSuccess(false);
         } finally {
             setIsLoading(false);
