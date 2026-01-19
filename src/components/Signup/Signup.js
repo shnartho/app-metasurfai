@@ -41,10 +41,29 @@ const SignUpForm = ({ onSwitchToLogin, onClose }) => {
             
             // Step 2: Automatically log in the user after successful signup
             const loginRes = await apiCall('login', { body: userData, base });
-            storage.set(STORAGE_KEYS.AUTH_TOKEN, loginRes.token);
+            
+            // Handle both old API (token) and new API (idToken/accessToken)
+            const token = loginRes.token || loginRes.accessToken || loginRes.idToken;
+            if (!token) {
+                throw new Error('No token received from server');
+            }
+            storage.set(STORAGE_KEYS.AUTH_TOKEN, token);
+            
+            // Store all Cognito tokens separately (new API format)
+            if (loginRes.idToken) {
+                storage.set('idToken', loginRes.idToken);
+            }
+            if (loginRes.accessToken) {
+                storage.set('accessToken', loginRes.accessToken);
+            }
+            
+            // Store refresh token if provided (new API)
+            if (loginRes.refreshToken) {
+                storage.set('refreshToken', loginRes.refreshToken);
+            }
             
             // Step 3: Fetch profile data
-            const profileRes = await apiCall('profile', { token: loginRes.token, base });
+            const profileRes = await apiCall('profile', { token, base });
             storage.setJSON(STORAGE_KEYS.USER_PROFILE, profileRes);
             
             // Clear cache from any previous user sessions (but keep current user's data)
@@ -52,7 +71,7 @@ const SignUpForm = ({ onSwitchToLogin, onClose }) => {
             
             // Dispatch a custom event to notify other components of successful signup/login
             window.dispatchEvent(new CustomEvent('userLoggedIn', { 
-                detail: { profile: profileRes, token: loginRes.token } 
+                detail: { profile: profileRes, token } 
             }));
             
             setSuccess(true);
@@ -80,7 +99,12 @@ const SignUpForm = ({ onSwitchToLogin, onClose }) => {
             <div className=" text-gray-100 p-8 rounded-lg shadow-lg backdrop-blur-md border-2 border-opacity-20 border-pink-600 dark:border-blue-600">                
                 <h2 className="text-2xl mb-4">Sign Up</h2>
                 {error && <p className="text-red-500 mb-4">{error}</p>}
-                {success && <p className="text-green-500 mb-4">Registration successful! Logging you in...</p>}
+                {success && (
+                    <div className="text-green-500 mb-4 p-3 bg-green-500 bg-opacity-20 rounded">
+                        <p className="font-semibold">✓ Account Created!</p>
+                        <p className="text-sm mt-1">Please check your email to verify your account before logging in.</p>
+                    </div>
+                )}
                 
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">

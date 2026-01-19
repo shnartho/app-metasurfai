@@ -2,6 +2,7 @@ import { useState } from 'react';
 import React from 'react';
 import ReactModal from 'react-modal';
 import SignUpForm from '../Signup/Signup';
+import ForgotPassword from '../ForgotPassword/ForgotPassword';
 import { apiCall } from '../../utils/api';
 import { cacheUtils } from '../../utils/apiCache';
 import { validateLoginForm } from '../../utils/validation';
@@ -9,12 +10,23 @@ import storage from '../../utils/storage';
 import { STORAGE_KEYS } from '../../constants';
 import { handleApiError } from '../../utils/errorHandler';
 
-const LoginForm = ({ onClose, onSwitchToSignup }) => {
+const LoginForm = ({ onClose, onSwitchToSignup, currentForm = 'login', onFormChange }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
+    const [form, setForm] = useState(currentForm);
+
+    const switchForm = (newForm) => {
+        setForm(newForm);
+        setError(null);
+        setSuccess(false);
+        setEmail('');
+        setPassword('');
+        if (onFormChange) onFormChange(newForm);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         
@@ -36,10 +48,29 @@ const LoginForm = ({ onClose, onSwitchToSignup }) => {
             const isNewApi = (process.env.NEXT_PUBLIC_USE_NEW_API === 'true');
             const base = isNewApi ? 'new' : 'old';
             const data = await apiCall('login', { body: userData, base });
-            storage.set(STORAGE_KEYS.AUTH_TOKEN, data.token);
+            
+            // Handle both old API (token) and new API (idToken/accessToken)
+            const token = data.token || data.accessToken || data.idToken;
+            if (!token) {
+                throw new Error('No token received from server');
+            }
+            storage.set(STORAGE_KEYS.AUTH_TOKEN, token);
+            
+            // Store all Cognito tokens separately (new API format)
+            if (data.idToken) {
+                storage.set('idToken', data.idToken);
+            }
+            if (data.accessToken) {
+                storage.set('accessToken', data.accessToken);
+            }
+            
+            // Store refresh token if provided (new API)
+            if (data.refreshToken) {
+                storage.set('refreshToken', data.refreshToken);
+            }
             
             // Fetch profile data via apiCall
-            const profileData = await apiCall('profile', { token: data.token, base });
+            const profileData = await apiCall('profile', { token, base });
             storage.setJSON(STORAGE_KEYS.USER_PROFILE, profileData);
             
             // Clear cache from any previous user sessions
@@ -47,7 +78,7 @@ const LoginForm = ({ onClose, onSwitchToSignup }) => {
             
             // Dispatch a custom event to notify other components of successful login
             window.dispatchEvent(new CustomEvent('userLoggedIn', { 
-                detail: { profile: profileData, token: data.token } 
+                detail: { profile: profileData, token } 
             }));
             
             setSuccess(true);
@@ -64,10 +95,27 @@ const LoginForm = ({ onClose, onSwitchToSignup }) => {
         }
     };
 
+    if (form === 'signup') {
+        return (
+            <SignUpForm 
+                onSwitchToLogin={() => switchForm('login')}
+                onClose={onClose}
+            />
+        );
+    }
+
+    if (form === 'forgot') {
+        return (
+            <ForgotPassword 
+                onBack={() => switchForm('login')}
+                onSwitchToLogin={() => switchForm('login')}
+            />
+        );
+    }
 
     return (
         <div className="flex justify-center items-center">
-            <div className="text-gray-100 p-8 rounded-lg shadow-lg backdrop-blur-md border-2 border-opacity-20 border-pink-600 dark:border-blue-600">
+            <div className="text-gray-100 p-8 rounded-lg shadow-lg backdrop-blur-md border-2 border-opacity-20 border-pink-600 dark:border-blue-600 w-full max-w-md">
                 <h2 className="text-2xl mb-4">Login</h2>
                 {error && <p className="text-red-500 mb-4">{error}</p>}
                 {success && <p className="text-green-500 mb-4">Login successful!</p>}
@@ -106,15 +154,25 @@ const LoginForm = ({ onClose, onSwitchToSignup }) => {
                             Login
                         </button>
                     </div>
-                    <span className="text-gray-100 text-sm mt-2 block text-center">
-                        Don't have an account?
-                        <a
-                            onClick={onSwitchToSignup}
-                            className="text-blue-500 hover:underline cursor-pointer ml-1"
-                        >
-                            Register
-                        </a>
-                    </span>
+                    <div className="text-gray-100 text-sm mt-4 space-y-2">
+                        <div className="text-center">
+                            <a
+                                onClick={() => switchForm('forgot')}
+                                className="text-blue-500 hover:underline cursor-pointer"
+                            >
+                                Forgot password?
+                            </a>
+                        </div>
+                        <div className="text-center">
+                            Don't have an account?
+                            <a
+                                onClick={() => switchForm('signup')}
+                                className="text-blue-500 hover:underline cursor-pointer ml-1"
+                            >
+                                Register
+                            </a>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
