@@ -123,9 +123,9 @@ export const balanceUtils = {
         if (!token) return Promise.resolve(false);
         
         // Get profile from backend
-        return apiCall('profile', {
+        return apiCall('updateProfile', {
             token,
-            base: 'new'
+            base: process.env.NEXT_PUBLIC_USE_NEW_API === 'true' ? 'new' : 'old'
         })
         .then(response => {
             if (response && response.balance !== undefined) {
@@ -167,7 +167,7 @@ export const balanceUtils = {
             const response = await apiCall('watchedAd', {
                 body: { id: adId },
                 token,
-                base: 'new'
+                base: process.env.NEXT_PUBLIC_USE_NEW_API === 'true' ? 'new' : 'old'
             });
 
             // If the API returns updated profile data, use it

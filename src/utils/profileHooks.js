@@ -66,7 +66,7 @@ export const useProfileData = () => {
             setLoading(true);
             setError(null);
             
-            const freshProfile = await cachedApiCall('profile', {
+            const freshProfile = await cachedApiCall('updateProfile', {
                 token,
                 base: process.env.NEXT_PUBLIC_USE_NEW_API === 'true' ? 'new' : 'old'
             }, forceRefresh);
