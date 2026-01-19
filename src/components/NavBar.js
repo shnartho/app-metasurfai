@@ -68,21 +68,39 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
         };
     }, []);
 
-    const handleLogout = () => {
-        // Clear authentication data
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userProfile');
-        
-        // Disconnect wallet on logout
-        localStorage.removeItem('connectedWallet');
-        localStorage.removeItem('walletAddress');
-        
-        // Clear all cached data for current user
-        cacheUtils.clearAllOnLogout();
-        
-        // Reset state
-        setIsAuthenticated(false);
-        setUserProfile(null);
+    const handleLogout = async () => {
+        try {
+            const token = storage.get(STORAGE_KEYS.AUTH_TOKEN);
+            const base = isNewApi ? 'new' : 'old';
+            
+            // Call logout API if token exists
+            if (token) {
+                try {
+                    await apiCall('logout', { token, base });
+                } catch (error) {
+                    console.warn('Logout API call failed, continuing with local logout:', error);
+                }
+            }
+        } catch (error) {
+            console.error('Error during logout:', error);
+        } finally {
+            // Clear all authentication data locally
+            storage.remove(STORAGE_KEYS.AUTH_TOKEN);
+            storage.remove(STORAGE_KEYS.USER_PROFILE);
+            storage.remove('idToken');
+            storage.remove('accessToken');
+            storage.remove('refreshToken');
+            
+            // Disconnect wallet on logout
+            localStorage.removeItem('connectedWallet');
+            localStorage.removeItem('walletAddress');
+            
+            // Clear all cached data for current user
+            cacheUtils.clearAllOnLogout();
+            
+            // Reset state
+            setIsAuthenticated(false);
+            setUserProfile(null);
         
         // Reload and navigate
         window.location.reload();
