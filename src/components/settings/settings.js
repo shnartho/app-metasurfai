@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiCall } from '../../utils/api';
+import storage from '../../utils/storage';
+import { STORAGE_KEYS } from '../../constants';
 
 const Settings = () => {
     const navigate = useNavigate();
+    const isNewApi = (process.env.NEXT_PUBLIC_USE_NEW_API === 'true');
     // Get current theme from localStorage or default to system
     const [theme, setTheme] = useState(() => {
         const savedTheme = localStorage.getItem('DarkMode');
@@ -75,9 +79,41 @@ const Settings = () => {
         alert('Data export initiated. You will receive an email when ready.');
     };
 
-    const handleDeleteAccount = () => {
+    const handleDeleteAccount = async () => {
         if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-            alert('Account deletion initiated. Please check your email for confirmation.');
+            try {
+                const token = storage.get(STORAGE_KEYS.AUTH_TOKEN);
+                const accessToken = storage.get('accessToken');
+                const base = isNewApi ? 'new' : 'old';
+                
+                if (!token) {
+                    alert('Not authenticated. Please login first.');
+                    return;
+                }
+                
+                const response = await apiCall('deleteAccount', {
+                    body: {
+                        accessToken: accessToken || token,
+                        reason: 'User requested account deletion'
+                    },
+                    token,
+                    base
+                });
+                
+                // Clear all auth data
+                storage.remove(STORAGE_KEYS.AUTH_TOKEN);
+                storage.remove(STORAGE_KEYS.USER_PROFILE);
+                storage.remove('idToken');
+                storage.remove('accessToken');
+                storage.remove('refreshToken');
+                
+                alert('Account deleted successfully.');
+                navigate('/');
+                window.location.reload();
+            } catch (error) {
+                console.error('Error deleting account:', error);
+                alert('Error deleting account: ' + (error.message || 'Unknown error'));
+            }
         }
     };
 
