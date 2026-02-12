@@ -8,160 +8,260 @@ if (!API_KEY) {
 }
 
 const apiMapNew = {
+    // ─── Health / Status ─────────────────────────────────────────────
     status: {
         base: 'new',
-        endpoint: '/status',
+        endpoint: '/',
         method: 'GET',
         headers: () => ({ 'x-api-key': API_KEY }),
         transform: () => ({})
     },
-    
+
+    // ─── Auth (Cognito) ──────────────────────────────────────────────
     signup: {
         base: 'new',
-        endpoint: '/auth/signup',
+        endpoint: '/signup',
         method: 'POST',
         headers: () => ({ 'Content-Type': 'application/json', 'x-api-key': API_KEY }),
-        transform: (body) => ({ 
-            email: body.email, 
-            password: body.password, 
-            region: body.region,
-            balance: body.balance || 0 
+        transform: (body) => ({
+            email: body.email,
+            password: body.password,
+            name: body.name || undefined,
+            address: body.address || undefined
         })
     },
-    
+
     login: {
         base: 'new',
-        endpoint: '/auth/login',
+        endpoint: '/login',
         method: 'POST',
         headers: () => ({ 'Content-Type': 'application/json', 'x-api-key': API_KEY }),
         transform: (body) => ({ email: body.email, password: body.password })
     },
-    
-    profile: {
+
+    logout: {
         base: 'new',
-        endpoint: '/user/profile',
-        method: 'GET',
-        headers: (body, token) => ({ 
-            'Content-Type': 'application/json', 
-            'Authorization': token ? `Bearer ${token}` : '', 
-            'x-api-key': API_KEY 
+        endpoint: '/logout',
+        method: 'POST',
+        headers: (body, token) => ({
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+            'x-api-key': API_KEY
         }),
         transform: () => ({})
     },
-    
+
+    refreshToken: {
+        base: 'new',
+        endpoint: '/refresh-token',
+        method: 'POST',
+        headers: () => ({ 'Content-Type': 'application/json', 'x-api-key': API_KEY }),
+        transform: (body) => ({ refreshToken: body.refreshToken })
+    },
+
+    updateProfile: {
+        base: 'new',
+        endpoint: '/update-profile',
+        method: 'POST',
+        headers: (body, token) => ({
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+            'x-api-key': API_KEY
+        }),
+        transform: (body) => ({
+            accessToken: body.accessToken,
+            address: body.address || undefined,
+            phone: body.phone || undefined
+        })
+    },
+
+    forgotPassword: {
+        base: 'new',
+        endpoint: '/forgot-password',
+        method: 'POST',
+        headers: () => ({ 'Content-Type': 'application/json', 'x-api-key': API_KEY }),
+        transform: (body) => ({ email: body.email })
+    },
+
+    confirmForgotPassword: {
+        base: 'new',
+        endpoint: '/confirm-forgot-password',
+        method: 'POST',
+        headers: () => ({ 'Content-Type': 'application/json', 'x-api-key': API_KEY }),
+        transform: (body) => ({
+            email: body.email,
+            confirmation_code: body.confirmation_code,
+            new_password: body.new_password
+        })
+    },
+
+    deleteAccount: {
+        base: 'new',
+        endpoint: '/delete-account',
+        method: 'POST',
+        headers: (body, token) => ({
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+            'x-api-key': API_KEY
+        }),
+        transform: (body) => ({
+            accessToken: body.accessToken,
+            reason: body.reason || undefined
+        })
+    },
+
+    // ─── Orders / Checkout (Stripe) ─────────────────────────────────
+    checkout: {
+        base: 'new',
+        endpoint: '/checkout',
+        method: 'POST',
+        headers: (body, token) => ({
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+            'x-api-key': API_KEY
+        }),
+        transform: (body) => ({
+            address: body.address,
+            phone: body.phone,
+            paymentMethod: body.paymentMethod || 'card',
+            total: body.total,
+            items: body.items || []
+        })
+    },
+
+    // ─── Admin ───────────────────────────────────────────────────────
+    adminAccess: {
+        base: 'new',
+        endpoint: '/admin',
+        method: 'GET',
+        headers: (body, token) => ({
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+            'x-api-key': API_KEY
+        }),
+        transform: () => ({})
+    },
+
+    adminGetOrders: {
+        base: 'new',
+        endpoint: '/admin/orders',
+        method: 'GET',
+        headers: (body, token) => ({
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+            'x-api-key': API_KEY
+        }),
+        transform: () => ({})
+    },
+
+    adminUpdateOrder: {
+        base: 'new',
+        endpoint: '/admin/orders',
+        method: 'POST',
+        headers: (body, token) => ({
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+            'x-api-key': API_KEY
+        }),
+        transform: (body) => ({ id: body.id, status: body.status })
+    },
+
+    // ─── Images (existing service) ──────────────────────────────────
     uploadImage: {
         base: 'new',
         endpoint: '/images/user',
         method: 'PUT',
         headers: (body, token) => {
-            // Content-Type should be set to image/jpeg or appropriate type by the caller or fetch
             const headers = { 'x-api-key': API_KEY };
             if (token) headers['Authorization'] = `${token}`;
-            // If file type is provided, set Content-Type
             if (body && body.file && body.file.type) headers['Content-Type'] = body.file.type;
             return headers;
         },
         transform: (body) => body
     },
-    
+
     getImages: {
         base: 'new',
         endpoint: '/images',
         method: 'GET',
-        headers: (body, token) => ({ 
-            'Content-Type': 'application/json', 
-            'Authorization': token ? `Bearer ${token}` : '', 
-            'x-api-key': API_KEY 
+        headers: (body, token) => ({
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+            'x-api-key': API_KEY
         }),
         transform: () => ({})
     },
-    
+
     deleteImage: {
         base: 'new',
         endpoint: '/images/user',
         method: 'DELETE',
-        headers: (body, token) => ({ 
-            'Content-Type': 'application/json', 
-            'Authorization': token ? `Bearer ${token}` : '', 
-            'x-api-key': API_KEY 
+        headers: (body, token) => ({
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+            'x-api-key': API_KEY
         }),
         transform: (body) => ({ image_name: body.image_name })
     },
 
+    // ─── Ads (existing service) ─────────────────────────────────────
     ads: {
         base: 'new',
         endpoint: '/ads',
         method: 'GET',
-        headers: (body, token) => ({ 
-            'Content-Type': 'application/json', 
-            'Authorization': token ? `Bearer ${token}` : '', 
-            'x-api-key': API_KEY 
+        headers: (body, token) => ({
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+            'x-api-key': API_KEY
         }),
         transform: (body) => body.id ? { id: body.id } : {}
     },
-    
+
     createAd: {
         base: 'new',
         endpoint: '/user/ads',
         method: 'POST',
-        headers: (body, token) => ({ 
-            'Content-Type': 'application/json', 
-            'Authorization': token ? `Bearer ${token}` : '', 
-            'x-api-key': API_KEY 
+        headers: (body, token) => ({
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+            'x-api-key': API_KEY
         }),
-        transform: (body) => ({ 
-            title: body.title, 
-            image_url: body.image_url, 
-            description: body.description, 
-            region: body.region, 
-            budget: body.budget || 0, 
+        transform: (body) => ({
+            title: body.title,
+            image_url: body.image_url,
+            description: body.description,
+            region: body.region,
+            budget: body.budget || 0,
             reward_per_view: body.reward_per_view || 0,
             type: body.type || 'native',
             redirection_link: body.redirection_link || null
         })
     },
-    
-    // TODO: Temporarily commented out - can be reactivated later
-    /*
-    updateAd: {
-        base: 'new',
-        endpoint: '/user/ads',
-        method: 'PATCH',
-        headers: (body, token) => ({ 
-            'Content-Type': 'application/json', 
-            'Authorization': token ? `Bearer ${token}` : '', 
-            'x-api-key': API_KEY 
-        }),
-        transform: (body) => {
-            return body;
-        }
-    },
-    */
-    
+
     deleteAd: {
         base: 'new',
         endpoint: '/user/ads',
         method: 'DELETE',
-        headers: (body, token) => ({ 
-            'Content-Type': 'application/json', 
-            'Authorization': token ? `Bearer ${token}` : '', 
-            'x-api-key': API_KEY 
+        headers: (body, token) => ({
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
+            'x-api-key': API_KEY
         }),
         transform: (body) => ({ id: body.id })
     },
-    
+
     watchedAd: {
         base: 'new',
         endpoint: '/user/watched/ads',
         method: 'PATCH',
-        headers: (body, token) => ({ 
-            'Content-Type': 'text/plain', 
+        headers: (body, token) => ({
+            'Content-Type': 'text/plain',
             'Authorization': token ? `Bearer ${token}` : '',
-            'x-api-key': API_KEY 
+            'x-api-key': API_KEY
         }),
         transform: (body) => ({ id: body.id })
     },
-    
+
     requestUploadUrl: {
         base: 'new',
         endpoint: '/images/user',
@@ -169,20 +269,16 @@ const apiMapNew = {
         headers: (body, token) => {
             const headers = { 'x-api-key': API_KEY };
             if (token) headers['Authorization'] = `Bearer ${token}`;
-            // Note: Content-Type will be set by fetch based on the file
             return headers;
         },
         transform: (body) => {
-            // If we have a raw file, use it directly
             if (body.file && body.file instanceof File) {
                 return body.file;
             }
-            // If we have fileName and contentType but no file, it might be the old format
             if (body.fileName && body.contentType) {
                 console.log('Converting from old format request. This might not work as expected.');
                 return body;
             }
-            // Otherwise just return the body as-is
             return body;
         }
     }
