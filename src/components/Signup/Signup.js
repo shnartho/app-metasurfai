@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import React from 'react';
-import { apiCall } from '../../utils/api';
+import { apiCall, decodeIdToken } from '../../utils/api';
 import { cacheUtils } from '../../utils/apiCache';
 
 const SignUpForm = ({ onSwitchToLogin, onClose }) => {
@@ -9,6 +9,7 @@ const SignUpForm = ({ onSwitchToLogin, onClose }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
+    const [needsVerification, setNeedsVerification] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const isNewApi = (process.env.NEXT_PUBLIC_USE_NEW_API === 'true');
@@ -22,14 +23,37 @@ const SignUpForm = ({ onSwitchToLogin, onClose }) => {
         try {
             // Step 1: Sign up the user (old or new API)
             const base = isNewApi ? 'new' : 'old';
-            await apiCall('signup', { body: userData, base });
-            
+            const signupRes = await apiCall('signup', { body: userData, base });
+
+            // New backend (Cognito) may require email verification before login
+            if (isNewApi && signupRes.userConfirmed === false) {
+                setNeedsVerification(true);
+                setSuccess(true);
+                setError(null);
+                return; // Stop here — user must verify email first
+            }
+
             // Step 2: Automatically log in the user after successful signup
             const loginRes = await apiCall('login', { body: userData, base });
-            localStorage.setItem('authToken', loginRes.token);
-            
-            // Step 3: Fetch profile data
-            const profileRes = await apiCall('profile', { token: loginRes.token, base });
+
+            // New backend returns {idToken, accessToken, refreshToken}
+            const authToken = isNewApi ? loginRes.idToken : loginRes.token;
+            if (!authToken) throw new Error('No auth token received');
+
+            localStorage.setItem('authToken', authToken);
+            if (isNewApi) {
+                localStorage.setItem('accessToken', loginRes.accessToken);
+                localStorage.setItem('refreshToken', loginRes.refreshToken);
+            }
+
+            // Step 3: Build profile from token (new) or fetch from API (old)
+            let profileRes;
+            if (isNewApi) {
+                profileRes = decodeIdToken(authToken);
+                if (!profileRes) throw new Error('Failed to decode user profile from token');
+            } else {
+                profileRes = await apiCall('profile', { token: authToken, base });
+            }
             localStorage.setItem('userProfile', JSON.stringify(profileRes));
             
             // Clear cache from any previous user sessions (but keep current user's data)
@@ -37,7 +61,7 @@ const SignUpForm = ({ onSwitchToLogin, onClose }) => {
             
             // Dispatch a custom event to notify other components of successful signup/login
             window.dispatchEvent(new CustomEvent('userLoggedIn', { 
-                detail: { profile: profileRes, token: loginRes.token } 
+                detail: { profile: profileRes, token: authToken } 
             }));
             
             setSuccess(true);
@@ -65,7 +89,13 @@ const SignUpForm = ({ onSwitchToLogin, onClose }) => {
             <div className=" text-gray-100 p-8 rounded-lg shadow-lg backdrop-blur-md border-2 border-opacity-20 border-pink-600 dark:border-blue-600">                
                 <h2 className="text-2xl mb-4">Sign Up</h2>
                 {error && <p className="text-red-500 mb-4">{error}</p>}
-                {success && <p className="text-green-500 mb-4">Registration successful! Logging you in...</p>}
+                {needsVerification && (
+                    <div className="text-green-400 mb-4">
+                        <p className="font-semibold">Check your email!</p>
+                        <p className="text-sm mt-1">A verification link has been sent to <strong>{email}</strong>. Please verify your email, then <a onClick={onSwitchToLogin} className="text-blue-400 underline cursor-pointer">log in</a>.</p>
+                    </div>
+                )}
+                {success && !needsVerification && <p className="text-green-500 mb-4">Registration successful! Logging you in...</p>}
                 
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">

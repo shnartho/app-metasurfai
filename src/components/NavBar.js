@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Glocation from '../components/Glocation';
 import AddAdModal from './ads/AddAdModal';
 import { cacheUtils } from '../utils/apiCache';
+import { apiCall } from '../utils/api';
 import Connect from './Connect/Connect';
 
 const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
@@ -68,9 +69,22 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
         };
     }, []);
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        // Call backend logout to invalidate tokens (best-effort)
+        try {
+            const token = localStorage.getItem('authToken');
+            const isNewApi = (process.env.NEXT_PUBLIC_USE_NEW_API === 'true');
+            if (token && isNewApi) {
+                await apiCall('logout', { token, base: 'new' });
+            }
+        } catch (e) {
+            console.warn('[NavBar] Backend logout failed (proceeding anyway):', e);
+        }
+
         // Clear authentication data
         localStorage.removeItem('authToken');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         localStorage.removeItem('userProfile');
         
         // Disconnect wallet on logout

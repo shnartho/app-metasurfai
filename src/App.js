@@ -25,6 +25,7 @@ import Connect from "./components/Connect/Connect";
 import Modal from 'react-modal';
 import { ToastProvider } from "./components/Toast/ToastContext";
 import { balanceUtils } from "./utils/balanceUtils";
+import { tokenManager } from "./utils/api";
 import "./styles/toast.css";
     
 Modal.setAppElement('#app');
@@ -89,6 +90,31 @@ const App = () => {
         console.warn('[App] Balance init failed:', error);
       }
     }
+  }, []);
+
+  // Proactive token refresh — check every 5 minutes
+  useEffect(() => {
+    const isNewApi = (process.env.NEXT_PUBLIC_USE_NEW_API === 'true');
+    if (!isNewApi) return;
+    const interval = setInterval(() => {
+      const token = localStorage.getItem('authToken');
+      if (token && tokenManager.isTokenExpired(token)) {
+        tokenManager.refreshTokens().catch(() => {});
+      }
+    }, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Listen for forced logout (e.g. from expired refresh token)
+  useEffect(() => {
+    const handleForceLogout = () => {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userProfile');
+    };
+    window.addEventListener('forceLogout', handleForceLogout);
+    return () => window.removeEventListener('forceLogout', handleForceLogout);
   }, []);
 
   const toggleDarkMode = () => {
