@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiCall } from '../../utils/api';
+import { cacheUtils } from '../../utils/apiCache';
 
 const Settings = () => {
     const navigate = useNavigate();
@@ -26,6 +28,9 @@ const Settings = () => {
     const [dataSharingConsent, setDataSharingConsent] = useState(false);
     const [twoFactorAuth, setTwoFactorAuth] = useState(false);
     const [autoLogout, setAutoLogout] = useState('30');
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [deleteReason, setDeleteReason] = useState('');
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     // Apply theme changes
     useEffect(() => {
@@ -75,9 +80,36 @@ const Settings = () => {
         alert('Data export initiated. You will receive an email when ready.');
     };
 
-    const handleDeleteAccount = () => {
-        if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-            alert('Account deletion initiated. Please check your email for confirmation.');
+    const handleDeleteAccount = async () => {
+        if (!showDeleteConfirm) {
+            setShowDeleteConfirm(true);
+            return;
+        }
+        setDeleteLoading(true);
+        try {
+            const token = localStorage.getItem('authToken');
+            const accessToken = localStorage.getItem('accessToken');
+            const isNewApi = (process.env.NEXT_PUBLIC_USE_NEW_API === 'true');
+            if (isNewApi && token && accessToken) {
+                await apiCall('deleteAccount', {
+                    body: { accessToken, reason: deleteReason || 'No reason provided' },
+                    token,
+                    base: 'new'
+                });
+            }
+            // Clear all local data
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('userProfile');
+            cacheUtils.clearAllOnLogout();
+            alert('Your account has been permanently deleted.');
+            window.location.href = '/';
+        } catch (error) {
+            alert('Failed to delete account: ' + (error.message || 'Unknown error'));
+        } finally {
+            setDeleteLoading(false);
+            setShowDeleteConfirm(false);
         }
     };
 
@@ -340,12 +372,52 @@ const Settings = () => {
                                 <p className="text-sm text-gray-500 dark:text-gray-400">Permanently delete your account and all data</p>
                             </div>
                             <button
-                                onClick={handleDeleteAccount}
+                                onClick={() => setShowDeleteConfirm(true)}
                                 className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
                             >
                                 Delete
                             </button>
                         </div>
+
+                        {/* Delete Account Confirmation Modal */}
+                        {showDeleteConfirm && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
+                                    <h2 className="text-xl font-bold mb-2 text-red-600">Delete Account</h2>
+                                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                                        This action is <strong>permanent</strong> and cannot be undone. All your data will be deleted.
+                                    </p>
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Reason for leaving (optional)
+                                        </label>
+                                        <textarea
+                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700"
+                                            value={deleteReason}
+                                            onChange={(e) => setDeleteReason(e.target.value)}
+                                            rows={3}
+                                            placeholder="Tell us why you're leaving..."
+                                        />
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={handleDeleteAccount}
+                                            disabled={deleteLoading}
+                                            className="flex-1 bg-red-600 text-white py-2 rounded-md hover:bg-red-700 disabled:opacity-50"
+                                        >
+                                            {deleteLoading ? 'Deleting...' : 'Confirm Delete'}
+                                        </button>
+                                        <button
+                                            onClick={() => { setShowDeleteConfirm(false); setDeleteReason(''); }}
+                                            disabled={deleteLoading}
+                                            className="flex-1 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white py-2 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
