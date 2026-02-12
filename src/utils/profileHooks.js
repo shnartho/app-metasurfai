@@ -120,9 +120,24 @@ export const useProfileData = () => {
             // Dispatch update event
             window.dispatchEvent(new Event('profileUpdated'));
             
-            // TODO: Add API call to sync with server if needed
-            // const token = localStorage.getItem('authToken');
-            // await apiCall('updateProfile', { body: updates, token });
+            // Sync with backend (new API only)
+            const isNewApi = (process.env.NEXT_PUBLIC_USE_NEW_API === 'true');
+            if (isNewApi) {
+                const token = localStorage.getItem('authToken');
+                const accessToken = localStorage.getItem('accessToken');
+                if (token && accessToken) {
+                    const { apiCall } = await import('./api');
+                    await apiCall('updateProfile', {
+                        body: {
+                            accessToken,
+                            address: updates.address || undefined,
+                            phone: updates.phone || undefined
+                        },
+                        token,
+                        base: 'new'
+                    });
+                }
+            }
             
             return true;
         } catch (error) {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useProfileData, useWatchedAds } from '../../utils/profileHooks';
 import { cacheUtils } from '../../utils/apiCache';
+import { decodeIdToken } from '../../utils/api';
 
 function Profile() {
     // Use optimized hooks for profile and watched ads data
@@ -52,10 +53,24 @@ function Profile() {
 
     const handleSaveProfile = async () => {
         try {
-            const success = await updateProfile(editedProfile);
+            const success = await updateProfile({
+                address: editedProfile.address,
+                phone: editedProfile.phone
+            });
             if (success) {
                 setEditMode(false);
-                // Force refresh to get latest data from server
+                // For new API, re-decode the token to update display (Cognito updates are on the token)
+                const isNewApi = (process.env.NEXT_PUBLIC_USE_NEW_API === 'true');
+                if (isNewApi) {
+                    const token = localStorage.getItem('authToken');
+                    if (token) {
+                        const fresh = decodeIdToken(token);
+                        if (fresh) {
+                            const merged = { ...profileData, ...fresh, address: editedProfile.address, phone: editedProfile.phone };
+                            localStorage.setItem('userProfile', JSON.stringify(merged));
+                        }
+                    }
+                }
                 await refreshProfile(true);
             } else {
                 alert('Failed to update profile. Please try again.');
@@ -151,6 +166,82 @@ function Profile() {
                         <div className="text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-md">
                             {getEmail() || 'N/A'}
                         </div>
+                    </div>
+
+                    {/* Editable Address */}
+                    <div className="profile-item">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Address
+                        </label>
+                        {editMode ? (
+                            <input
+                                type="text"
+                                className="w-full text-gray-900 dark:text-white bg-white dark:bg-gray-600 px-3 py-2 rounded-md border border-gray-300 dark:border-gray-500"
+                                value={editedProfile.address || ''}
+                                onChange={(e) => setEditedProfile({ ...editedProfile, address: e.target.value })}
+                                placeholder="Your address"
+                            />
+                        ) : (
+                            <div className="text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-md">
+                                {profileData?.address || 'Not provided'}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Editable Phone */}
+                    <div className="profile-item">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Phone
+                        </label>
+                        {editMode ? (
+                            <input
+                                type="tel"
+                                className="w-full text-gray-900 dark:text-white bg-white dark:bg-gray-600 px-3 py-2 rounded-md border border-gray-300 dark:border-gray-500"
+                                value={editedProfile.phone || ''}
+                                onChange={(e) => setEditedProfile({ ...editedProfile, phone: e.target.value })}
+                                placeholder="+351XXXXXXXXX"
+                            />
+                        ) : (
+                            <div className="text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-md">
+                                {profileData?.phone || 'Not provided'}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Edit / Save / Cancel buttons */}
+                    <div className="flex gap-2">
+                        {editMode ? (
+                            <>
+                                <button
+                                    onClick={handleSaveProfile}
+                                    className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-semibold transition-all duration-200"
+                                >
+                                    Save Changes
+                                </button>
+                                <button
+                                    onClick={handleCancelEdit}
+                                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-semibold transition-all duration-200"
+                                >
+                                    Cancel
+                                </button>
+                            </>
+                        ) : (
+                            <button
+                                onClick={() => {
+                                    setEditedProfile({
+                                        name: getName(),
+                                        email: getEmail(),
+                                        address: profileData?.address || '',
+                                        phone: profileData?.phone || '',
+                                        region: profileData?.region || '',
+                                    });
+                                    setEditMode(true);
+                                }}
+                                className="w-full bg-pink-600 dark:bg-blue-600 hover:bg-pink-700 dark:hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-semibold transition-all duration-200"
+                            >
+                                Edit Profile
+                            </button>
+                        )}
                     </div>
 
                     {/* Local Balance Display */}
