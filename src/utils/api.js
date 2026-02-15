@@ -31,7 +31,7 @@ export const tokenManager = {
                 }
                 return null;
             } catch (err) {
-                console.warn('[tokenManager] Refresh failed:', err);
+                // Silently handle refresh failures
                 return null;
             } finally {
                 _refreshPromise = null;
@@ -86,7 +86,7 @@ export const decodeIdToken = (idToken) => {
             email_verified: decoded.email_verified || false,
         };
     } catch (e) {
-        console.error('[decodeIdToken] Failed to decode token:', e);
+        // Silently handle decode failures
         return null;
     }
 };
@@ -152,7 +152,7 @@ export const apiCall = async (action, { body = {}, token = '', headers = {}, bas
             data = {};
         }
         if (!response.ok) {
-            console.log(data.error || data.message || data);
+            // Silently handle auth errors - don't log to console
             throw new Error(
                 data && (data.error || data.message)
                     ? data.error || data.message
@@ -161,7 +161,7 @@ export const apiCall = async (action, { body = {}, token = '', headers = {}, bas
         }
         return data;
     } catch (error) {
-        console.log(error);
+        // Silently handle errors - don't log to console
         throw error instanceof Error ? error : new Error(String(error));
     }
 };

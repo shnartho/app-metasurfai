@@ -280,7 +280,6 @@ export const cachedApiCall = async (action, options = {}, forceRefresh = false) 
             
             return result;
         } catch (error) {
-            console.error(`[CachedApiCall] API call failed for ${action}:`, error);
             throw error;
         }
     })();
@@ -340,7 +339,6 @@ export const cacheUtils = {
             localStorage.removeItem('watchedAds'); // Will be rebuilt for new user
             
         } catch (e) {
-            console.warn('[CacheUtils] Failed to clear previous user cache:', e);
         }
     },
 

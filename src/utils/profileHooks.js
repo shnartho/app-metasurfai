@@ -80,7 +80,6 @@ export const useProfileData = () => {
                 return freshProfile;
             }
         } catch (error) {
-            console.error('[useProfileData] Error refreshing profile:', error);
             setError(error);
             
             // Fall back to cached/localStorage data if API fails
@@ -90,7 +89,6 @@ export const useProfileData = () => {
                     const fallbackProfile = JSON.parse(storedProfile);
                     setProfileData(fallbackProfile);
                 } catch (parseError) {
-                    console.error('[useProfileData] Error parsing fallback profile:', parseError);
                 }
             }
         } finally {
@@ -141,7 +139,6 @@ export const useProfileData = () => {
             
             return true;
         } catch (error) {
-            console.error('[useProfileData] Error updating profile:', error);
             setError(error);
             return false;
         }
@@ -202,7 +199,6 @@ export const useWatchedAds = () => {
                         setLocalWatchedAds(new Set(adsArray));
                     }
                 } catch (error) {
-                    console.error('[useWatchedAds] Error loading watched ads:', error);
                 }
             };
             loadWatchedAds();
@@ -210,9 +206,6 @@ export const useWatchedAds = () => {
     }, [profileData?.watched_ads, getUserId]);
 
     const addWatchedAd = useCallback((adId) => {
-        // This is now handled by the API - this function is for backward compatibility
-        console.warn('[useWatchedAds] addWatchedAd is deprecated - use balanceUtils.handleWatchedAd() instead');
-        
         setLocalWatchedAds(prev => {
             const newSet = new Set(prev);
             newSet.add(adId);
@@ -237,7 +230,6 @@ export const useWatchedAds = () => {
             localStorage.removeItem('watchedAds'); // Also clear legacy key
             
         } catch (error) {
-            console.error('[useWatchedAds] Error clearing watched ads:', error);
         }
     }, [getUserId]);
 

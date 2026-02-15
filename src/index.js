@@ -17,9 +17,3 @@ if (appElement) {
 } else {
     console.error('Failed to find the root element');
 }
-
-if (module.hot) {
-   module.hot.accept('./styles/styles.css', function() {
-       require('./styles/styles.css');
-   });
-}

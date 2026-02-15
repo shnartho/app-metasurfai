@@ -152,7 +152,7 @@ export const balanceUtils = {
             return false;
         })
         .catch(error => {
-            console.warn('[BalanceUtils] Error fetching backend balance:', error);
+            // Silently handle balance fetch errors
             return false;
         });
     },
@@ -161,7 +161,7 @@ export const balanceUtils = {
     async handleWatchedAd(adId) {
         const token = localStorage.getItem('authToken');
         if (!token) {
-            console.warn('[BalanceUtils] No auth token for watched ad');
+            // Silently handle missing token
             return false;
         }
 
@@ -193,11 +193,11 @@ export const balanceUtils = {
                 await this.fetchBalanceFromBackend();
                 return true;
             } else {
-                console.warn('[BalanceUtils] Watched ad API did not return profile data');
+                // Silently handle missing profile data
                 return false;
             }
         } catch (error) {
-            console.error('[BalanceUtils] Error calling watched ad API:', error);
+            // Silently handle API errors
             return false;
         }
     },

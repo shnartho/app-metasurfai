@@ -6,6 +6,30 @@
     @apply transition-colors duration-200;
 }
 
+/* Fade in/out animation for rotating messages */
+@keyframes fade-in-out {
+    0% {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    10% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    90% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+}
+
+.animate-fade-in-out {
+    animation: fade-in-out 3s ease-in-out infinite;
+}
+
 /* Live pulse animation for market videos */
 @keyframes pulse {
     0% {

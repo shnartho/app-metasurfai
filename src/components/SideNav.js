@@ -22,6 +22,7 @@ const SideNav = ({ isOpen, DarkMode }) => {
         { name: 'VR', icon: '/vr.png', path: '/vr' },
         { name: 'Channels', icon: '/channels.png', path: '/channels' },
         { name: 'Metaverse', icon: '/metaverse.png', path: '/metaverse' },
+        { name: 'AI Ads Campaign', icon: '/ai_icon.svg', path: '/ai-ads-campaign' },
         { name: 'Radio', icon: '/radio.png', path: '/radio' },
         { name: 'Game', icon: '/game.png', path: '/game' },
         { name: 'Duet', icon: '/duet.png', path: '/duet' },

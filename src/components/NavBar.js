@@ -16,6 +16,27 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userProfile, setUserProfile] = useState(null);
+    const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+
+    // Rotating messages for the header - pairs of user and advertiser messages
+    const rotatingMessages = [
+        {
+            user: "Watch ads, earn money",
+            advertiser: "Single platform for all your ads campaign"
+        },
+        {
+            user: "Monetize your attention",
+            advertiser: "Connect with global audiences"
+        },
+        {
+            user: "Turn views into rewards",
+            advertiser: "Targeted advertising made simple"
+        },
+        {
+            user: "Earn while you browse",
+            advertiser: "Maximize your ad ROI"
+        }
+    ];
 
     // Helper function to check if a path is active
     const isActivePath = (path) => {
@@ -69,6 +90,17 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
         };
     }, []);
 
+    // Rotating messages effect
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentMessageIndex((prevIndex) => 
+                (prevIndex + 1) % rotatingMessages.length
+            );
+        }, 3000); // Change message every 3 seconds
+
+        return () => clearInterval(interval);
+    }, [rotatingMessages.length]);
+
     const handleLogout = async () => {
         // Call backend logout to invalidate tokens (best-effort)
         try {
@@ -78,7 +110,7 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                 await apiCall('logout', { token, base: 'new' });
             }
         } catch (e) {
-            console.warn('[NavBar] Backend logout failed (proceeding anyway):', e);
+            // Silently handle logout failures
         }
 
         // Clear authentication data
@@ -140,17 +172,27 @@ const NavBar = ({ DarkMode, toggleDarkMode, toggleSidebar }) => {
                 />
             </div>
             <div className="flex-1 nav-item">
-                <a href="/" className="btn btn-ghost flex items-center hover:scale-105 transition-transform duration-300">
-                    <img 
-                        src={DarkMode ? '/LogoDark.png' : '/Logo.png'} 
-                        alt="MetaSurf Logo" 
-                        width={36} 
-                        height={36} 
-                        className='rounded-xl animate-pulse' 
-                    />
-                    <span className='dark:text-white text-black text-2xl font-Oxanium ml-2 bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent'>
-                        MetaSurfAI
-                    </span>
+                <a href="/" className="btn btn-ghost flex flex-col items-center hover:scale-105 transition-transform duration-300">
+                    <div className="flex items-center">
+                        <img 
+                            src={DarkMode ? '/LogoDark.png' : '/Logo.png'} 
+                            alt="MetaSurf Logo" 
+                            width={36} 
+                            height={36} 
+                            className='rounded-xl animate-pulse' 
+                        />
+                        <span className='dark:text-white text-black text-2xl font-Oxanium ml-2 bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent'>
+                            MetaSurfAI
+                        </span>
+                    </div>
+                    <div className="flex flex-col items-center text-center">
+                        <span className='text-xs text-gray-600 dark:text-gray-400 animate-fade-in-out transition-opacity duration-500'>
+                            Users: {rotatingMessages[currentMessageIndex].user}
+                        </span>
+                        <span className='text-xs text-gray-600 dark:text-gray-400 animate-fade-in-out transition-opacity duration-500 mt-1'>
+                            Advertisers: {rotatingMessages[currentMessageIndex].advertiser}
+                        </span>
+                    </div>
                 </a>
             </div>
 

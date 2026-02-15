@@ -22,6 +22,7 @@ import Metaverse from "./components/Metaverse/Metaverse";
 import Games from "./components/Game/Games";
 import Duet from "./components/Duet/Duet";
 import Connect from "./components/Connect/Connect";
+import AIAdsCampaign from "./components/AIAdsCampaign";
 import Modal from 'react-modal';
 import { ToastProvider } from "./components/Toast/ToastContext";
 import { balanceUtils } from "./utils/balanceUtils";
@@ -80,14 +81,14 @@ const App = () => {
         if (!profile || !JSON.parse(profile)?.balance) {
           // Fetch balance from backend for incognito mode
           balanceUtils.fetchBalanceFromBackend().catch(err => {
-            console.warn('[App] Failed to fetch balance:', err);
+            // Silently handle balance fetch failures
           });
         } else {
           // For regular mode, just clean up any inconsistencies
           balanceUtils.forceCleanup();
         }
       } catch (error) {
-        console.warn('[App] Balance init failed:', error);
+        // Silently handle balance initialization failures
       }
     }
   }, []);
@@ -165,6 +166,7 @@ const App = () => {
             <Route path="/game" element={<Games />} />
             <Route path="/duet" element={<Duet />} />
             <Route path="/connect" element={<Connect />} />
+            <Route path="/ai-ads-campaign" element={<AIAdsCampaign />} />
           </Routes>
         </main>
       </div>

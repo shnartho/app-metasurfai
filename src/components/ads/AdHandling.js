@@ -78,9 +78,11 @@ const AdHandler = () => {
     useEffect(() => {
         const fetchAds = async () => {
             try {
+                // Use old API for non-authenticated users, new API for authenticated users
+                const apiBase = isAuthenticated ? 'new' : 'old';
                 // Use cached API call - will use cache if valid, otherwise make API call
                 const adsData = await cachedApiCall("ads", { 
-                    base: 'new' 
+                    base: apiBase 
                 });
                 
                 // Defensive: Only set ads if response is an array
@@ -107,7 +109,7 @@ const AdHandler = () => {
             }
         };
         fetchAds();
-    }, []);
+    }, [isAuthenticated]);
 
     // Add a new function to sort ads based on watched status
     const getSortedAds = () => {

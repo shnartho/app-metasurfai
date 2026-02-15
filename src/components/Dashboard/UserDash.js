@@ -106,7 +106,6 @@ const UserDash = () => {
                     });
                     return { success: true, id: adId };
                 } catch (error) {
-                    console.error(`Failed to delete ad ${adId}:`, error);
                     return { success: false, id: adId, error };
                 }
             });
@@ -116,7 +115,6 @@ const UserDash = () => {
             const failedDeletes = deleteResults.filter(result => !result.success);
 
             if (failedDeletes.length > 0) {
-                console.error('Some deletions failed:', failedDeletes);
                 alert(`${successfulDeletes.length} ads deleted successfully, ${failedDeletes.length} failed.`);
             } else {
                 alert(`All ${successfulDeletes.length} ads deleted successfully!`);
@@ -127,7 +125,6 @@ const UserDash = () => {
             await refreshAdsFromApi(true); // Force refresh after deletion
             
         } catch (error) {
-            console.error('Error during deletion process:', error);
             alert('Error occurred during deletion. Please try again.');
         } finally {
             setSelectedAds([]);
@@ -151,8 +148,6 @@ const UserDash = () => {
                 setUserAds(userAdsFiltered);
             }
         } catch (error) {
-            console.error('Error refreshing ads from API:', error);
-            // If API call fails, fall back to localStorage filtering
             handleRefreshAds();
         }
     };
@@ -202,7 +197,6 @@ const UserDash = () => {
         try {
             await refreshAdsFromApi();
         } catch (error) {
-            console.warn('API refresh failed, falling back to localStorage');
             const storedAds = localStorage.getItem('Ads');
             if (storedAds) {
                 const allAds = JSON.parse(storedAds);
@@ -246,7 +240,6 @@ const UserDash = () => {
             return response;
             */
         } catch (error) {
-            console.error('Error updating ad:', error);
             throw error;
         }
     };
