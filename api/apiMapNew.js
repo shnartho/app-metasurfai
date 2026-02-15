@@ -77,7 +77,7 @@ const apiMapNew = {
         base: 'new',
         endpoint: '/forgot-password',
         method: 'POST',
-        headers: () => ({ 'Content-Type': 'application/json', 'x-api-key': API_KEY }),
+        headers: () => ({ 'Content-Type': 'application/json' }),
         transform: (body) => ({ email: body.email })
     },
 
@@ -85,7 +85,7 @@ const apiMapNew = {
         base: 'new',
         endpoint: '/confirm-forgot-password',
         method: 'POST',
-        headers: () => ({ 'Content-Type': 'application/json', 'x-api-key': API_KEY }),
+        headers: () => ({ 'Content-Type': 'application/json' }),
         transform: (body) => ({
             email: body.email,
             confirmation_code: body.confirmation_code,
