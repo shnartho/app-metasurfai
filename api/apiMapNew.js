@@ -1,10 +1,10 @@
 
 // Consolidated (no duplicates) new API map.
 // NEW API ALWAYS REQUIRES an API key: set API_KEY (preferred) or X_API_KEY / NEW_API_KEY (legacy) in env.
-const API_KEY = process.env.API_KEY
-// Fail fast if missing so misconfiguration is obvious (you can downgrade to console.warn if needed)
+const API_KEY = process.env.API_KEY || ''
+// Warn if missing but don't prevent loading
 if (!API_KEY) {
-    console.error('Missing required API_KEY environment variable for NEW API calls.');
+    console.warn('[apiMapNew] API_KEY environment variable is not set. Some API calls may fail.');
 }
 
 const apiMapNew = {
@@ -17,12 +17,12 @@ const apiMapNew = {
         transform: () => ({})
     },
 
-    // ─── Auth (Cognito) ──────────────────────────────────────────────
+    // ─── Auth (Cognito - AWS Backend) ───────────────────────────────
     signup: {
         base: 'new',
         endpoint: '/signup',
         method: 'POST',
-        headers: () => ({ 'Content-Type': 'application/json', 'x-api-key': API_KEY }),
+        headers: () => ({ 'Content-Type': 'application/json' }),
         transform: (body) => ({
             email: body.email,
             password: body.password,
@@ -35,7 +35,7 @@ const apiMapNew = {
         base: 'new',
         endpoint: '/login',
         method: 'POST',
-        headers: () => ({ 'Content-Type': 'application/json', 'x-api-key': API_KEY }),
+        headers: () => ({ 'Content-Type': 'application/json' }),
         transform: (body) => ({ email: body.email, password: body.password })
     },
 
@@ -45,8 +45,7 @@ const apiMapNew = {
         method: 'POST',
         headers: (body, token) => ({
             'Content-Type': 'application/json',
-            'Authorization': token ? `Bearer ${token}` : '',
-            'x-api-key': API_KEY
+            'Authorization': token ? `Bearer ${token}` : ''
         }),
         transform: () => ({})
     },
@@ -55,7 +54,7 @@ const apiMapNew = {
         base: 'new',
         endpoint: '/refresh-token',
         method: 'POST',
-        headers: () => ({ 'Content-Type': 'application/json', 'x-api-key': API_KEY }),
+        headers: () => ({ 'Content-Type': 'application/json' }),
         transform: (body) => ({ refreshToken: body.refreshToken })
     },
 
@@ -65,8 +64,7 @@ const apiMapNew = {
         method: 'POST',
         headers: (body, token) => ({
             'Content-Type': 'application/json',
-            'Authorization': token ? `Bearer ${token}` : '',
-            'x-api-key': API_KEY
+            'Authorization': token ? `Bearer ${token}` : ''
         }),
         transform: (body) => ({
             accessToken: body.accessToken,

@@ -34,30 +34,21 @@ const LoginForm = ({ onClose, onSwitchToSignup }) => {
             password: password
         };
         try {
-            // Login via apiCall
-            const isNewApi = (process.env.NEXT_PUBLIC_USE_NEW_API === 'true');
-            const base = isNewApi ? 'new' : 'old';
+            // Login via apiCall - always use new AWS backend
+            const base = 'new';
             const data = await apiCall('login', { body: userData, base });
 
             // New backend returns {idToken, accessToken, refreshToken, expiresIn}
-            // Old backend returns {token}
-            const authToken = isNewApi ? data.idToken : data.token;
+            const authToken = data.idToken;
             if (!authToken) throw new Error('No auth token received');
 
             localStorage.setItem('authToken', authToken);
-            if (isNewApi) {
-                localStorage.setItem('accessToken', data.accessToken);
-                localStorage.setItem('refreshToken', data.refreshToken);
-            }
+            localStorage.setItem('accessToken', data.accessToken);
+            localStorage.setItem('refreshToken', data.refreshToken);
 
-            // Build profile: decode JWT for new API, fetch endpoint for old API
-            let profileData;
-            if (isNewApi) {
-                profileData = decodeIdToken(authToken);
-                if (!profileData) throw new Error('Failed to decode user profile from token');
-            } else {
-                profileData = await apiCall('profile', { token: authToken, base });
-            }
+            // Build profile: decode JWT from new API
+            const profileData = decodeIdToken(authToken);
+            if (!profileData) throw new Error('Failed to decode user profile from token');
             localStorage.setItem('userProfile', JSON.stringify(profileData));
             
             // Clear cache from any previous user sessions

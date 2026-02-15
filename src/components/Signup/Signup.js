@@ -12,7 +12,6 @@ const SignUpForm = ({ onSwitchToLogin, onClose }) => {
     const [needsVerification, setNeedsVerification] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    const isNewApi = (process.env.NEXT_PUBLIC_USE_NEW_API === 'true');
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
@@ -21,12 +20,12 @@ const SignUpForm = ({ onSwitchToLogin, onClose }) => {
             password: password
         };
         try {
-            // Step 1: Sign up the user (old or new API)
-            const base = isNewApi ? 'new' : 'old';
+            // Step 1: Sign up the user - always use new AWS backend
+            const base = 'new';
             const signupRes = await apiCall('signup', { body: userData, base });
 
             // New backend (Cognito) may require email verification before login
-            if (isNewApi && signupRes.userConfirmed === false) {
+            if (signupRes.userConfirmed === false) {
                 setNeedsVerification(true);
                 setSuccess(true);
                 setError(null);
@@ -37,23 +36,16 @@ const SignUpForm = ({ onSwitchToLogin, onClose }) => {
             const loginRes = await apiCall('login', { body: userData, base });
 
             // New backend returns {idToken, accessToken, refreshToken}
-            const authToken = isNewApi ? loginRes.idToken : loginRes.token;
+            const authToken = loginRes.idToken;
             if (!authToken) throw new Error('No auth token received');
 
             localStorage.setItem('authToken', authToken);
-            if (isNewApi) {
-                localStorage.setItem('accessToken', loginRes.accessToken);
-                localStorage.setItem('refreshToken', loginRes.refreshToken);
-            }
+            localStorage.setItem('accessToken', loginRes.accessToken);
+            localStorage.setItem('refreshToken', loginRes.refreshToken);
 
-            // Step 3: Build profile from token (new) or fetch from API (old)
-            let profileRes;
-            if (isNewApi) {
-                profileRes = decodeIdToken(authToken);
-                if (!profileRes) throw new Error('Failed to decode user profile from token');
-            } else {
-                profileRes = await apiCall('profile', { token: authToken, base });
-            }
+            // Step 3: Build profile from token
+            const profileRes = decodeIdToken(authToken);
+            if (!profileRes) throw new Error('Failed to decode user profile from token');
             localStorage.setItem('userProfile', JSON.stringify(profileRes));
             
             // Clear cache from any previous user sessions (but keep current user's data)

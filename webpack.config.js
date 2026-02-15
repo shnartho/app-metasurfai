@@ -31,9 +31,6 @@ module.exports = {
             if (process.env.NODE_ENV === 'development' || process.env.DEV_MODE === 'true') {
                 const express = require('express');
                 
-                const apiMapOld = require('./api/apiMapOld');
-                const apiMapNew = require('./api/apiMapNew');
-                
                 console.log('[WEBPACK] Setting up development proxy middleware');
                 
                 // Add body parsing middleware for JSON
@@ -51,8 +48,12 @@ module.exports = {
                     }
 
                     try {
-                        // Use only one API map based on USE_NEW_API env
+                        // Hybrid mode: load both API maps (auth uses new, rest use old)
                         const useNewAPI = process.env.USE_NEW_API === 'true';
+                        
+                        // Always load both API maps for hybrid approach
+                        const apiMapOld = require('./api/apiMapOld');
+                        const apiMapNew = require('./api/apiMapNew');
                         
                         if (!req.body || typeof req.body !== 'object') {
                             res.status(400).json({ error: 'Missing or invalid JSON body' });
@@ -60,10 +61,13 @@ module.exports = {
                         }
                         
                         const { action, token, __base, ...body } = req.body;
-                        console.log(`[PROXY] Processing action: ${action}, base: ${__base || (useNewAPI ? 'new' : 'old')}`);
+                        console.log(`[PROXY] Processing action: ${action}, base: ${__base || (useNewAPI ? 'new' : 'old')}, useNewAPI: ${useNewAPI}`);
+                        console.log(`[PROXY] Available actions in old map:`, Object.keys(apiMapOld));
+                        console.log(`[PROXY] Available actions in new map:`, Object.keys(apiMapNew));
                         
                         // Use __base from frontend if provided, else fallback to global flag
                         const base = __base || (useNewAPI ? 'new' : 'old');
+                        console.log(`[PROXY] Using base: ${base}`);
                         const mapping = base === 'new' ? apiMapNew[action] : apiMapOld[action];
                         
                         if (!mapping) {
@@ -94,6 +98,7 @@ module.exports = {
                         console.log(`[PROXY] Making ${method} request to: ${targetUrl}`);
                         
                         const response = await fetch(targetUrl, config);
+                        console.log(`[PROXY] Response status: ${response.status}, statusText: ${response.statusText}`);
                         const respContentType = response.headers.get('content-type');
                         let data;
                         
@@ -103,6 +108,7 @@ module.exports = {
                             data = await response.text();
                         }
                         
+                        console.log(`[PROXY] Response data:`, data);
                         res.status(response.status).json(data);
                     } catch (error) {
                         console.error('Proxy handler error:', error);
